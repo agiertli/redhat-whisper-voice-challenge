@@ -40,7 +40,7 @@ This is the most important customization file. It contains the phrases that atte
 ### Adding a new language
 
 1. Add the language code and phrases to `challenges.json`
-2. Add the language to `supportedLanguages` in `helm/whisper-ui/values.yaml`:
+2. Add the language to `supportedLanguages` in `helm/whisper/values.yaml`:
    ```yaml
    supportedLanguages: |
      {
@@ -55,7 +55,7 @@ This is the most important customization file. It contains the phrases that atte
 All set via Helm values — no code changes needed.
 
 ```bash
-helm upgrade whisper helm/whisper-ui \
+helm upgrade whisper helm/whisper \
   --set conference.name="DevConf.cz 2026" \
   --set game.requiredLanguage="cs" \
   --set game.challengeCount="3" \
@@ -135,7 +135,7 @@ The default registry is `quay.io/agiertli/whisper-ui`. To use your own:
 IMAGE_REGISTRY=quay.io/your-org IMAGE_NAME=whisper-ui ./deploy.sh
 
 # Option 2: Helm values
-helm upgrade whisper helm/whisper-ui \
+helm upgrade whisper helm/whisper \
   --set image.repository=quay.io/your-org/whisper-ui \
   --set image.tag=v1.0.0
 ```

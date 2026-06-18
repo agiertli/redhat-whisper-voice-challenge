@@ -68,7 +68,7 @@ Ensure you have an OpenShift cluster with:
 
 ### 2. Configure
 
-Edit `helm/whisper-ui/values.yaml`:
+Edit `helm/whisper/values.yaml`:
 
 ```yaml
 # REQUIRED: your cluster's apps domain
@@ -94,7 +94,7 @@ A pre-built UI image is available at `quay.io/agiertli/whisper-ui` — you don't
 
 ```bash
 # Deploy using the pre-built image (no build needed)
-helm upgrade --install whisper helm/whisper-ui \
+helm upgrade --install whisper helm/whisper \
   --namespace whisper --create-namespace
 
 # Or build your own image and deploy:
@@ -177,7 +177,7 @@ After editing `challenges.json`, rebuild and redeploy:
 Set via Helm values (no code changes needed):
 
 ```bash
-helm upgrade whisper helm/whisper-ui \
+helm upgrade whisper helm/whisper \
   --set conference.name="DevConf 2026" \
   --set game.requiredLanguage="cs"
 ```

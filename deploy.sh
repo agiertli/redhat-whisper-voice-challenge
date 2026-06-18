@@ -7,7 +7,7 @@
 # Configuration via environment variables:
 #   IMAGE_REGISTRY  - Container registry (default: quay.io/agiertli)
 #   IMAGE_NAME      - Image name (default: whisper-ui)
-#   VERSION         - Image tag, semver (default: reads from helm/whisper-ui/values.yaml)
+#   VERSION         - Image tag, semver (default: reads from helm/whisper/values.yaml)
 #   NAMESPACE       - Target namespace (default: whisper)
 #   HELM_VALUES     - Extra Helm values file (optional)
 #
@@ -23,7 +23,7 @@ set -euo pipefail
 IMAGE_REGISTRY="${IMAGE_REGISTRY:-quay.io/agiertli}"
 IMAGE_NAME="${IMAGE_NAME:-whisper-ui}"
 NAMESPACE="${NAMESPACE:-whisper}"
-VERSION="${VERSION:-$(grep 'tag:' helm/whisper-ui/values.yaml | head -1 | awk '{print $2}' | tr -d '"')}"
+VERSION="${VERSION:-$(grep 'tag:' helm/whisper/values.yaml | head -1 | awk '{print $2}' | tr -d '"')}"
 IMAGE="${IMAGE_REGISTRY}/${IMAGE_NAME}:${VERSION}"
 SKIP_BUILD=false
 
@@ -106,7 +106,7 @@ echo ""
 echo "Deploying via Helm to namespace '${NAMESPACE}'..."
 
 HELM_ARGS=(
-    upgrade --install whisper helm/whisper-ui
+    upgrade --install whisper helm/whisper
     --namespace "${NAMESPACE}"
     --create-namespace
     --wait --timeout 5m

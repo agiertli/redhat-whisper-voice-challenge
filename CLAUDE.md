@@ -7,7 +7,7 @@ Interactive voice transcription game for Red Hat conference booths. Attendees sp
 - **Main app**: `src/app_streaming.py` (Flask, single file)
 - **Frontend**: `src/templates/index.html` (single-page HTML/CSS/JS)
 - **Challenge phrases**: `challenges.json` (Red Hat/OpenShift themed, 20+ languages)
-- **Helm chart**: `helm/whisper-ui/` (deploys everything: UI, vLLM, RBAC, monitoring)
+- **Helm chart**: `helm/whisper/` (deploys everything: UI, vLLM, RBAC, monitoring)
 - **Deploy script**: `./deploy.sh` (build + push + helm install)
 
 ## Installation Playbook
@@ -47,7 +47,7 @@ EOF
 
 ### Step 2: Configure values
 
-Edit `helm/whisper-ui/values.yaml`:
+Edit `helm/whisper/values.yaml`:
 - `clusterDomain` — **REQUIRED**: your cluster's apps domain (find it with `oc get ingresses.config cluster -o jsonpath='{.spec.domain}'`)
 - `conference.name` — your conference name
 - `game.requiredLanguage` — default language code (e.g., `sk`, `cs`, `en`)
@@ -63,7 +63,7 @@ A pre-built UI image is available at `quay.io/agiertli/whisper-ui` — no build 
 
 ```bash
 # Deploy using the pre-built image (no build needed)
-helm upgrade --install whisper helm/whisper-ui \
+helm upgrade --install whisper helm/whisper \
   --namespace whisper --create-namespace
 
 # Or build your own image and deploy:
@@ -102,7 +102,7 @@ You need at least as many phrases per language as `game.challengeCount` (default
 
 ## Helm Chart
 
-The chart in `helm/whisper-ui/` deploys everything:
+The chart in `helm/whisper/` deploys everything:
 - UI Deployment + Service + Route
 - ServiceAccount + ClusterRole + ClusterRoleBindings (for Prometheus access)
 - ConfigMap (all app configuration)
@@ -113,21 +113,21 @@ The chart in `helm/whisper-ui/` deploys everything:
 
 ```bash
 # Install / upgrade
-helm upgrade --install whisper helm/whisper-ui \
+helm upgrade --install whisper helm/whisper \
   --namespace whisper --create-namespace \
   --set image.tag=$(git rev-parse --short HEAD)
 
 # Change conference
-helm upgrade whisper helm/whisper-ui -n whisper \
+helm upgrade whisper helm/whisper -n whisper \
   --set conference.name="DevConf 2026" \
   --set game.requiredLanguage="cs"
 
 # Change GPU memory
-helm upgrade whisper helm/whisper-ui -n whisper \
+helm upgrade whisper helm/whisper -n whisper \
   --set gpu.memoryUtilization=0.3
 ```
 
-See `helm/whisper-ui/values.yaml` for all parameters.
+See `helm/whisper/values.yaml` for all parameters.
 
 ## Metrics Architecture
 
