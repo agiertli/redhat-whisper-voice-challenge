@@ -90,18 +90,15 @@ The Whisper API URL is constructed automatically from `clusterDomain` and `whisp
 
 The Helm chart deploys **everything in one shot** — the UI app, vLLM ServingRuntime, Whisper InferenceService (with OCI modelcar), RBAC for Prometheus, and monitoring config.
 
-```bash
-# Using deploy.sh (builds, pushes, and deploys)
-IMAGE_REGISTRY=quay.io/your-org ./deploy.sh
+A pre-built UI image is available at `quay.io/agiertli/whisper-ui` — you don't need to build anything unless you've modified the source code.
 
-# Or manually:
-VERSION=$(git rev-parse --short HEAD)
-podman build --platform linux/amd64 -f Containerfile -t quay.io/your-org/whisper-ui:${VERSION} .
-podman push quay.io/your-org/whisper-ui:${VERSION}
+```bash
+# Deploy using the pre-built image (no build needed)
 helm upgrade --install whisper-ui helm/whisper-ui \
-  --namespace whisper --create-namespace \
-  --set image.repository=quay.io/your-org/whisper-ui \
-  --set image.tag=${VERSION}
+  --namespace whisper --create-namespace
+
+# Or build your own image and deploy:
+IMAGE_REGISTRY=quay.io/your-org ./deploy.sh
 ```
 
 ### 4. Verify
@@ -251,7 +248,7 @@ All Helm values:
 | Value | Default | Description |
 |-------|---------|-------------|
 | `image.repository` | `quay.io/agiertli/whisper-ui` | UI container image |
-| `image.tag` | `""` | Image tag (set to git SHA) |
+| `image.tag` | `prom-metrics-v4` | Image tag (override with git SHA when building custom) |
 | `namespace` | `whisper` | Target namespace |
 | `clusterDomain` | — | Cluster apps domain (REQUIRED) |
 | `whisperApi.modelName` | `whisper` | InferenceService name |

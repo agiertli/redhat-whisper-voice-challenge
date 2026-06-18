@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sk" class="h-full">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whisper UI - Interaktívna architektúra</title>
+    <title>Whisper UI - Interactive Architecture</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({ startOnLoad: false, theme: 'dark' });</script>
@@ -32,15 +32,15 @@
             <div class="flex items-center gap-3">
                 <div class="bg-red-600 text-white px-2 py-0.5 rounded-md font-bold text-sm tracking-wider glow-red">RH</div>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-base font-extrabold tracking-tight">Whisper UI Architektúra</h1>
+                    <h1 class="text-base font-extrabold tracking-tight">Whisper UI Architecture</h1>
                     <span class="text-slate-600">|</span>
-                    <p class="text-[11px] text-slate-400">Speech-to-Text na OpenShift AI</p>
+                    <p class="text-[11px] text-slate-400">Speech-to-Text on OpenShift AI</p>
                 </div>
             </div>
             <div class="flex items-center gap-2 text-[10px] text-slate-500">
                 <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">&larr;</kbd>
                 <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">&rarr;</kbd>
-                <span>navigácia</span>
+                <span>navigation</span>
             </div>
         </div>
     </header>
@@ -100,11 +100,11 @@
 
                     <!-- Browser section -->
                     <rect x="110" y="18" width="530" height="135" rx="12" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="6,4" opacity="0.25"/>
-                    <text x="125" y="37" font-size="10" fill="#3b82f6" font-weight="700" opacity="0.5" letter-spacing="1.5">PREHLIADAČ</text>
+                    <text x="125" y="37" font-size="10" fill="#3b82f6" font-weight="700" opacity="0.5" letter-spacing="1.5">BROWSER</text>
 
                     <!-- OpenShift platform section -->
                     <rect x="655" y="18" width="290" height="340" rx="12" fill="none" stroke="#ef4444" stroke-width="1" stroke-dasharray="6,4" opacity="0.25"/>
-                    <text x="670" y="37" font-size="10" fill="#ef4444" font-weight="700" opacity="0.5" letter-spacing="1.5">OPENSHIFT PLATFORMA</text>
+                    <text x="670" y="37" font-size="10" fill="#ef4444" font-weight="700" opacity="0.5" letter-spacing="1.5">OPENSHIFT PLATFORM</text>
 
                     <!-- AI/ML sub-section -->
                     <rect x="820" y="42" width="115" height="128" rx="8" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>
@@ -155,8 +155,8 @@
                         <rect width="80" height="110" rx="12" fill="url(#slateGrad)" stroke="#475569" stroke-width="1.5"/>
                         <circle cx="40" cy="32" r="14" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
                         <path d="M 18,60 Q 40,48 62,60" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
-                        <text x="40" y="82" text-anchor="middle" font-size="11" fill="#94a3b8" font-weight="700">Používateľ</text>
-                        <text x="40" y="96" text-anchor="middle" font-size="9" fill="#64748b">Prehliadač</text>
+                        <text x="40" y="82" text-anchor="middle" font-size="11" fill="#94a3b8" font-weight="700">User</text>
+                        <text x="40" y="96" text-anchor="middle" font-size="9" fill="#64748b">Browser</text>
                     </g>
 
                     <!-- Microphone + Web Audio -->
@@ -167,7 +167,7 @@
                             <path d="M 5,18 Q 5,35 16,35 Q 27,35 27,18" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
                             <line x1="16" y1="35" x2="16" y2="42" stroke="#3b82f6" stroke-width="1.5"/>
                         </g>
-                        <text x="70" y="25" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Mikrofón</text>
+                        <text x="70" y="25" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Microphone</text>
                         <text x="70" y="40" text-anchor="middle" font-size="9" fill="#3b82f6" font-weight="bold">Web Audio API</text>
                         <text x="70" y="55" text-anchor="middle" font-size="9" fill="#64748b">48kHz, Stereo</text>
                     </g>
@@ -177,9 +177,9 @@
                         <rect width="140" height="95" rx="10" fill="url(#slateGrad)" stroke="#3b82f6" stroke-width="2"/>
                         <text x="70" y="22" text-anchor="middle" font-size="13" fill="#f1f5f9" font-weight="800">VAD Engine</text>
                         <line x1="15" y1="30" x2="125" y2="30" stroke="#334155" stroke-width="1"/>
-                        <text x="70" y="47" text-anchor="middle" font-size="10" fill="#cbd5e1">RMS Energia: 0.02</text>
-                        <text x="70" y="62" text-anchor="middle" font-size="10" fill="#cbd5e1">Ticho: 400ms</text>
-                        <text x="70" y="77" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="bold">Min. reč: 500ms</text>
+                        <text x="70" y="47" text-anchor="middle" font-size="10" fill="#cbd5e1">RMS Energy: 0.02</text>
+                        <text x="70" y="62" text-anchor="middle" font-size="10" fill="#cbd5e1">Silence: 400ms</text>
+                        <text x="70" y="77" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="bold">Min. Speech: 500ms</text>
                     </g>
 
                     <!-- WAV Encoder -->
@@ -235,17 +235,17 @@
                     <!-- Live Display -->
                     <g id="node-display" transform="translate(440, 345)">
                         <rect width="175" height="60" rx="10" fill="url(#slateGrad)" stroke="#22c55e" stroke-width="1.5"/>
-                        <text x="87" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Živá transkripcia</text>
-                        <text x="87" y="38" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="bold">Pripojenie textu</text>
-                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">v reálnom čase</text>
+                        <text x="87" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Live Transcription</text>
+                        <text x="87" y="38" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="bold">Text Append</text>
+                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">Real-time</text>
                     </g>
 
                     <!-- Game Scoring -->
                     <g id="node-game" transform="translate(215, 345)">
                         <rect width="175" height="60" rx="10" fill="url(#slateGrad)" stroke="#22c55e" stroke-width="1.5"/>
-                        <text x="87" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Herný mód</text>
-                        <text x="87" y="38" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="bold">Levenshtein skóre</text>
-                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">&ge;90% = výhra</text>
+                        <text x="87" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Game Mode</text>
+                        <text x="87" y="38" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="bold">Levenshtein Score</text>
+                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">&ge;90% = Win</text>
                     </g>
 
                     <!-- Decorative: audio waveform on left side -->
@@ -259,24 +259,24 @@
             <!-- Legend -->
             <div class="mt-1 flex flex-wrap gap-4 text-xs bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 w-full justify-center items-center shrink-0">
                 <span class="flex items-center gap-1.5 text-slate-400">
-                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#3b82f6"></span> Klient (prehliadač)
+                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#3b82f6"></span> Client (Browser)
                 </span>
                 <span class="flex items-center gap-1.5 text-slate-400">
-                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#ef4444"></span> OpenShift platforma
+                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#ef4444"></span> OpenShift Platform
                 </span>
                 <span class="flex items-center gap-1.5 text-slate-400">
                     <span class="h-2.5 w-2.5 rounded-sm" style="background:#f59e0b"></span> AI / ML (GPU)
                 </span>
                 <span class="flex items-center gap-1.5 text-slate-400">
-                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#22c55e"></span> Výstup
+                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#22c55e"></span> Output
                 </span>
                 <span class="flex items-center gap-1.5 text-slate-400">
-                    <span class="h-2.5 w-2.5 border border-dashed border-slate-500 rounded-sm"></span> Konfigurácia
+                    <span class="h-2.5 w-2.5 border border-dashed border-slate-500 rounded-sm"></span> Configuration
                 </span>
                 <span class="text-slate-700">|</span>
                 <button onclick="showLegacy()" class="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition text-xs font-semibold">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    Technické diagramy
+                    Technical Diagrams
                 </button>
             </div>
         </div>
@@ -288,13 +288,13 @@
         <div class="max-w-5xl mx-auto space-y-4">
 
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-extrabold tracking-tight text-white">Technické diagramy</h2>
-                <button onclick="hideLegacy()" class="text-sm text-slate-400 hover:text-white border border-slate-700 px-3 py-1 rounded-lg transition">&times; Zatvoriť</button>
+                <h2 class="text-xl font-extrabold tracking-tight text-white">Technical Diagrams</h2>
+                <button onclick="hideLegacy()" class="text-sm text-slate-400 hover:text-white border border-slate-700 px-3 py-1 rounded-lg transition">&times; Close</button>
             </div>
 
             <!-- System Architecture -->
             <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden" open>
-                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">Systémová architektúra</summary>
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">System Architecture</summary>
                 <div class="px-5 pb-5">
                     <pre class="mermaid">
 flowchart TB
@@ -343,7 +343,7 @@ flowchart LR
 
             <!-- Data Flow Sequence -->
             <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">Sekvenčný diagram (Basic Mode)</summary>
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">Sequence Diagram (Basic Mode)</summary>
                 <div class="px-5 pb-5">
                     <pre class="mermaid">
 sequenceDiagram
@@ -367,7 +367,7 @@ sequenceDiagram
 
             <!-- VAD Streaming Architecture -->
             <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">VAD Streaming architektúra</summary>
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">VAD Streaming Architecture</summary>
                 <div class="px-5 pb-5">
                     <pre class="mermaid">
 flowchart TB
@@ -439,7 +439,7 @@ flowchart LR
                     </pre>
                     <div class="mt-4 text-sm text-slate-400 space-y-2">
                         <p><strong class="text-slate-200">Formula:</strong> <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">similarity = (longer.length - editDistance) / longer.length</code></p>
-                        <p><strong class="text-slate-200">Implementácia:</strong> Client-side JavaScript v <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">src/templates/index.html</code></p>
+                        <p><strong class="text-slate-200">Implementation:</strong> Client-side JavaScript in <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">src/templates/index.html</code></p>
                     </div>
                 </div>
             </details>
@@ -453,59 +453,59 @@ flowchart LR
         const tourSteps = [
             {
                 id: 1,
-                title: "Používateľ spúšťa nahrávanie",
+                title: "User Starts Recording",
                 elements: ["flow-1"],
                 nodes: ["node-user", "node-mic"],
-                desc: "Používateľ otvorí webovú aplikáciu Whisper UI v prehliadači. Vyberie si mikrofón z dostupných zariadení a klikne na tlačidlo nahrávať. Prehliadač si vyžiada prístup k mikrofónu cez Web Audio API."
+                desc: "The user opens the Whisper UI web app in a browser, selects a microphone from the available devices, and clicks the record button. The browser requests microphone access via the Web Audio API."
             },
             {
                 id: 2,
-                title: "Zachytávanie zvuku (Web Audio API)",
+                title: "Audio Capture (Web Audio API)",
                 elements: ["flow-2"],
                 nodes: ["node-mic", "node-vad"],
-                desc: "Web Audio API zachytáva surový zvuk z mikrofónu pri 48 kHz v stereo. ScriptProcessorNode spracováva 4096 vzoriek v každom bufferi a posiela ich na analýzu do VAD enginu."
+                desc: "Web Audio API captures raw audio from the microphone at 48 kHz in stereo. ScriptProcessorNode processes 4096 samples per buffer and sends them to the VAD engine for analysis."
             },
             {
                 id: 3,
-                title: "Detekcia hlasovej aktivity (VAD)",
+                title: "Voice Activity Detection (VAD)",
                 elements: ["flow-3"],
                 nodes: ["node-vad"],
-                desc: "VAD engine analyzuje RMS energiu každého audio bloku v reálnom čase. Ak energia presiahne prah 0.02, deteguje reč. Po 400ms ticha a minimálne 500ms súvislej reči identifikuje kompletný rečový segment."
+                desc: "The VAD engine analyzes the RMS energy of each audio block in real time. If energy exceeds the 0.02 threshold, speech is detected. After 400ms of silence and at least 500ms of continuous speech, it identifies a complete speech segment."
             },
             {
                 id: 4,
-                title: "Kódovanie do WAV formátu",
+                title: "WAV Encoding",
                 elements: ["flow-4"],
                 nodes: ["node-vad", "node-wav"],
-                desc: "Audio segment sa prevzorkuje z 48 kHz na 16 kHz, skonvertuje zo stereo na mono a zakóduje ako 16-bit PCM s RIFF/WAVE hlavičkou. Výsledný WAV súbor je optimalizovaný pre Whisper model."
+                desc: "The audio segment is resampled from 48 kHz to 16 kHz, converted from stereo to mono, and encoded as 16-bit PCM with a RIFF/WAVE header. The resulting WAV file is optimized for the Whisper model."
             },
             {
                 id: 5,
-                title: "Odoslanie cez OpenShift Route",
+                title: "Sent via OpenShift Route",
                 elements: ["flow-5"],
                 nodes: ["node-wav", "node-route"],
-                desc: "WAV chunk sa odošle HTTP POST požiadavkou na endpoint /transcribe-stream. OpenShift Route zabezpečuje TLS termináciu (HTTPS) a smeruje požiadavku na Flask službu vnútri klastra."
+                desc: "The WAV chunk is sent via HTTP POST to the /transcribe-stream endpoint. The OpenShift Route handles TLS termination (HTTPS) and routes the request to the Flask service inside the cluster."
             },
             {
                 id: 6,
-                title: "Spracovanie vo Flask backende",
+                title: "Flask Backend Processing",
                 elements: ["flow-6a", "flow-6b"],
                 nodes: ["node-route", "node-flask"],
-                desc: "Flask backend beží cez Gunicorn so 4 workermi pre paralelné spracovanie. ConfigMap poskytuje URL Whisper API a zoznam podporovaných jazykov. Požiadavka s WAV súborom sa preposiela na AI model."
+                desc: "The Flask backend runs via Gunicorn with 4 workers for parallel processing. ConfigMap provides the Whisper API URL and list of supported languages. The request with the WAV file is forwarded to the AI model."
             },
             {
                 id: 7,
-                title: "AI transkripcia (Whisper)",
+                title: "AI Transcription (Whisper)",
                 elements: ["flow-7"],
                 nodes: ["node-whisper", "node-flask"],
-                desc: "Model whisper-large-v3-turbo (809M parametrov) beží na GPU cez vLLM serving runtime. Spracuje WAV vstup a vygeneruje textovú transkripciu. OpenShift AI 3.3 zabezpečuje model serving a škálovanie."
+                desc: "The whisper-large-v3-turbo model (809M parameters) runs on GPU via the vLLM serving runtime. It processes the WAV input and generates a text transcription. OpenShift AI provides model serving and scaling."
             },
             {
                 id: 8,
-                title: "Streamovaná odpoveď a zobrazenie",
+                title: "Streamed Response and Display",
                 elements: ["flow-8a", "flow-8b", "flow-8c"],
                 nodes: ["node-sse", "node-display", "node-game"],
-                desc: "Transkripcia sa streamuje späť cez SSE (Server-Sent Events). Text sa v reálnom čase pripája k existujúcej transkripcii. V hernom móde sa presnosť vypočíta pomocou Levenshteinovej vzdialenosti — skóre ≥90% znamená výhru."
+                desc: "The transcription is streamed back via SSE (Server-Sent Events). Text is appended to the existing transcription in real time. In game mode, accuracy is calculated using Levenshtein distance — a score of ≥90% means a win."
             }
         ];
 
@@ -515,7 +515,7 @@ flowchart LR
         function updateStep() {
             const step = tourSteps[currentStep];
 
-            document.getElementById('step-indicator').textContent = `Krok ${step.id} z ${tourSteps.length}`;
+            document.getElementById('step-indicator').textContent = `Step ${step.id} of ${tourSteps.length}`;
             document.getElementById('step-title').textContent = step.title;
             document.getElementById('step-desc').textContent = step.desc;
 

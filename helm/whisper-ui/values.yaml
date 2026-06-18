@@ -2,7 +2,7 @@ namespace: whisper
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: ""
+  tag: "prom-metrics-v4"
   pullPolicy: Always
 
 replicaCount: 1

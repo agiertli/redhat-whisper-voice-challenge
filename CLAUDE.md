@@ -55,27 +55,20 @@ Edit `helm/whisper-ui/values.yaml`:
 
 Edit `challenges.json` if you want different challenge phrases.
 
-### Step 3: Build and deploy
+### Step 3: Deploy
 
-The Helm chart deploys **everything** — the UI app, the vLLM ServingRuntime, the Whisper InferenceService (with OCI modelcar), RBAC for Prometheus, and monitoring config. One command:
+The Helm chart deploys **everything** — the UI app, the vLLM ServingRuntime, the Whisper InferenceService (with OCI modelcar), RBAC for Prometheus, and monitoring config.
+
+A pre-built UI image is available at `quay.io/agiertli/whisper-ui` — no build needed unless you've modified the source code.
 
 ```bash
-# Set your registry (or use the default quay.io/agiertli)
-export IMAGE_REGISTRY=quay.io/your-org
-export IMAGE_NAME=whisper-ui
-
-./deploy.sh
-```
-
-Or manually:
-```bash
-VERSION=$(git rev-parse --short HEAD)
-podman build --platform linux/amd64 -f Containerfile -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${VERSION} .
-podman push ${IMAGE_REGISTRY}/${IMAGE_NAME}:${VERSION}
+# Deploy using the pre-built image (no build needed)
 helm upgrade --install whisper-ui helm/whisper-ui \
-  --namespace whisper --create-namespace \
-  --set image.repository=${IMAGE_REGISTRY}/${IMAGE_NAME} \
-  --set image.tag=${VERSION}
+  --namespace whisper --create-namespace
+
+# Or build your own image and deploy:
+export IMAGE_REGISTRY=quay.io/your-org
+./deploy.sh
 ```
 
 The InferenceService will take a few minutes to start — it pulls the model weights from the Red Hat registry on first boot.
