@@ -28,7 +28,7 @@ app = Flask(__name__)
 WHISPER_API_URL = os.getenv('WHISPER_API_URL', 'http://whisper-model.whisper.svc.cluster.local:8080/v1/audio/transcriptions')
 WHISPER_MODEL_NAME = os.getenv('WHISPER_MODEL_NAME', 'whisper-turbo')
 MODEL_DISPLAY_NAME = os.getenv('MODEL_DISPLAY_NAME', 'Whisper Turbo')
-CONFERENCE_NAME = os.getenv('CONFERENCE_NAME', 'Red Hat AI Voice Challenge')
+CONFERENCE_NAME = os.getenv('CONFERENCE_NAME', 'Red Hat Whisper Voice Challenge')
 SUPPORTED_LANGUAGES = json.loads(os.getenv('SUPPORTED_LANGUAGES',
     '{"sk": "Slovenčina", "cs": "Čeština", "hu": "Magyar", "de": "Deutsch", "es": "Español", "fr": "Français", "en": "English"}'))
 DCGM_EXPORTER_URL = os.getenv('DCGM_EXPORTER_URL', 'http://nvidia-dcgm-exporter.nvidia-gpu-operator.svc:9400/metrics')

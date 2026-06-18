@@ -106,7 +106,7 @@ echo ""
 echo "Deploying via Helm to namespace '${NAMESPACE}'..."
 
 HELM_ARGS=(
-    upgrade --install whisper-ui helm/whisper-ui
+    upgrade --install whisper helm/whisper-ui
     --namespace "${NAMESPACE}"
     --create-namespace
     --wait --timeout 5m
@@ -142,5 +142,5 @@ echo ""
 echo "Useful commands:"
 echo "  $KUBE_CLI logs -f deployment/whisper-ui -n ${NAMESPACE}"
 echo "  $KUBE_CLI get pods -n ${NAMESPACE}"
-echo "  helm rollback whisper-ui -n ${NAMESPACE}"
+echo "  helm rollback whisper -n ${NAMESPACE}"
 echo "========================================="

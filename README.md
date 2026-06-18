@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/logo.svg" alt="Red Hat AI Voice Challenge" width="400">
+  <img src="docs/logo.svg" alt="Red Hat Whisper Voice Challenge" width="400">
 </p>
 
-<h1 align="center">Red Hat AI Voice Challenge</h1>
+<h1 align="center">Red Hat Whisper Voice Challenge</h1>
 
 An interactive voice transcription game for conference booths and demos. Attendees speak challenge phrases into a microphone, and an AI model (Whisper) transcribes their speech in real time. The game scores accuracy using Levenshtein distance and tracks live GPU/AI metrics on a dashboard.
 
@@ -94,7 +94,7 @@ A pre-built UI image is available at `quay.io/agiertli/whisper-ui` — you don't
 
 ```bash
 # Deploy using the pre-built image (no build needed)
-helm upgrade --install whisper-ui helm/whisper-ui \
+helm upgrade --install whisper helm/whisper-ui \
   --namespace whisper --create-namespace
 
 # Or build your own image and deploy:
@@ -177,14 +177,42 @@ After editing `challenges.json`, rebuild and redeploy:
 Set via Helm values (no code changes needed):
 
 ```bash
-helm upgrade whisper-ui helm/whisper-ui \
+helm upgrade whisper helm/whisper-ui \
   --set conference.name="DevConf 2026" \
   --set game.requiredLanguage="cs"
 ```
 
 ### Supported Languages
 
-The language dropdown in the UI is configured via `supportedLanguages` in `values.yaml`:
+The following languages ship with challenge phrases in `challenges.json`:
+
+| Code | Language | Phrases |
+|------|----------|---------|
+| `ar` | Arabic | 3 |
+| `cs` | Czech | 9 |
+| `de` | German | 9 |
+| `en` | English | 9 |
+| `es` | Spanish | 9 |
+| `fr` | French | 9 |
+| `hi` | Hindi | 3 |
+| `hu` | Hungarian | 9 |
+| `it` | Italian | 3 |
+| `ja` | Japanese | 3 |
+| `ko` | Korean | 3 |
+| `nl` | Dutch | 3 |
+| `pl` | Polish | 9 |
+| `pt` | Portuguese | 3 |
+| `ro` | Romanian | 3 |
+| `sk` | Slovak | 9 |
+| `sv` | Swedish | 3 |
+| `th` | Thai | 3 |
+| `tr` | Turkish | 9 |
+| `uk` | Ukrainian | 3 |
+| `zh` | Chinese | 3 |
+
+Languages with only 3 phrases won't work with the default `challengeCount: 5` — either add more phrases or lower the count.
+
+The language dropdown in the UI is configured separately via `supportedLanguages` in `values.yaml` (controls which languages appear in the dropdown, independent of `challenges.json`):
 
 ```yaml
 supportedLanguages: |
@@ -252,7 +280,7 @@ All Helm values:
 | `namespace` | `whisper` | Target namespace |
 | `clusterDomain` | — | Cluster apps domain (REQUIRED) |
 | `whisperApi.modelName` | `whisper` | InferenceService name |
-| `conference.name` | `Red Hat AI Voice Challenge` | Display name |
+| `conference.name` | `Red Hat Whisper Voice Challenge` | Display name |
 | `game.requiredLanguage` | `en` | Default game language |
 | `game.challengeCount` | `5` | Challenges per game |
 | `game.winThreshold` | `4` | Wins to complete |

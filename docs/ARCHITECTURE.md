@@ -1,6 +1,6 @@
 # Architecture
 
-The Red Hat AI Voice Challenge is a Flask web application that captures audio in the browser, sends it to a Whisper speech-to-text model running on OpenShift AI via vLLM, and displays real-time metrics from Prometheus and NVIDIA DCGM.
+The Red Hat Whisper Voice Challenge is a Flask web application that captures audio in the browser, sends it to a Whisper speech-to-text model running on OpenShift AI via vLLM, and displays real-time metrics from Prometheus and NVIDIA DCGM.
 
 ## System Architecture Diagram
 

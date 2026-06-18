@@ -1,6 +1,6 @@
 # Customization Guide
 
-This guide explains how to adapt the Red Hat AI Voice Challenge for a different conference, language, or environment.
+This guide explains how to adapt the Red Hat Whisper Voice Challenge for a different conference, language, or environment.
 
 ## Challenge Phrases
 
@@ -55,7 +55,7 @@ This is the most important customization file. It contains the phrases that atte
 All set via Helm values — no code changes needed.
 
 ```bash
-helm upgrade whisper-ui helm/whisper-ui \
+helm upgrade whisper helm/whisper-ui \
   --set conference.name="DevConf.cz 2026" \
   --set game.requiredLanguage="cs" \
   --set game.challengeCount="3" \
@@ -94,9 +94,9 @@ Replace `docs/logo.png` with your event's logo. The README references this file.
 
 ### Title
 
-The page title is set from `conference.name` via the Helm value — it renders as "Red Hat AI Voice Challenge | {conference.name}" in the browser tab.
+The page title is set from `conference.name` via the Helm value — it renders as "Red Hat Whisper Voice Challenge | {conference.name}" in the browser tab.
 
-The heading "Red Hat AI Voice Challenge" is hardcoded in the HTML template at line ~553. Edit `src/templates/index.html` if you need a different game name.
+The heading "Red Hat Whisper Voice Challenge" is hardcoded in the HTML template at line ~553. Edit `src/templates/index.html` if you need a different game name.
 
 ## GPU Configuration
 
@@ -135,7 +135,7 @@ The default registry is `quay.io/agiertli/whisper-ui`. To use your own:
 IMAGE_REGISTRY=quay.io/your-org IMAGE_NAME=whisper-ui ./deploy.sh
 
 # Option 2: Helm values
-helm upgrade whisper-ui helm/whisper-ui \
+helm upgrade whisper helm/whisper-ui \
   --set image.repository=quay.io/your-org/whisper-ui \
   --set image.tag=v1.0.0
 ```

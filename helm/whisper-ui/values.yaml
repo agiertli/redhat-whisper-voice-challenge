@@ -49,7 +49,7 @@ whisperApi:
   displayName: "RedHatAI/whisper-large-v3-turbo-quantized.w4a16"
 
 conference:
-  name: "Red Hat AI Voice Challenge"
+  name: "Red Hat Whisper Voice Challenge"
 
 game:
   requiredLanguage: "en"

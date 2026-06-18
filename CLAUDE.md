@@ -1,4 +1,4 @@
-# Red Hat AI Voice Challenge
+# Red Hat Whisper Voice Challenge
 
 Interactive voice transcription game for Red Hat conference booths. Attendees speak challenge phrases, AI transcribes them in real time, and accuracy is scored.
 
@@ -63,7 +63,7 @@ A pre-built UI image is available at `quay.io/agiertli/whisper-ui` — no build 
 
 ```bash
 # Deploy using the pre-built image (no build needed)
-helm upgrade --install whisper-ui helm/whisper-ui \
+helm upgrade --install whisper helm/whisper-ui \
   --namespace whisper --create-namespace
 
 # Or build your own image and deploy:
@@ -113,17 +113,17 @@ The chart in `helm/whisper-ui/` deploys everything:
 
 ```bash
 # Install / upgrade
-helm upgrade --install whisper-ui helm/whisper-ui \
+helm upgrade --install whisper helm/whisper-ui \
   --namespace whisper --create-namespace \
   --set image.tag=$(git rev-parse --short HEAD)
 
 # Change conference
-helm upgrade whisper-ui helm/whisper-ui -n whisper \
+helm upgrade whisper helm/whisper-ui -n whisper \
   --set conference.name="DevConf 2026" \
   --set game.requiredLanguage="cs"
 
 # Change GPU memory
-helm upgrade whisper-ui helm/whisper-ui -n whisper \
+helm upgrade whisper helm/whisper-ui -n whisper \
   --set gpu.memoryUtilization=0.3
 ```
 
