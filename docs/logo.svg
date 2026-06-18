@@ -9,7 +9,7 @@
                     </defs>
                     
                     <!-- Circular Container Badge -->
-                    <circle id="logo-bg-circle" cx="250" cy="250" r="235" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2.5"/>
+                    <circle id="logo-bg-circle" cx="250" cy="250" r="235" fill="#0F172A" stroke="#334155" stroke-width="2.5"/>
                     
                     <!-- Symmetrical Voice Equalizer Waves aligned perfectly to the left & right flanking boundaries -->
                     <!-- Left side audio bars (Centered vertically at Y=210) -->
@@ -56,13 +56,13 @@
                     <!-- Brand Identity Typography (Red Hat Display style) -->
                     <g id="branding-text" class="logo-font">
                         <!-- Official "RED HAT" Branding Header -->
-                        <text id="text-redhat" x="250" y="355" text-anchor="middle" font-size="20" font-weight="700" fill="#000000" letter-spacing="5">RED HAT</text>
+                        <text id="text-redhat" x="250" y="355" text-anchor="middle" font-size="20" font-weight="700" fill="#FFFFFF" letter-spacing="5">RED HAT</text>
                         
                         <!-- Game Main Title: Whisper -->
                         <text id="text-whisper" x="250" y="405" text-anchor="middle" font-size="54" font-weight="900" fill="#EE0000" letter-spacing="2">WHISPER</text>
                         
                         <!-- Game Subtitle context -->
-                        <text id="text-challenge" x="250" y="440" text-anchor="middle" font-size="18" font-weight="700" fill="#000000" letter-spacing="5">VOICE CHALLENGE</text>
+                        <text id="text-challenge" x="250" y="440" text-anchor="middle" font-size="18" font-weight="700" fill="#FFFFFF" letter-spacing="5">VOICE CHALLENGE</text>
                     </g>
                     
                     <!-- Decorative Circle framing accent -->
