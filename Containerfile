@@ -17,4 +17,4 @@ COPY docs/ ./docs/
 EXPOSE 8080
 
 # Run with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "120", "app_streaming:app"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:8080 --workers ${WEB_CONCURRENCY:-4} --timeout ${GUNICORN_TIMEOUT:-120} app_streaming:app"]
