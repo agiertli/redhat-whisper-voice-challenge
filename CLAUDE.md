@@ -6,7 +6,7 @@ Interactive voice transcription game for Red Hat conference booths. Attendees sp
 
 - **Main app**: `src/app_streaming.py` (Flask, single file)
 - **Frontend**: `src/templates/index.html` (single-page HTML/CSS/JS)
-- **Challenge phrases**: `challenges.json` (Red Hat/OpenShift themed, 20+ languages)
+- **Challenge phrases**: `challengePhrases` in `helm/whisper/values.yaml` (Red Hat/OpenShift themed, 20+ languages)
 - **Helm chart**: `helm/whisper/` (deploys everything: UI, vLLM, RBAC, monitoring)
 - **Deploy script**: `./deploy.sh` (build + push + helm install)
 
@@ -53,7 +53,7 @@ Edit `helm/whisper/values.yaml`:
 - `game.requiredLanguage` — default language code (e.g., `sk`, `cs`, `en`)
 - `model.nodeSelector` — match your GPU type if not using the default
 
-Edit `challenges.json` if you want different challenge phrases.
+Edit `challengePhrases` in `helm/whisper/values.yaml` if you want different challenge phrases.
 
 ### Step 3: Deploy
 
@@ -94,7 +94,7 @@ Open the UI URL in a browser and test a voice challenge.
 
 ## Challenge Phrases
 
-Defined in `challenges.json` at the repo root. The default phrases are Red Hat / OpenShift / DevOps themed — designed for Red Hat conferences. Each key is an ISO 639-1 language code, each value is an array of phrases.
+Defined in `challengePhrases` in `helm/whisper/values.yaml`. The default phrases are Red Hat / OpenShift / DevOps themed — designed for Red Hat conferences. Each key is an ISO 639-1 language code, each value is an array of phrases.
 
 The backend loads this file at startup and passes it to the frontend template. To change phrases, edit `challenges.json` and rebuild/redeploy.
 

@@ -18,3 +18,5 @@ data:
   THANOS_QUERIER_URL: {{ .Values.thanosQuerier.url | quote }}
   SUPPORTED_LANGUAGES: |
     {{- .Values.supportedLanguages | nindent 4 }}
+  CHALLENGE_PHRASES: |
+    {{- .Values.challengePhrases | nindent 4 }}

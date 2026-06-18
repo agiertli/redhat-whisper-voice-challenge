@@ -146,7 +146,7 @@ This game is designed to be forked and customized for different conferences, lan
 
 ### Challenge Phrases
 
-The phrases that attendees must speak are defined in **`challenges.json`** at the repo root. This is the main file you'll edit when adapting the game for your conference.
+The phrases that attendees must speak are defined in **`challengePhrases` in `helm/whisper/values.yaml`** at the repo root. This is the main file you'll edit when adapting the game for your conference.
 
 The default phrases are Red Hat / OpenShift / DevOps themed (e.g., "Red Hat leads in open source innovation", "Kubernetes simplifies application deployment") in 20+ languages. Edit them to match your conference theme:
 
@@ -167,7 +167,7 @@ The default phrases are Red Hat / OpenShift / DevOps themed (e.g., "Red Hat lead
 
 Each key is a language code, and the value is an array of phrases. The game randomly picks from these phrases during challenges. You need at least as many phrases per language as `game.challengeCount` in your Helm values.
 
-After editing `challenges.json`, rebuild and redeploy:
+After editing `challengePhrases` in `helm/whisper/values.yaml`, rebuild and redeploy:
 ```bash
 ./deploy.sh
 ```
@@ -184,7 +184,7 @@ helm upgrade whisper helm/whisper \
 
 ### Supported Languages
 
-The following languages ship with challenge phrases in `challenges.json`:
+The following languages ship with challenge phrases in `challengePhrases` in `helm/whisper/values.yaml`:
 
 | Code | Language | Phrases |
 |------|----------|---------|

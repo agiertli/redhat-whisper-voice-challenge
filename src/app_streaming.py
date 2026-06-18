@@ -45,13 +45,8 @@ CHALLENGE_COUNT = int(os.getenv('CHALLENGE_COUNT', '5'))
 WIN_THRESHOLD = int(os.getenv('WIN_THRESHOLD', '4'))
 
 
-CHALLENGES_FILE = os.getenv('CHALLENGES_FILE', os.path.join(os.path.dirname(__file__), '..', 'challenges.json'))
-try:
-    with open(CHALLENGES_FILE, 'r', encoding='utf-8') as f:
-        CHALLENGE_PHRASES = json.load(f)
-except FileNotFoundError:
-    CHALLENGE_PHRASES = {"en": ["Artificial intelligence transforms business", "Kubernetes simplifies application deployment", "Cloud solutions increase efficiency"]}
-    logger.warning(f"Challenges file not found at {CHALLENGES_FILE}, using defaults")
+CHALLENGE_PHRASES = json.loads(os.getenv('CHALLENGE_PHRASES',
+    '{"en": ["Artificial intelligence transforms business", "Kubernetes simplifies application deployment", "Cloud solutions increase efficiency"]}'))
 
 logger.info(f"Whisper UI starting - API URL: {WHISPER_API_URL}")
 logger.info(f"Model name: {WHISPER_MODEL_NAME}")
