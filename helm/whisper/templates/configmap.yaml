@@ -19,4 +19,4 @@ data:
   SUPPORTED_LANGUAGES: |
     {{- .Values.supportedLanguages | nindent 4 }}
   CHALLENGE_PHRASES: |
-    {{- .Values.challengePhrases | nindent 4 }}
+    {{- .Files.Get "challenges.json" | nindent 4 }}

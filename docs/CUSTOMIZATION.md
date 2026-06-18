@@ -4,7 +4,7 @@ This guide explains how to adapt the Red Hat Whisper Voice Challenge for a diffe
 
 ## Challenge Phrases
 
-**File:** `challengePhrases` in `helm/whisper/values.yaml`
+**File:** `helm/whisper/challenges.json`
 
 This is the most important customization file. It contains the phrases that attendees must speak during the voice challenge. The default phrases are Red Hat / OpenShift / DevOps themed — designed for Red Hat conferences.
 
@@ -39,7 +39,7 @@ This is the most important customization file. It contains the phrases that atte
 
 ### Adding a new language
 
-1. Add the language code and phrases to `challengePhrases` in `helm/whisper/values.yaml`
+1. Add the language code and phrases to `helm/whisper/challenges.json`
 2. Add the language to `supportedLanguages` in `helm/whisper/values.yaml`:
    ```yaml
    supportedLanguages: |

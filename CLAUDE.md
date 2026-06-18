@@ -92,11 +92,20 @@ Open the UI URL in a browser and test a voice challenge.
 
 **Never use the `latest` tag.** Use semantic versioning (`v1.0.0`, `v1.1.0`, `v2.0.0`). Bump MAJOR for breaking changes, MINOR for new features, PATCH for fixes. The `deploy.sh` script accepts a `VERSION` env var — set it explicitly.
 
+## 12-Factor App Principles
+
+This app MUST follow cloud-native / 12-factor principles. Enforce these on every change:
+
+1. **Config via env vars** — ALL configuration comes from env vars, injected via ConfigMap. Never hardcode URLs, names, or thresholds. Never read config from files baked into the image.
+2. **Stateless processes** — The app must be share-nothing. No in-process state that breaks with multiple replicas. Caches are acceptable only if stale data is harmless.
+3. **Backing services as attached resources** — Whisper API, Prometheus, DCGM are all accessed via URL env vars. Swapping any is a ConfigMap change.
+4. **Logs as event streams** — Log to stdout only. No file-based logging.
+5. **No config in container images** — Challenge phrases, supported languages, conference name, API URLs — all come from the ConfigMap/env vars. Changing config = `helm upgrade`, never rebuild.
+6. **Explicit dependencies** — `requirements.txt` pins everything. No implicit system deps.
+
 ## Challenge Phrases
 
-Defined in `challengePhrases` in `helm/whisper/values.yaml`. The default phrases are Red Hat / OpenShift / DevOps themed — designed for Red Hat conferences. Each key is an ISO 639-1 language code, each value is an array of phrases.
-
-The backend loads this file at startup and passes it to the frontend template. To change phrases, edit `challenges.json` and rebuild/redeploy.
+Defined in `helm/whisper/challenges.json` (a standalone JSON file loaded by the Helm chart via `.Files.Get` into the ConfigMap). Edit the JSON file, run `helm upgrade` — no image rebuild needed.
 
 You need at least as many phrases per language as `game.challengeCount` (default: 5).
 

@@ -1,0 +1,161 @@
+{
+  "sk": [
+    "OpenShift je skvelý produkt",
+    "Red Hat vedie v open source inováciách",
+    "Umelá inteligencia transformuje biznis",
+    "Kubernetes zjednodušuje nasadenie aplikácií",
+    "Kontajnerizácia je budúcnosť cloudu",
+    "Automatizácia uvoľňuje čas pre inovácie",
+    "Cloudové riešenia zvyšujú efektivitu",
+    "DevOps spája vývojárov a operácie",
+    "Bezpečnosť je priorita v cloudovom prostredí"
+  ],
+  "cs": [
+    "OpenShift je skvělý produkt",
+    "Red Hat vede v open source inovacích",
+    "Umělá inteligence transformuje byznys",
+    "Kubernetes zjednodušuje nasazení aplikací",
+    "Kontejnerizace je budoucnost cloudu",
+    "Automatizace uvolňuje čas pro inovace",
+    "Cloudová řešení zvyšují efektivitu",
+    "DevOps spojuje vývojáře a operace",
+    "Bezpečnost je priorita v cloudovém prostředí"
+  ],
+  "hu": [
+    "Az OpenShift nagyszerű termék",
+    "A Red Hat vezető a nyílt forráskódú innovációban",
+    "A mesterséges intelligencia átalakítja az üzletet",
+    "A Kubernetes egyszerűsíti az alkalmazások telepítését",
+    "A konténerizáció a felhő jövője",
+    "Az automatizálás időt szabadít fel az innovációra",
+    "A felhőalapú megoldások növelik a hatékonyságot",
+    "A DevOps összeköti a fejlesztőket és az üzemeltetést",
+    "A biztonság prioritás a felhőkörnyezetben"
+  ],
+  "de": [
+    "OpenShift ist ein großartiges Produkt",
+    "Red Hat führt bei Open Source Innovation",
+    "Künstliche Intelligenz transformiert Geschäfte",
+    "Kubernetes vereinfacht die Anwendungsbereitstellung",
+    "Containerisierung ist die Zukunft der Cloud",
+    "Automatisierung schafft Zeit für Innovation",
+    "Cloud-Lösungen steigern die Effizienz",
+    "DevOps verbindet Entwickler und Betrieb",
+    "Sicherheit hat Priorität in der Cloud-Umgebung"
+  ],
+  "es": [
+    "OpenShift es un gran producto",
+    "Red Hat lidera en innovación de código abierto",
+    "La inteligencia artificial transforma los negocios",
+    "Kubernetes simplifica la implementación de aplicaciones",
+    "La contenedorización es el futuro de la nube",
+    "La automatización libera tiempo para la innovación",
+    "Las soluciones en la nube aumentan la eficiencia",
+    "DevOps conecta desarrolladores y operaciones",
+    "La seguridad es prioridad en el entorno de la nube"
+  ],
+  "fr": [
+    "OpenShift est un excellent produit",
+    "Red Hat mène dans l'innovation open source",
+    "L'intelligence artificielle transforme les affaires",
+    "Kubernetes simplifie le déploiement des applications",
+    "La conteneurisation est l'avenir du cloud",
+    "L'automatisation libère du temps pour l'innovation",
+    "Les solutions cloud augmentent l'efficacité",
+    "DevOps relie développeurs et opérations",
+    "La sécurité est prioritaire dans l'environnement cloud"
+  ],
+  "pl": [
+    "OpenShift to świetny produkt",
+    "Red Hat przewodzi w innowacjach open source",
+    "Sztuczna inteligencja przekształca biznes",
+    "Kubernetes upraszcza wdrażanie aplikacji",
+    "Konteneryzacja to przyszłość chmury",
+    "Automatyzacja uwalnia czas na innowacje",
+    "Rozwiązania chmurowe zwiększają wydajność",
+    "DevOps łączy programistów i operacje",
+    "Bezpieczeństwo jest priorytetem w środowisku chmury"
+  ],
+  "tr": [
+    "OpenShift harika bir üründür",
+    "Red Hat açık kaynak inovasyonunda öncüdür",
+    "Yapay zeka işi dönüştürüyor",
+    "Kubernetes uygulama dağıtımını basitleştirir",
+    "Konteynerizasyon bulutun geleceğidir",
+    "Otomasyon inovasyon için zaman kazandırır",
+    "Bulut çözümleri verimliliği artırır",
+    "DevOps geliştiricileri ve operasyonları birleştirir",
+    "Güvenlik bulut ortamında önceliktir"
+  ],
+  "en": [
+    "OpenShift is great product",
+    "Red Hat leads in open source innovation",
+    "Artificial intelligence transforms business",
+    "Kubernetes simplifies application deployment",
+    "Containerization is the future of cloud",
+    "Automation frees time for innovation",
+    "Cloud solutions increase efficiency",
+    "DevOps bridges developers and operations",
+    "Security is priority in cloud environment"
+  ],
+  "it": [
+    "OpenShift è un ottimo prodotto",
+    "Red Hat è leader nell'innovazione open source",
+    "L'intelligenza artificiale trasforma il business"
+  ],
+  "pt": [
+    "OpenShift é um ótimo produto",
+    "Red Hat lidera em inovação open source",
+    "A inteligência artificial transforma negócios"
+  ],
+  "nl": [
+    "OpenShift is een geweldig product",
+    "Red Hat leidt in open source innovatie",
+    "Kunstmatige intelligentie transformeert bedrijven"
+  ],
+  "sv": [
+    "OpenShift är en fantastisk produkt",
+    "Red Hat leder inom open source-innovation",
+    "Artificiell intelligens transformerar affärer"
+  ],
+  "ro": [
+    "OpenShift este un produs excelent",
+    "Red Hat conduce în inovația open source",
+    "Inteligența artificială transformă afacerile"
+  ],
+  "uk": [
+    "OpenShift це чудовий продукт",
+    "Red Hat лідирує в інноваціях відкритого коду",
+    "Штучний інтелект трансформує бізнес"
+  ],
+  "ja": [
+    "OpenShiftは素晴らしい製品です",
+    "Red Hatはオープンソース革新をリードしています",
+    "人工知能はビジネスを変革します"
+  ],
+  "ko": [
+    "OpenShift는 훌륭한 제품입니다",
+    "Red Hat은 오픈소스 혁신을 선도합니다",
+    "인공지능은 비즈니스를 변화시킵니다"
+  ],
+  "ar": [
+    "OpenShift منتج رائع",
+    "Red Hat رائدة في ابتكار المصادر المفتوحة",
+    "الذكاء الاصطناعي يحول الأعمال"
+  ],
+  "zh": [
+    "OpenShift是出色的产品",
+    "Red Hat在开源创新中处于领先地位",
+    "人工智能改变商业"
+  ],
+  "th": [
+    "OpenShift เป็นผลิตภัณฑ์ที่ยอดเยี่ยม",
+    "Red Hat นำในนวัตกรรมโอเพนซอร์ส",
+    "ปัญญาประดิษฐ์เปลี่ยนแปลงธุรกิจ"
+  ],
+  "hi": [
+    "OpenShift एक शानदार उत्पाद है",
+    "Red Hat ओपन सोर्स नवाचार में अग्रणी है",
+    "कृत्रिम बुद्धिमत्ता व्यवसाय को बदल देती है"
+  ]
+}
