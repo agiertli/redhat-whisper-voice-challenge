@@ -1,0 +1,70 @@
+<svg id="rh-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="460" height="460">
+                    <defs>
+                        <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&amp;display=swap');
+                            .logo-font {
+                                font-family: 'Red Hat Display', -apple-system, sans-serif;
+                            }
+                        </style>
+                    </defs>
+                    
+                    <!-- Circular Container Badge -->
+                    <circle id="logo-bg-circle" cx="250" cy="250" r="235" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2.5"/>
+                    
+                    <!-- Symmetrical Voice Equalizer Waves aligned perfectly to the left & right flanking boundaries -->
+                    <!-- Left side audio bars (Centered vertically at Y=210) -->
+                    <g id="soundwave-left" fill="#EE0000">
+                        <rect class="logo-wave" x="38" y="202.5" width="4.5" height="15" rx="2" opacity="0.3"/>
+                        <rect class="logo-wave" x="45" y="195" width="4.5" height="30" rx="2" opacity="0.4"/>
+                        <rect class="logo-wave" x="52" y="185" width="4.5" height="50" rx="2" opacity="0.5"/>
+                        <rect class="logo-wave" x="59" y="197.5" width="4.5" height="25" rx="2" opacity="0.6"/>
+                        <rect class="logo-wave" x="66" y="175" width="4.5" height="70" rx="2" opacity="0.7"/>
+                        <rect class="logo-wave" x="73" y="160" width="4.5" height="100" rx="2" opacity="0.8"/>
+                        <rect class="logo-wave" x="80" y="187.5" width="4.5" height="45" rx="2" opacity="0.9"/>
+                        <rect class="logo-wave" x="87" y="170" width="4.5" height="80" rx="2" opacity="0.95"/>
+                        <rect class="logo-wave" x="94" y="150" width="4.5" height="120" rx="2"/>
+                        <rect class="logo-wave" x="101" y="182.5" width="4.5" height="55" rx="2"/>
+                        <rect class="logo-wave" x="108" y="172.5" width="4.5" height="75" rx="2"/>
+                        <rect class="logo-wave" x="115" y="140" width="4.5" height="140" rx="2"/>
+                    </g>
+                    
+                    <!-- Right side audio bars (Centered vertically at Y=210) -->
+                    <g id="soundwave-right" fill="#EE0000">
+                        <rect class="logo-wave" x="385" y="140" width="4.5" height="140" rx="2"/>
+                        <rect class="logo-wave" x="392" y="172.5" width="4.5" height="75" rx="2"/>
+                        <rect class="logo-wave" x="399" y="182.5" width="4.5" height="55" rx="2"/>
+                        <rect class="logo-wave" x="406" y="150" width="4.5" height="120" rx="2"/>
+                        <rect class="logo-wave" x="413" y="170" width="4.5" height="80" rx="2" opacity="0.95"/>
+                        <rect class="logo-wave" x="420" y="187.5" width="4.5" height="45" rx="2" opacity="0.9"/>
+                        <rect class="logo-wave" x="427" y="160" width="4.5" height="100" rx="2" opacity="0.8"/>
+                        <rect class="logo-wave" x="434" y="175" width="4.5" height="70" rx="2" opacity="0.7"/>
+                        <rect class="logo-wave" x="441" y="197.5" width="4.5" height="25" rx="2" opacity="0.6"/>
+                        <rect class="logo-wave" x="448" y="185" width="4.5" height="50" rx="2" opacity="0.5"/>
+                        <rect class="logo-wave" x="455" y="195" width="4.5" height="30" rx="2" opacity="0.4"/>
+                        <rect class="logo-wave" x="462" y="202.5" width="4.5" height="15" rx="2" opacity="0.3"/>
+                    </g>
+
+                    <!-- The Official Fedora Icon Group scaled & centered vertically at Y=210 -->
+                    <g id="fedora-hat" transform="translate(144.4, 130.25) scale(1.1)">
+                        <!-- Path 1 (Underpart and shadow coordinates in Black) -->
+                        <path id="fedora-black-path" d="M157.77,62.61a14,14,0,0,1,.31,3.42c0,14.88-18.1,17.46-30.61,17.46C78.83,83.49,42.53,53.26,42.53,44a6.43,6.43,0,0,1,.22-1.94l-3.66,9.06a18.45,18.45,0,0,0-1.51,7.33c0,18.11,41,45.48,87.74,45.48,20.69,0,36.43-7.76,36.43-21.77,0-1.08,0-1.94-1.73-10.13Z" fill="#000000"/>
+                        
+                        <!-- Path 2 (The Fedora crown, band and outer brim in Red Hat Red) -->
+                        <path id="fedora-red-path" d="M127.47,83.49c12.51,0,30.61-2.58,30.61-17.46a14,14,0,0,0-.31-3.42l-7.45-32.36c-1.72-7.12-3.23-10.35-15.73-16.6C124.89,8.69,103.76.5,97.51.5,91.69.5,90,8,83.06,8c-6.68,0-11.64-5.6-17.89-5.6-6,0-9.91,4.09-12.93,12.5,0,0-8.41,23.72-9.49,27.16A6.43,6.43,0,0,0,42.53,44c0,9.22,36.3,39.45,84.94,39.45M160,72.07c1.73,8.19,1.73,9.05,1.73,10.13,0,14-15.74,21.77-36.43,21.77C78.54,104,37.58,76.6,37.58,58.49a18.45,18.45,0,0,1,1.51-7.33C22.27,52,.5,55,.5,74.22c0,31.48,74.59,70.28,133.65,70.28,45.28,0,56.7-20.48,56.7-36.65,0-12.72-11-27.16-30.83-35.78" fill="#EE0000"/>
+                    </g>
+
+                    <!-- Brand Identity Typography (Red Hat Display style) -->
+                    <g id="branding-text" class="logo-font">
+                        <!-- Official "RED HAT" Branding Header -->
+                        <text id="text-redhat" x="250" y="355" text-anchor="middle" font-size="20" font-weight="700" fill="#000000" letter-spacing="5">RED HAT</text>
+                        
+                        <!-- Game Main Title: Whisper -->
+                        <text id="text-whisper" x="250" y="405" text-anchor="middle" font-size="54" font-weight="900" fill="#EE0000" letter-spacing="2">WHISPER</text>
+                        
+                        <!-- Game Subtitle context -->
+                        <text id="text-challenge" x="250" y="440" text-anchor="middle" font-size="18" font-weight="700" fill="#000000" letter-spacing="5">VOICE CHALLENGE</text>
+                    </g>
+                    
+                    <!-- Decorative Circle framing accent -->
+                    <circle cx="250" cy="250" r="230" fill="none" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 8" opacity="0.5"/>
+                </svg>
