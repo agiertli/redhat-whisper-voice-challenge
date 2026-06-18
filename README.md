@@ -248,7 +248,7 @@ All Helm values:
 | Value | Default | Description |
 |-------|---------|-------------|
 | `image.repository` | `quay.io/agiertli/whisper-ui` | UI container image |
-| `image.tag` | `prom-metrics-v4` | Image tag (override with git SHA when building custom) |
+| `image.tag` | `v1.0.0` | Image tag (semver) |
 | `namespace` | `whisper` | Target namespace |
 | `clusterDomain` | — | Cluster apps domain (REQUIRED) |
 | `whisperApi.modelName` | `whisper` | InferenceService name |

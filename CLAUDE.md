@@ -90,7 +90,7 @@ Open the UI URL in a browser and test a voice challenge.
 
 ## Container Image Tagging Policy
 
-**Never use the `latest` tag.** Always tag with git short SHA (`git rev-parse --short HEAD`) or a version string. The `deploy.sh` script handles this automatically.
+**Never use the `latest` tag.** Use semantic versioning (`v1.0.0`, `v1.1.0`, `v2.0.0`). Bump MAJOR for breaking changes, MINOR for new features, PATCH for fixes. The `deploy.sh` script accepts a `VERSION` env var — set it explicitly.
 
 ## Challenge Phrases
 
