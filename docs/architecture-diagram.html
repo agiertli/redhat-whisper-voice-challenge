@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="sk" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whisper UI - Interaktívna architektúra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({ startOnLoad: false, theme: 'dark' });</script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @keyframes dash { to { stroke-dashoffset: -40; } }
+        .animated-flow { stroke-dasharray: 8, 4; animation: dash 2s linear infinite; }
+        .glow-red { filter: drop-shadow(0 0 8px rgba(238, 0, 0, 0.4)); }
+        .glow-green { filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.4)); }
+        .glow-blue { filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.4)); }
+        .glow-amber { filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4)); }
+        html, body { overflow-x: hidden; }
+        @keyframes pulse-node {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.3)); }
+            50% { filter: drop-shadow(0 0 14px rgba(34, 197, 94, 0.7)); }
+        }
+        .node-active { animation: pulse-node 1.5s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 selection:bg-red-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur shrink-0 z-50 px-5 py-1.5">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-red-600 text-white px-2 py-0.5 rounded-md font-bold text-sm tracking-wider glow-red">RH</div>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-base font-extrabold tracking-tight">Whisper UI Architektúra</h1>
+                    <span class="text-slate-600">|</span>
+                    <p class="text-[11px] text-slate-400">Speech-to-Text na OpenShift AI</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">&larr;</kbd>
+                <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">&rarr;</kbd>
+                <span>navigácia</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full px-3 md:px-5 py-1.5 flex flex-col gap-1.5" style="height: calc(100vh - 42px); min-height: 0; overflow: hidden;">
+
+        <!-- Stepper -->
+        <div class="bg-slate-900/95 backdrop-blur border border-slate-800 rounded-xl shadow-xl px-5 py-1.5 shrink-0 z-40">
+            <div class="flex items-center justify-between gap-4">
+                <button onclick="prevStep()" id="btn-prev" class="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition border border-slate-800 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <div class="flex-1 text-center min-w-0">
+                    <div class="flex items-baseline justify-center gap-3">
+                        <span id="step-indicator" class="text-[11px] font-mono text-red-400 uppercase tracking-widest font-bold"></span>
+                        <h3 id="step-title" class="text-sm md:text-base font-bold text-white"></h3>
+                    </div>
+                    <p id="step-desc" class="text-xs md:text-sm text-slate-400 max-w-3xl mx-auto leading-snug"></p>
+                </div>
+                <button onclick="nextStep()" id="btn-next" class="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition border border-slate-800 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Diagram -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-2 md:p-3 flex flex-col items-center justify-center relative flex-1 min-h-0 overflow-hidden">
+
+            <div class="w-full flex-1 min-h-0">
+                <svg id="arch-diagram" viewBox="0 0 960 460" class="w-full h-full" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b"/>
+                        </marker>
+                        <marker id="arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#22c55e"/>
+                        </marker>
+                        <marker id="arr-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444"/>
+                        </marker>
+                        <marker id="arr-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6"/>
+                        </marker>
+                        <linearGradient id="slateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#1e293b"/>
+                            <stop offset="100%" stop-color="#0f172a"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Grid background -->
+                    <g opacity="0.04">
+                        <path d="M 0,50 L 960,50 M 0,100 L 960,100 M 0,150 L 960,150 M 0,200 L 960,200 M 0,250 L 960,250 M 0,300 L 960,300 M 0,350 L 960,350 M 0,400 L 960,400 M 0,450 L 960,450" stroke="#94a3b8" stroke-width="1"/>
+                        <path d="M 100,0 L 100,460 M 200,0 L 200,460 M 300,0 L 300,460 M 400,0 L 400,460 M 500,0 L 500,460 M 600,0 L 600,460 M 700,0 L 700,460 M 800,0 L 800,460 M 900,0 L 900,460" stroke="#94a3b8" stroke-width="1"/>
+                    </g>
+
+                    <!-- ═══════════════ SECTION BOXES ═══════════════ -->
+
+                    <!-- Browser section -->
+                    <rect x="110" y="18" width="530" height="135" rx="12" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="6,4" opacity="0.25"/>
+                    <text x="125" y="37" font-size="10" fill="#3b82f6" font-weight="700" opacity="0.5" letter-spacing="1.5">PREHLIADAČ</text>
+
+                    <!-- OpenShift platform section -->
+                    <rect x="655" y="18" width="290" height="340" rx="12" fill="none" stroke="#ef4444" stroke-width="1" stroke-dasharray="6,4" opacity="0.25"/>
+                    <text x="670" y="37" font-size="10" fill="#ef4444" font-weight="700" opacity="0.5" letter-spacing="1.5">OPENSHIFT PLATFORMA</text>
+
+                    <!-- AI/ML sub-section -->
+                    <rect x="820" y="42" width="115" height="128" rx="8" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>
+                    <text x="835" y="56" font-size="8" fill="#f59e0b" font-weight="700" opacity="0.5" letter-spacing="1">OPENSHIFT AI</text>
+
+                    <!-- ═══════════════ FLOW PATHS ═══════════════ -->
+
+                    <!-- Step 1: User → Mic -->
+                    <path id="flow-1" d="M 95,115 L 135,95" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 2: Mic → VAD -->
+                    <path id="flow-2" d="M 255,95 L 305,92" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 3: VAD analysis indicator (small loop) -->
+                    <path id="flow-3" d="M 345,45 Q 375,15 405,45" stroke="#64748b" stroke-dasharray="4,4" stroke-width="1.5" fill="none"/>
+
+                    <!-- Step 4: VAD → WAV -->
+                    <path id="flow-4" d="M 445,92 L 495,95" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 5: WAV → Route -->
+                    <path id="flow-5" d="M 620,95 L 670,82" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 6: Route → Flask -->
+                    <path id="flow-6a" d="M 730,110 L 730,155" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 6: Flask → Whisper -->
+                    <path id="flow-6b" d="M 790,190 L 812,190 L 812,105 L 830,105" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 7: Whisper return → Flask (dashed) -->
+                    <path id="flow-7" d="M 830,125 L 808,125 L 808,200 L 790,200" stroke="#64748b" stroke-dasharray="4,4" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 8: Flask → SSE -->
+                    <path id="flow-8a" d="M 730,225 L 730,295" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 8: SSE → Display -->
+                    <path id="flow-8b" d="M 670,320 L 640,320 L 640,375 L 615,375" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- Step 8: Display → Game -->
+                    <path id="flow-8c" d="M 440,375 L 390,375" stroke="#64748b" stroke-width="2" marker-end="url(#arr)" fill="none"/>
+
+                    <!-- ConfigMap dashed link to Flask -->
+                    <path d="M 730,235 L 730,255" stroke="#64748b" stroke-dasharray="3,3" stroke-width="1" fill="none"/>
+
+                    <!-- ═══════════════ NODES ═══════════════ -->
+
+                    <!-- User -->
+                    <g id="node-user" transform="translate(15, 60)">
+                        <rect width="80" height="110" rx="12" fill="url(#slateGrad)" stroke="#475569" stroke-width="1.5"/>
+                        <circle cx="40" cy="32" r="14" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+                        <path d="M 18,60 Q 40,48 62,60" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+                        <text x="40" y="82" text-anchor="middle" font-size="11" fill="#94a3b8" font-weight="700">Používateľ</text>
+                        <text x="40" y="96" text-anchor="middle" font-size="9" fill="#64748b">Prehliadač</text>
+                    </g>
+
+                    <!-- Microphone + Web Audio -->
+                    <g id="node-mic" transform="translate(135, 60)">
+                        <rect width="120" height="70" rx="10" fill="url(#slateGrad)" stroke="#3b82f6" stroke-width="1.5"/>
+                        <g transform="translate(12, 10) scale(0.8)">
+                            <rect x="10" y="0" width="12" height="25" rx="6" fill="none" stroke="#3b82f6" stroke-width="2"/>
+                            <path d="M 5,18 Q 5,35 16,35 Q 27,35 27,18" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+                            <line x1="16" y1="35" x2="16" y2="42" stroke="#3b82f6" stroke-width="1.5"/>
+                        </g>
+                        <text x="70" y="25" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Mikrofón</text>
+                        <text x="70" y="40" text-anchor="middle" font-size="9" fill="#3b82f6" font-weight="bold">Web Audio API</text>
+                        <text x="70" y="55" text-anchor="middle" font-size="9" fill="#64748b">48kHz, Stereo</text>
+                    </g>
+
+                    <!-- VAD Engine -->
+                    <g id="node-vad" transform="translate(305, 45)">
+                        <rect width="140" height="95" rx="10" fill="url(#slateGrad)" stroke="#3b82f6" stroke-width="2"/>
+                        <text x="70" y="22" text-anchor="middle" font-size="13" fill="#f1f5f9" font-weight="800">VAD Engine</text>
+                        <line x1="15" y1="30" x2="125" y2="30" stroke="#334155" stroke-width="1"/>
+                        <text x="70" y="47" text-anchor="middle" font-size="10" fill="#cbd5e1">RMS Energia: 0.02</text>
+                        <text x="70" y="62" text-anchor="middle" font-size="10" fill="#cbd5e1">Ticho: 400ms</text>
+                        <text x="70" y="77" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="bold">Min. reč: 500ms</text>
+                    </g>
+
+                    <!-- WAV Encoder -->
+                    <g id="node-wav" transform="translate(495, 60)">
+                        <rect width="125" height="70" rx="10" fill="url(#slateGrad)" stroke="#3b82f6" stroke-width="1.5"/>
+                        <text x="62" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">WAV Encoder</text>
+                        <text x="62" y="38" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="bold">16kHz, Mono</text>
+                        <text x="62" y="52" text-anchor="middle" font-size="9" fill="#64748b">16-bit PCM + RIFF</text>
+                    </g>
+
+                    <!-- OpenShift Route -->
+                    <g id="node-route" transform="translate(670, 55)">
+                        <rect width="120" height="55" rx="8" fill="#1e293b" stroke="#ef4444" stroke-width="1.5"/>
+                        <text x="60" y="24" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="700">Route</text>
+                        <text x="60" y="40" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">TLS Termination</text>
+                    </g>
+
+                    <!-- Flask Backend -->
+                    <g id="node-flask" transform="translate(670, 155)">
+                        <rect width="120" height="80" rx="10" fill="url(#slateGrad)" stroke="#ef4444" stroke-width="1.5"/>
+                        <text x="60" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Flask</text>
+                        <text x="60" y="36" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Backend</text>
+                        <text x="60" y="52" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">Gunicorn (4w)</text>
+                        <text x="60" y="66" text-anchor="middle" font-size="9" fill="#64748b">/transcribe-stream</text>
+                    </g>
+
+                    <!-- ConfigMap (small) -->
+                    <g transform="translate(690, 255)">
+                        <rect width="80" height="35" rx="6" fill="#0f172a" stroke="#64748b" stroke-width="1" stroke-dasharray="3,3"/>
+                        <text x="40" y="15" text-anchor="middle" font-size="9" fill="#94a3b8" font-weight="700">ConfigMap</text>
+                        <text x="40" y="27" text-anchor="middle" font-size="8" fill="#64748b">API URL, Langs</text>
+                    </g>
+
+                    <!-- Whisper API -->
+                    <g id="node-whisper" transform="translate(830, 62)">
+                        <rect width="100" height="100" rx="10" fill="url(#slateGrad)" stroke="#ef4444" stroke-width="2" class="glow-red"/>
+                        <text x="50" y="20" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Whisper</text>
+                        <text x="50" y="34" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">API</text>
+                        <line x1="10" y1="41" x2="90" y2="41" stroke="#334155" stroke-width="1"/>
+                        <text x="50" y="56" text-anchor="middle" font-size="9" fill="#cbd5e1">v3-turbo</text>
+                        <text x="50" y="69" text-anchor="middle" font-size="9" fill="#cbd5e1">809M params</text>
+                        <rect x="10" y="78" width="80" height="16" rx="4" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-width="0.5"/>
+                        <text x="50" y="89" text-anchor="middle" font-size="8" fill="#f59e0b" font-weight="bold">vLLM + GPU</text>
+                    </g>
+
+                    <!-- SSE Stream -->
+                    <g id="node-sse" transform="translate(670, 295)">
+                        <rect width="120" height="50" rx="8" fill="#1e293b" stroke="#ef4444" stroke-width="1.5"/>
+                        <text x="60" y="22" text-anchor="middle" font-size="11" fill="#f1f5f9" font-weight="700">SSE Stream</text>
+                        <text x="60" y="38" text-anchor="middle" font-size="9" fill="#94a3b8">Server-Sent Events</text>
+                    </g>
+
+                    <!-- Live Display -->
+                    <g id="node-display" transform="translate(440, 345)">
+                        <rect width="175" height="60" rx="10" fill="url(#slateGrad)" stroke="#22c55e" stroke-width="1.5"/>
+                        <text x="87" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Živá transkripcia</text>
+                        <text x="87" y="38" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="bold">Pripojenie textu</text>
+                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">v reálnom čase</text>
+                    </g>
+
+                    <!-- Game Scoring -->
+                    <g id="node-game" transform="translate(215, 345)">
+                        <rect width="175" height="60" rx="10" fill="url(#slateGrad)" stroke="#22c55e" stroke-width="1.5"/>
+                        <text x="87" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Herný mód</text>
+                        <text x="87" y="38" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="bold">Levenshtein skóre</text>
+                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">&ge;90% = výhra</text>
+                    </g>
+
+                    <!-- Decorative: audio waveform on left side -->
+                    <g transform="translate(20, 195)" opacity="0.12">
+                        <path d="M 0,15 Q 5,5 10,15 Q 15,25 20,15 Q 25,0 30,15 Q 35,30 40,15 Q 45,5 50,15 Q 55,20 60,15" stroke="#3b82f6" stroke-width="1.5" fill="none"/>
+                    </g>
+
+                </svg>
+            </div>
+
+            <!-- Legend -->
+            <div class="mt-1 flex flex-wrap gap-4 text-xs bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 w-full justify-center items-center shrink-0">
+                <span class="flex items-center gap-1.5 text-slate-400">
+                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#3b82f6"></span> Klient (prehliadač)
+                </span>
+                <span class="flex items-center gap-1.5 text-slate-400">
+                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#ef4444"></span> OpenShift platforma
+                </span>
+                <span class="flex items-center gap-1.5 text-slate-400">
+                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#f59e0b"></span> AI / ML (GPU)
+                </span>
+                <span class="flex items-center gap-1.5 text-slate-400">
+                    <span class="h-2.5 w-2.5 rounded-sm" style="background:#22c55e"></span> Výstup
+                </span>
+                <span class="flex items-center gap-1.5 text-slate-400">
+                    <span class="h-2.5 w-2.5 border border-dashed border-slate-500 rounded-sm"></span> Konfigurácia
+                </span>
+                <span class="text-slate-700">|</span>
+                <button onclick="showLegacy()" class="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition text-xs font-semibold">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    Technické diagramy
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Legacy Diagrams (scrollable section below the fold) -->
+    <section id="legacy-diagrams" class="w-full px-3 md:px-5 py-6 hidden">
+        <div class="max-w-5xl mx-auto space-y-4">
+
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-extrabold tracking-tight text-white">Technické diagramy</h2>
+                <button onclick="hideLegacy()" class="text-sm text-slate-400 hover:text-white border border-slate-700 px-3 py-1 rounded-lg transition">&times; Zatvoriť</button>
+            </div>
+
+            <!-- System Architecture -->
+            <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden" open>
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">Systémová architektúra</summary>
+                <div class="px-5 pb-5">
+                    <pre class="mermaid">
+flowchart TB
+    subgraph Browser["Browser"]
+        MicSelect["Microphone Selection"]
+        WebAudio["Web Audio API"]
+        WAVEncoder["WAV Encoder 16kHz Mono 16-bit"]
+        MicSelect --> WebAudio
+        WebAudio --> WAVEncoder
+    end
+    subgraph OpenShift["OpenShift"]
+        Route["Route TLS"]
+        Service["Service"]
+        Deployment["Flask + Gunicorn"]
+        ConfigMap["ConfigMap"]
+        Whisper["Whisper API vLLM"]
+        Route --> Service
+        Service --> Deployment
+        Deployment -.-> ConfigMap
+        Deployment --> Whisper
+    end
+    WAVEncoder -->|"WAV File"| Route
+                    </pre>
+                </div>
+            </details>
+
+            <!-- Audio Processing Pipeline -->
+            <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">Audio Processing Pipeline</summary>
+                <div class="px-5 pb-5">
+                    <pre class="mermaid">
+flowchart LR
+    A["Microphone 48kHz Stereo"] --> B[Web Audio API]
+    B --> C[Float32 Samples]
+    C --> D[Resample 16kHz]
+    D --> E[Convert Mono]
+    E --> F[16-bit PCM]
+    F --> G[WAV Header]
+    G --> H["WAV File"]
+    H --> I[Flask Backend]
+    I --> J["Whisper API"]
+    J --> K["Transcription"]
+                    </pre>
+                </div>
+            </details>
+
+            <!-- Data Flow Sequence -->
+            <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">Sekvenčný diagram (Basic Mode)</summary>
+                <div class="px-5 pb-5">
+                    <pre class="mermaid">
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Flask
+    participant Whisper
+
+    User->>Browser: Click Start Recording
+    Browser->>Browser: Capture audio via Web Audio API
+    User->>Browser: Click Stop Recording
+    Browser->>Browser: Convert to WAV 16kHz mono
+    Browser->>Flask: POST /transcribe WAV file
+    Flask->>Whisper: POST /v1/audio/transcriptions
+    Whisper-->>Flask: JSON text and usage
+    Flask-->>Browser: JSON response
+    Browser->>User: Display transcription
+                    </pre>
+                </div>
+            </details>
+
+            <!-- VAD Streaming Architecture -->
+            <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">VAD Streaming architektúra</summary>
+                <div class="px-5 pb-5">
+                    <pre class="mermaid">
+flowchart TB
+    subgraph Browser["Browser Real-time"]
+        Mic["Microphone Input"]
+        VAD["VAD Engine RMS 0.02 Silence 400ms Min Speech 500ms"]
+        Buffer["Audio Buffer"]
+        Encoder["WAV Encoder"]
+        SSE["SSE Client"]
+        Mic --> VAD
+        VAD -->|"Speech Detected"| Buffer
+        VAD -->|"Silence 400ms"| Encoder
+        Buffer --> Encoder
+        Encoder -->|"POST Chunk"| SSE
+    end
+    subgraph Server["Flask Backend"]
+        Stream["/transcribe_stream SSE Endpoint"]
+        Queue["Chunk Queue"]
+        WhisperAPI["Whisper API"]
+        Stream --> Queue
+        Queue --> WhisperAPI
+        WhisperAPI -->|"text"| Stream
+    end
+    SSE --> Stream
+    Stream -->|"data: text"| SSE
+    SSE --> Display["Live Transcription Append Mode"]
+                    </pre>
+                </div>
+            </details>
+
+            <!-- VAD Decision Logic -->
+            <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">VAD Decision Logic</summary>
+                <div class="px-5 pb-5">
+                    <pre class="mermaid">
+flowchart TD
+    Start["Audio Sample 4096 frames"] --> RMS["Calculate RMS Energy"]
+    RMS --> Compare{"RMS > 0.02?"}
+    Compare -->|"YES"| Speech["Speech Detected"]
+    Compare -->|"NO"| Silence["Silence Detected"]
+    Speech --> IsSpeaking{"Already speaking?"}
+    IsSpeaking -->|"NO"| StartSpeech["Start Speech Timer Reset Silence Timer"]
+    IsSpeaking -->|"YES"| Buffer1["Add to Buffer Reset Silence Timer"]
+    Silence --> WasSpeaking{"Was speaking?"}
+    WasSpeaking -->|"NO"| Ignore["Ignore waiting for speech"]
+    WasSpeaking -->|"YES"| CheckDuration{"Silence > 400ms AND Speech > 500ms?"}
+    CheckDuration -->|"NO"| Buffer2["Add to Buffer short pause"]
+    CheckDuration -->|"YES"| Send["Send Chunk Reset Buffers"]
+                    </pre>
+                </div>
+            </details>
+
+            <!-- Challenge Scoring -->
+            <details class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <summary class="px-5 py-3 cursor-pointer text-sm font-bold text-slate-300 hover:text-white transition select-none">Challenge Scoring Algorithm (Game Mode)</summary>
+                <div class="px-5 pb-5">
+                    <pre class="mermaid">
+flowchart LR
+    Input["User Transcription"] --> Norm1["Normalize Text"]
+    Challenge["Challenge Phrase"] --> Norm2["Normalize Text"]
+    Norm1 --> Lev["Calculate Levenshtein Distance"]
+    Norm2 --> Lev
+    Lev --> Calc["Similarity = length - distance / length"]
+    Calc --> Score["Accuracy % = Similarity x 100"]
+    Score --> Color{"Score?"}
+    Color -->|">= 90%"| Green["Success + Prize"]
+    Color -->|"70-89%"| Blue["Good"]
+    Color -->|"< 70%"| Orange["Needs Improvement"]
+                    </pre>
+                    <div class="mt-4 text-sm text-slate-400 space-y-2">
+                        <p><strong class="text-slate-200">Formula:</strong> <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">similarity = (longer.length - editDistance) / longer.length</code></p>
+                        <p><strong class="text-slate-200">Implementácia:</strong> Client-side JavaScript v <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">src/templates/index.html</code></p>
+                    </div>
+                </div>
+            </details>
+
+        </div>
+    </section>
+
+    <script>
+        let currentStep = 0;
+
+        const tourSteps = [
+            {
+                id: 1,
+                title: "Používateľ spúšťa nahrávanie",
+                elements: ["flow-1"],
+                nodes: ["node-user", "node-mic"],
+                desc: "Používateľ otvorí webovú aplikáciu Whisper UI v prehliadači. Vyberie si mikrofón z dostupných zariadení a klikne na tlačidlo nahrávať. Prehliadač si vyžiada prístup k mikrofónu cez Web Audio API."
+            },
+            {
+                id: 2,
+                title: "Zachytávanie zvuku (Web Audio API)",
+                elements: ["flow-2"],
+                nodes: ["node-mic", "node-vad"],
+                desc: "Web Audio API zachytáva surový zvuk z mikrofónu pri 48 kHz v stereo. ScriptProcessorNode spracováva 4096 vzoriek v každom bufferi a posiela ich na analýzu do VAD enginu."
+            },
+            {
+                id: 3,
+                title: "Detekcia hlasovej aktivity (VAD)",
+                elements: ["flow-3"],
+                nodes: ["node-vad"],
+                desc: "VAD engine analyzuje RMS energiu každého audio bloku v reálnom čase. Ak energia presiahne prah 0.02, deteguje reč. Po 400ms ticha a minimálne 500ms súvislej reči identifikuje kompletný rečový segment."
+            },
+            {
+                id: 4,
+                title: "Kódovanie do WAV formátu",
+                elements: ["flow-4"],
+                nodes: ["node-vad", "node-wav"],
+                desc: "Audio segment sa prevzorkuje z 48 kHz na 16 kHz, skonvertuje zo stereo na mono a zakóduje ako 16-bit PCM s RIFF/WAVE hlavičkou. Výsledný WAV súbor je optimalizovaný pre Whisper model."
+            },
+            {
+                id: 5,
+                title: "Odoslanie cez OpenShift Route",
+                elements: ["flow-5"],
+                nodes: ["node-wav", "node-route"],
+                desc: "WAV chunk sa odošle HTTP POST požiadavkou na endpoint /transcribe-stream. OpenShift Route zabezpečuje TLS termináciu (HTTPS) a smeruje požiadavku na Flask službu vnútri klastra."
+            },
+            {
+                id: 6,
+                title: "Spracovanie vo Flask backende",
+                elements: ["flow-6a", "flow-6b"],
+                nodes: ["node-route", "node-flask"],
+                desc: "Flask backend beží cez Gunicorn so 4 workermi pre paralelné spracovanie. ConfigMap poskytuje URL Whisper API a zoznam podporovaných jazykov. Požiadavka s WAV súborom sa preposiela na AI model."
+            },
+            {
+                id: 7,
+                title: "AI transkripcia (Whisper)",
+                elements: ["flow-7"],
+                nodes: ["node-whisper", "node-flask"],
+                desc: "Model whisper-large-v3-turbo (809M parametrov) beží na GPU cez vLLM serving runtime. Spracuje WAV vstup a vygeneruje textovú transkripciu. OpenShift AI 3.3 zabezpečuje model serving a škálovanie."
+            },
+            {
+                id: 8,
+                title: "Streamovaná odpoveď a zobrazenie",
+                elements: ["flow-8a", "flow-8b", "flow-8c"],
+                nodes: ["node-sse", "node-display", "node-game"],
+                desc: "Transkripcia sa streamuje späť cez SSE (Server-Sent Events). Text sa v reálnom čase pripája k existujúcej transkripcii. V hernom móde sa presnosť vypočíta pomocou Levenshteinovej vzdialenosti — skóre ≥90% znamená výhru."
+            }
+        ];
+
+        const allFlowIds = tourSteps.flatMap(s => s.elements || []);
+        const allNodeIds = tourSteps.flatMap(s => s.nodes || []);
+
+        function updateStep() {
+            const step = tourSteps[currentStep];
+
+            document.getElementById('step-indicator').textContent = `Krok ${step.id} z ${tourSteps.length}`;
+            document.getElementById('step-title').textContent = step.title;
+            document.getElementById('step-desc').textContent = step.desc;
+
+            // Reset all paths
+            allFlowIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.setAttribute('stroke', '#64748b');
+                el.setAttribute('stroke-width', id.includes('flow-3') || id.includes('flow-7') ? '1.5' : '2');
+                el.classList.remove('animated-flow', 'glow-green');
+                el.setAttribute('marker-end', 'url(#arr)');
+            });
+
+            // Reset all nodes
+            allNodeIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('node-active');
+                const rect = el.querySelector('rect');
+                if (rect && rect.dataset.origStroke) {
+                    rect.setAttribute('stroke', rect.dataset.origStroke);
+                    rect.setAttribute('stroke-width', rect.dataset.origWidth || '1.5');
+                }
+            });
+
+            // Highlight active paths
+            (step.elements || []).forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.setAttribute('stroke', '#22c55e');
+                el.setAttribute('stroke-width', '3');
+                el.classList.add('animated-flow', 'glow-green');
+                el.setAttribute('marker-end', 'url(#arr-g)');
+            });
+
+            // Highlight active nodes
+            (step.nodes || []).forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.add('node-active');
+                const rect = el.querySelector('rect');
+                if (rect) {
+                    if (!rect.dataset.origStroke) {
+                        rect.dataset.origStroke = rect.getAttribute('stroke');
+                        rect.dataset.origWidth = rect.getAttribute('stroke-width');
+                    }
+                    rect.setAttribute('stroke', '#22c55e');
+                    rect.setAttribute('stroke-width', '2.5');
+                }
+            });
+        }
+
+        function nextStep() {
+            currentStep = (currentStep + 1) % tourSteps.length;
+            updateStep();
+        }
+
+        function prevStep() {
+            currentStep = (currentStep - 1 + tourSteps.length) % tourSteps.length;
+            updateStep();
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+        });
+
+        let mermaidInit = false;
+
+        function showLegacy() {
+            const el = document.getElementById('legacy-diagrams');
+            document.body.style.overflowY = 'auto';
+            el.classList.remove('hidden');
+            if (!mermaidInit) {
+                mermaid.run({ nodes: Array.from(el.querySelectorAll('.mermaid')) });
+                mermaidInit = true;
+            }
+            setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+
+        function hideLegacy() {
+            document.getElementById('legacy-diagrams').classList.add('hidden');
+            document.body.style.overflowY = '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('DOMContentLoaded', updateStep);
+    </script>
+</body>
+</html>

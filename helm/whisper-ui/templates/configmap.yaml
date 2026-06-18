@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: whisper-ui-config
+  namespace: {{ include "whisper-ui.namespace" . }}
+  labels:
+    {{- include "whisper-ui.labels" . | nindent 4 }}
+data:
+  WHISPER_API_URL: "https://{{ .Values.whisperApi.modelName }}-{{ include "whisper-ui.namespace" . }}.{{ .Values.clusterDomain }}/v1/audio/transcriptions"
+  WHISPER_MODEL_NAME: {{ .Values.whisperApi.modelName | quote }}
+  MODEL_DISPLAY_NAME: {{ .Values.whisperApi.displayName | quote }}
+  CONFERENCE_NAME: {{ .Values.conference.name | quote }}
+  WHISPER_NAMESPACE: {{ include "whisper-ui.namespace" . | quote }}
+  REQUIRED_CHALLENGE_LANGUAGE: {{ .Values.game.requiredLanguage | quote }}
+  CHALLENGE_COUNT: {{ .Values.game.challengeCount | quote }}
+  WIN_THRESHOLD: {{ .Values.game.winThreshold | quote }}
+  DCGM_EXPORTER_URL: {{ .Values.dcgmExporterUrl | quote }}
+  THANOS_QUERIER_URL: {{ .Values.thanosQuerier.url | quote }}
+  SUPPORTED_LANGUAGES: |
+    {{- .Values.supportedLanguages | nindent 4 }}

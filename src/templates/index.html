@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Hat AI Voice Challenge | {{ conference_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Red Hat Brand Colors */
+            --red-hat-red: #ee0000;
+            --red-hat-red-dark: #a60000;
+            --ux-black: #151515;
+            --gray-90: #1f1f1f;
+            --gray-80: #292929;
+            --gray-70: #383838;
+            --gray-40: #a3a3a3;
+            --gray-20: #e0e0e0;
+            --white: #ffffff;
+            --interaction-blue: #0066cc;
+            --success-green: #63993d;
+            --danger-orange: #f0561d;
+        }
+
+        body {
+            font-family: 'Red Hat Text', sans-serif;
+            line-height: 1.4;
+            background: linear-gradient(135deg, var(--ux-black) 0%, var(--gray-90) 100%);
+            color: var(--white);
+            height: 100vh;
+            padding: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 6px 20px;
+            background: var(--gray-90);
+            border-left: 4px solid var(--red-hat-red);
+            position: relative;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 900;
+            font-size: 1.4rem;
+            margin-bottom: 0;
+        }
+
+        .header .subtitle {
+            font-size: 0.8rem;
+            color: var(--gray-40);
+        }
+
+        .architecture-link {
+            position: absolute;
+            top: 4px;
+            right: 12px;
+            padding: 4px 10px;
+            background: var(--gray-80);
+            border: 1px solid var(--gray-70);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .architecture-link:hover {
+            background: var(--interaction-blue);
+            border-color: var(--interaction-blue);
+            transform: translateY(-2px);
+        }
+
+        .red-hat-logo {
+            color: var(--red-hat-red);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr auto;
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .panel {
+            background: var(--gray-90);
+            border-radius: 8px;
+            padding: 12px 16px;
+            border-left: 4px solid var(--red-hat-red);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            min-height: 0;
+        }
+
+        .panel h2 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--red-hat-red);
+        }
+
+        /* Top Panel - Transcription (HERO) */
+        #transcription-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        select, button {
+            font-family: 'Red Hat Text', sans-serif;
+            padding: 6px 12px;
+            border: 2px solid var(--gray-70);
+            background: var(--gray-80);
+            color: var(--white);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:focus, button:focus {
+            outline: none;
+            border-color: var(--red-hat-red);
+        }
+
+        button {
+            font-weight: 700;
+            /* sentence case per Red Hat brand */
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--red-hat-red);
+            border-color: var(--red-hat-red);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #recordBtn {
+            background: var(--red-hat-red);
+            border-color: var(--red-hat-red);
+        }
+
+        #recordBtn.recording {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        #stopBtn {
+            background: var(--danger-orange);
+            border-color: var(--danger-orange);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: var(--gray-80);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray-70);
+        }
+
+        .indicator.active {
+            background: var(--success-green);
+            box-shadow: 0 0 10px var(--success-green);
+        }
+
+        .indicator.speaking {
+            background: var(--red-hat-red);
+            box-shadow: 0 0 10px var(--red-hat-red);
+        }
+
+        #transcription {
+            background: var(--ux-black);
+            padding: 20px 24px;
+            border-radius: 4px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--white);
+            border: 3px solid var(--gray-70);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--gray-40);
+            margin-bottom: 8px;
+            /* sentence case per Red Hat brand */
+        }
+
+        /* Right Panel - Compact Metrics Sidebar */
+        .metrics-grid-compact {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .compact-metric {
+            background: var(--gray-80);
+            padding: 8px 10px;
+            border-radius: 4px;
+            border-left: 3px solid var(--interaction-blue);
+        }
+
+        .compact-metric.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .compact-metric .metric-label {
+            font-size: 0.65rem;
+            color: var(--gray-40);
+            /* sentence case per Red Hat brand */
+            margin-bottom: 2px;
+        }
+
+        .compact-metric .metric-value {
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .compact-metric .metric-unit {
+            font-size: 0.7rem;
+            color: var(--gray-40);
+            margin-left: 2px;
+        }
+
+        .vram-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--ux-black);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .vram-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-green), var(--interaction-blue), var(--red-hat-red));
+            transition: width 0.5s;
+            border-radius: 3px;
+        }
+
+        /* Right Panel - Challenge */
+        #challenge-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .challenge-card {
+            background: linear-gradient(135deg, var(--red-hat-red), var(--red-hat-red-dark));
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .challenge-phrase {
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 6px 0 0 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .challenge-lang {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .score-display {
+            background: var(--gray-80);
+            padding: 8px 12px;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .score-value {
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--success-green);
+        }
+
+        /* Horizontal progress tracker */
+        .progress-tracker {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .progress-slot {
+            flex: 1;
+            background: var(--gray-80);
+            border-radius: 6px;
+            padding: 8px 4px;
+            text-align: center;
+            border: 2px solid var(--gray-70);
+            transition: all 0.3s;
+        }
+
+        .progress-slot.active {
+            border-color: var(--red-hat-red);
+            box-shadow: 0 0 8px rgba(238, 0, 0, 0.3);
+        }
+
+        .progress-slot.win {
+            border-color: var(--success-green);
+            background: rgba(99, 153, 61, 0.15);
+        }
+
+        .progress-slot.fail {
+            border-color: var(--danger-orange);
+            background: rgba(240, 86, 29, 0.15);
+        }
+
+        .progress-slot.skip {
+            border-color: var(--gray-40);
+            background: rgba(163, 163, 163, 0.1);
+        }
+
+        .progress-slot .slot-num {
+            font-size: 2.2rem;
+            line-height: 1.2;
+        }
+
+        .progress-slot .slot-icon {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        .progress-slot.active .slot-num {
+            animation: flagReveal 0.4s ease-out;
+        }
+
+        @keyframes flagReveal {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.3); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .progress-slot .slot-lang {
+            font-size: 0.6rem;
+            color: var(--gray-40);
+            margin-top: 2px;
+        }
+
+        .progress-slot .slot-score {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        .leaderboard {
+            background: var(--gray-80);
+            padding: 20px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: var(--ux-black);
+            border-radius: 4px;
+        }
+
+        .leaderboard-item.top {
+            border-left: 3px solid var(--red-hat-red);
+        }
+
+        .prize-notification {
+            background: var(--success-green);
+            color: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .footer {
+            display: none;
+        }
+
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Congratulations Modal */
+        .congrats-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .congrats-modal {
+            background: linear-gradient(135deg, var(--red-hat-red) 0%, var(--red-hat-red-dark) 100%);
+            padding: 60px 80px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 80px rgba(238, 0, 0, 0.5);
+            animation: modalPop 0.5s ease-out;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .loss-modal {
+            background: linear-gradient(135deg, var(--danger-orange) 0%, #c94300 100%);
+            padding: 60px 80px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 80px rgba(240, 86, 29, 0.5);
+            animation: modalPop 0.5s ease-out;
+            max-width: 600px;
+            position: relative;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .congrats-modal h2 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: var(--white);
+        }
+
+        .congrats-modal .trophy {
+            font-size: 6rem;
+            margin: 20px 0;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .congrats-modal p {
+            font-size: 1.5rem;
+            margin: 15px 0;
+            color: var(--white);
+        }
+
+        .congrats-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: var(--white);
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .congrats-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 900px) {
+            .bottom-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/architecture" target="_blank" class="architecture-link">Architecture</a>
+        <h1><span class="red-hat-logo">Red Hat</span> AI Voice Challenge</h1>
+        <span class="subtitle">{{ model_display_name }} | {{ conference_name }}</span>
+    </div>
+
+    <div class="container">
+        <!-- TOP: Transcription (hero panel) -->
+        <div class="panel" id="transcription-panel">
+            <h2>Live Transcription</h2>
+
+            <div class="controls">
+                <select id="microphone">
+                    <option value="">Select Microphone</option>
+                </select>
+
+                <select id="language" style="display: none;">
+                    {% for code, name in languages.items() %}
+                    <option value="{{ code }}" {% if code == 'en' %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button id="recordBtn">Start Recording</button>
+                <button id="stopBtn" disabled>Stop</button>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="indicator" id="vadIndicator"></div>
+                    <span id="vadStatus">Ready</span>
+                </div>
+                <div class="status-item">
+                    <span id="timer">00:00</span>
+                </div>
+                <div class="status-item">
+                    <span id="streamingIndicator" style="display:none;">⚡ Streaming</span>
+                </div>
+            </div>
+
+            <div id="transcription"></div>
+        </div>
+
+        <!-- BOTTOM ROW: Challenge + Metrics side by side -->
+        <div class="bottom-row">
+        <div class="panel" id="challenge-panel">
+            <h2>🏆 Voice Challenge</h2>
+
+            <!-- Difficulty Selector (shown at start) -->
+            <div id="difficultySelector">
+                <div style="background: var(--gray-80); padding: 10px 14px; border-radius: 4px; margin-bottom: 10px;">
+                    <h3 style="color: var(--gray-40); margin-bottom: 6px; font-size: 0.9rem;">How to Win</h3>
+                    <ol style="color: var(--gray-20); line-height: 1.6; padding-left: 18px; font-size: 0.85rem;">
+                        <li>Select difficulty level</li>
+                        <li>Complete {{ challenge_count }} voice challenges</li>
+                        <li>Average accuracy ≥80%</li>
+                        <li>Win amazing prizes!</li>
+                    </ol>
+                </div>
+                <h3 style="margin-bottom: 8px; font-size: 0.9rem;">Select Difficulty:</h3>
+                <button onclick="startGame('easy')" style="width: 100%; margin-bottom: 6px; padding: 12px; background: var(--success-green); font-size: 1rem;">
+                    🥉 EASY - Bronze Prize
+                </button>
+                <button onclick="startGame('medium')" style="width: 100%; margin-bottom: 6px; padding: 12px; background: var(--interaction-blue); font-size: 1rem;">
+                    🥈 MEDIUM - Silver Prize
+                </button>
+                <button onclick="startGame('hard')" style="width: 100%; margin-bottom: 6px; padding: 12px; background: var(--red-hat-red); font-size: 1rem;">
+                    🥇 HARD - Gold Prize (日本語, 한국어, العربية...)
+                </button>
+            </div>
+
+            <!-- Challenge Content (shown during game) -->
+            <div id="challengeContent" style="display: none;">
+                <!-- Progress tracker: horizontal slots for all challenges -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div id="winsCounter" style="font-size: 0.85rem; color: var(--gray-40);">Challenge 1/{{ challenge_count }} | Need: ≥80% avg</div>
+                    <div style="font-size: 0.85rem;">Avg: <span id="averageAccuracy" style="font-weight: 700;">--</span></div>
+                </div>
+                <div class="progress-tracker" id="progressTracker">
+                    <!-- Slots generated by JS -->
+                </div>
+
+                <!-- Current challenge -->
+                <div class="challenge-card">
+                    <div id="currentLang" style="font-size: 1.3rem; font-weight: bold; margin-bottom: 4px; color: var(--white);">🇸🇰 Slovak</div>
+                    <div class="challenge-phrase" id="challengePhrase">OpenShift je skvelý produkt</div>
+                </div>
+
+                <!-- Score + Skip in one row -->
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                    <div class="score-display" style="flex: 1; margin-bottom: 0;">
+                        <div style="font-size: 0.7rem; color: var(--gray-40); letter-spacing: 1px;">Score</div>
+                        <div class="score-value" id="accuracyScore">--</div>
+                    </div>
+                    <div id="challengeActions" style="flex: 1;">
+                        <button id="skipButton" onclick="skipAttempt()" style="width: 100%; background: var(--gray-70); padding: 14px 10px; font-size: 0.8rem;">
+                            ⏭️ Skip (1 free skip remaining)
+                        </button>
+                    </div>
+                </div>
+
+                <div id="finalResults" style="display: none; background: var(--gray-80); padding: 15px; border-radius: 4px; margin-top: 10px; text-align: center;">
+                    <!-- Filled by JavaScript -->
+                </div>
+
+                <button onclick="resetGame()" style="width: 100%; margin-top: 10px; background: var(--gray-70); padding: 10px;">
+                    🔄 Start New Game
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Compact AI Metrics -->
+        <div class="panel" id="metrics-panel">
+            <h2 style="font-size: 0.9rem; margin-bottom: 8px;">AI Metrics</h2>
+
+            <div class="metrics-grid-compact">
+                <div class="compact-metric full-width">
+                    <div class="metric-label">GPU VRAM</div>
+                    <div class="metric-value"><span id="vramText">-- / -- GB</span></div>
+                    <div class="vram-bar"><div class="vram-bar-fill" id="vramBar" style="width: 0%"></div></div>
+                </div>
+
+                <div class="compact-metric">
+                    <div class="metric-label">Temp</div>
+                    <div class="metric-value"><span id="tempValue">--</span><span class="metric-unit">°C</span></div>
+                </div>
+
+                <div class="compact-metric">
+                    <div class="metric-label">Speed</div>
+                    <div class="metric-value"><span id="tokensPerSec">--</span><span class="metric-unit">tok/s</span></div>
+                </div>
+
+                <div class="compact-metric">
+                    <div class="metric-label">TTFT</div>
+                    <div class="metric-value"><span id="vllmTTFT">--</span><span class="metric-unit">ms</span></div>
+                </div>
+
+                <div class="compact-metric">
+                    <div class="metric-label">E2E</div>
+                    <div class="metric-value"><span id="vllmE2E">--</span><span class="metric-unit">ms</span></div>
+                </div>
+
+                <div class="compact-metric">
+                    <div class="metric-label">Requests</div>
+                    <div class="metric-value" style="color: var(--success-green);"><span id="requestsProcessed">0</span></div>
+                </div>
+
+                <div class="compact-metric">
+                    <div class="metric-label">Tokens</div>
+                    <div class="metric-value" style="color: var(--interaction-blue);"><span id="tokensGenerated">0</span></div>
+                </div>
+
+                <div class="compact-metric full-width">
+                    <div class="metric-label">Success Rate</div>
+                    <div class="metric-value" style="color: var(--success-green);"><span id="vllmSuccessRate">100</span><span class="metric-unit">%</span></div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>Experience open source AI running on your infrastructure</div>
+        <div class="powered-by">
+            Built with OpenShift AI • {{ model_display_name }} • vLLM • Python • Flask
+        </div>
+    </div>
+
+    <script>
+        let audioContext;
+        let mediaStream;
+        let audioInput;
+        let recorder;
+        let timerInterval;
+        let seconds = 0;
+        let isRecording = false;
+        let currentChallenge = null;
+        let metricsInterval = null;
+        let pendingSends = [];
+
+        // VAD configuration
+        const VAD_THRESHOLD = 0.05;
+        const SILENCE_DURATION_MS = 1000;
+        const MIN_SPEECH_DURATION_MS = 600;
+
+        // Challenge phrases by language (loaded from challenges.json via backend)
+        const challenges = {{ challenge_phrases | tojson }};
+
+        // Game Configuration
+        const REQUIRED_LANGUAGE = '{{ required_language }}';
+        const CHALLENGE_COUNT = {{ challenge_count }};
+        const WIN_THRESHOLD = {{ win_threshold }};
+
+        const DIFFICULTY_POOLS = {
+            easy: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr'],
+            medium: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk'],
+            hard: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk', 'ja', 'ko', 'ar', 'zh', 'th', 'hi']
+        };
+
+        const LANGUAGE_INFO = {
+            'sk': {flag: '🇸🇰', name: 'Slovak'}, 'cs': {flag: '🇨🇿', name: 'Czech'}, 'en': {flag: '🇬🇧', name: 'English'},
+            'pl': {flag: '🇵🇱', name: 'Polish'}, 'hu': {flag: '🇭🇺', name: 'Hungarian'}, 'de': {flag: '🇩🇪', name: 'German'},
+            'es': {flag: '🇪🇸', name: 'Spanish'}, 'fr': {flag: '🇫🇷', name: 'French'}, 'tr': {flag: '🇹🇷', name: 'Turkish'},
+            'it': {flag: '🇮🇹', name: 'Italian'}, 'pt': {flag: '🇵🇹', name: 'Portuguese'}, 'nl': {flag: '🇳🇱', name: 'Dutch'},
+            'sv': {flag: '🇸🇪', name: 'Swedish'}, 'ro': {flag: '🇷🇴', name: 'Romanian'}, 'uk': {flag: '🇺🇦', name: 'Ukrainian'},
+            'ja': {flag: '🇯🇵', name: 'Japanese'}, 'ko': {flag: '🇰🇷', name: 'Korean'}, 'ar': {flag: '🇸🇦', name: 'Arabic'},
+            'zh': {flag: '🇨🇳', name: 'Chinese'}, 'th': {flag: '🇹🇭', name: 'Thai'}, 'hi': {flag: '🇮🇳', name: 'Hindi'}
+        };
+
+        // Game State
+        let gameState = {
+            difficulty: null,
+            attempts: [],
+            usedLanguages: [],  // Track languages to avoid duplicates
+            currentAttemptIndex: 0,
+            totalWins: 0,
+            skipsUsed: 0,
+            gameStarted: false,
+            gameCompleted: false
+        };
+
+        // Initialize
+        loadMicrophones();
+        checkGameStart();
+        startMetricsMonitoring();
+
+        async function loadMicrophones() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const audioInputs = devices.filter(device => device.kind === 'audioinput');
+                const micSelect = document.getElementById('microphone');
+
+                audioInputs.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Microphone ${micSelect.options.length}`;
+                    micSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error enumerating devices:', error);
+            }
+        }
+
+        function checkGameStart() {
+            // On page load, show difficulty selector
+            document.getElementById('difficultySelector').style.display = 'block';
+            document.getElementById('challengeContent').style.display = 'none';
+        }
+
+        function startGame(difficulty) {
+            gameState = {
+                difficulty: difficulty,
+                attempts: [],
+                usedLanguages: [],
+                currentAttemptIndex: 0,
+                totalWins: 0,
+                skipsUsed: 0,
+                gameStarted: true,
+                gameCompleted: false
+            };
+
+            document.getElementById('difficultySelector').style.display = 'none';
+            document.getElementById('challengeContent').style.display = 'block';
+            document.getElementById('finalResults').style.display = 'none';
+
+            initProgressTracker();
+            nextAttempt();
+        }
+
+        function initProgressTracker() {
+            const tracker = document.getElementById('progressTracker');
+            tracker.innerHTML = '';
+            for (let i = 0; i < CHALLENGE_COUNT; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'progress-slot';
+                slot.id = `slot-${i}`;
+                slot.innerHTML = `
+                    <div class="slot-num">#${i + 1}</div>
+                    <div class="slot-icon">·</div>
+                    <div class="slot-lang">&nbsp;</div>
+                    <div class="slot-score">&nbsp;</div>
+                `;
+                tracker.appendChild(slot);
+            }
+        }
+
+        function nextAttempt() {
+            if (gameState.currentAttemptIndex >= CHALLENGE_COUNT) {
+                finishGame();
+                return;
+            }
+
+            let selectedLang;
+
+            if (gameState.currentAttemptIndex === 0) {
+                selectedLang = REQUIRED_LANGUAGE;
+            } else {
+                // For HARD mode: ensure at least 2 of the 4 random attempts use truly hard languages
+                const hardLanguages = ['ja', 'ko', 'ar', 'zh', 'th', 'hi'];
+                const hardLangsUsed = gameState.usedLanguages.filter(l => hardLanguages.includes(l)).length;
+                const attemptsRemaining = CHALLENGE_COUNT - gameState.currentAttemptIndex;
+                const needHardLang = gameState.difficulty === 'hard' && hardLangsUsed < 2 && attemptsRemaining <= 3;
+
+                let pool;
+                if (needHardLang) {
+                    // Force selection from truly hard languages
+                    pool = hardLanguages.filter(l => !gameState.usedLanguages.includes(l));
+                } else {
+                    // Normal selection from difficulty pool
+                    pool = DIFFICULTY_POOLS[gameState.difficulty].filter(l => !gameState.usedLanguages.includes(l));
+                }
+
+                if (pool.length === 0) {
+                    // Fallback: if all languages used, allow reuse
+                    selectedLang = DIFFICULTY_POOLS[gameState.difficulty][Math.floor(Math.random() * DIFFICULTY_POOLS[gameState.difficulty].length)];
+                } else {
+                    selectedLang = pool[Math.floor(Math.random() * pool.length)];
+                }
+            }
+
+            // Track used language
+            gameState.usedLanguages.push(selectedLang);
+
+            const phrasesForLang = challenges[selectedLang];
+            if (!phrasesForLang) {
+                console.error('No phrases for language:', selectedLang);
+                return;
+            }
+            const randomPhrase = phrasesForLang[Math.floor(Math.random() * phrasesForLang.length)];
+
+            currentChallenge = {
+                lang: selectedLang,
+                phrase: randomPhrase
+            };
+
+            updateChallengeUI();
+
+            // Sync language dropdown if the language exists in it
+            const langDropdown = document.getElementById('language');
+            const langOptions = Array.from(langDropdown.options).map(opt => opt.value);
+            if (langOptions.includes(selectedLang)) {
+                langDropdown.value = selectedLang;
+            }
+        }
+
+        function updateChallengeUI() {
+            document.getElementById('winsCounter').textContent = `Challenge ${gameState.currentAttemptIndex + 1}/${CHALLENGE_COUNT} | Need: ≥80% avg`;
+            updateProgressTracker();
+            updateAverageAccuracy();
+
+            // Between rounds (currentChallenge cleared) or game finished — only update tracker/stats
+            if (!currentChallenge || gameState.currentAttemptIndex >= CHALLENGE_COUNT) {
+                return;
+            }
+
+            const langInfo = LANGUAGE_INFO[currentChallenge.lang];
+            document.getElementById('currentLang').textContent = `${langInfo.flag} ${langInfo.name}`;
+            document.getElementById('challengePhrase').textContent = currentChallenge.phrase;
+            document.getElementById('accuracyScore').textContent = '--';
+            document.getElementById('accuracyScore').style.color = 'var(--white)';
+
+            // Update skip button
+            const skipBtn = document.getElementById('skipButton');
+            if (skipBtn) {
+                if (gameState.skipsUsed >= 1) {
+                    skipBtn.disabled = true;
+                    skipBtn.textContent = '⏭️ Skip (0 left)';
+                    skipBtn.style.opacity = '0.5';
+                } else {
+                    skipBtn.disabled = false;
+                    skipBtn.textContent = '⏭️ Skip (1 left)';
+                    skipBtn.style.opacity = '1';
+                }
+            }
+        }
+
+        function recordAttempt(transcription, score) {
+            const status = score >= 80 ? 'win' : 'fail';
+
+            gameState.attempts.push({
+                lang: currentChallenge.lang,
+                phrase: currentChallenge.phrase,
+                transcription: transcription,
+                score: score,
+                status: status
+            });
+
+            if (status === 'win') {
+                gameState.totalWins++;
+            }
+
+            gameState.currentAttemptIndex++;
+            currentChallenge = null;
+            updateChallengeUI();
+
+            setTimeout(() => {
+                if (gameState.currentAttemptIndex < CHALLENGE_COUNT) {
+                    nextAttempt();
+                } else {
+                    finishGame();
+                }
+            }, 2000);
+        }
+
+        function skipAttempt() {
+            if (gameState.skipsUsed >= 1) {
+                return; // Should not happen if button is disabled, but safety check
+            }
+
+            gameState.attempts.push({
+                lang: currentChallenge.lang,
+                phrase: currentChallenge.phrase,
+                transcription: '(skipped)',
+                score: 0,
+                status: 'skip'
+            });
+
+            gameState.skipsUsed++;
+            gameState.currentAttemptIndex++;
+
+            if (gameState.currentAttemptIndex < CHALLENGE_COUNT) {
+                nextAttempt();
+            } else {
+                finishGame();
+            }
+        }
+
+        function updateProgressTracker() {
+            for (let i = 0; i < CHALLENGE_COUNT; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if (!slot) continue;
+
+                slot.className = 'progress-slot';
+
+                if (i < gameState.attempts.length) {
+                    const attempt = gameState.attempts[i];
+                    const langInfo = LANGUAGE_INFO[attempt.lang];
+                    const icon = attempt.status === 'win' ? '✅' : attempt.status === 'fail' ? '❌' : '⏭️';
+                    const scoreText = attempt.status === 'skip' ? '—' : `${attempt.score}%`;
+                    const scoreColor = attempt.status === 'win' ? 'var(--success-green)' : attempt.status === 'fail' ? 'var(--danger-orange)' : 'var(--gray-40)';
+
+                    slot.classList.add(attempt.status);
+                    slot.innerHTML = `
+                        <div class="slot-num">${langInfo.flag}</div>
+                        <div class="slot-icon">${icon}</div>
+                        <div class="slot-score" style="color: ${scoreColor}">${scoreText}</div>
+                    `;
+                } else if (i === gameState.currentAttemptIndex && currentChallenge) {
+                    slot.classList.add('active');
+                    const langInfo = LANGUAGE_INFO[currentChallenge.lang];
+                    slot.innerHTML = `
+                        <div class="slot-num">${langInfo.flag}</div>
+                        <div class="slot-icon">🎤</div>
+                        <div class="slot-score">&nbsp;</div>
+                    `;
+                } else {
+                    slot.innerHTML = `
+                        <div class="slot-num" style="color: var(--gray-70);">?</div>
+                        <div class="slot-icon" style="color: var(--gray-70);">·</div>
+                        <div class="slot-score">&nbsp;</div>
+                    `;
+                }
+            }
+        }
+
+        function updateAverageAccuracy() {
+            const scoredAttempts = gameState.attempts.filter(a => a.status !== 'skip');
+            if (scoredAttempts.length === 0) {
+                document.getElementById('averageAccuracy').textContent = '--';
+                return;
+            }
+
+            const avg = scoredAttempts.reduce((sum, a) => sum + a.score, 0) / scoredAttempts.length;
+            document.getElementById('averageAccuracy').textContent = avg.toFixed(1) + '%';
+        }
+
+        function finishGame() {
+            gameState.gameCompleted = true;
+
+            const scoredAttempts = gameState.attempts.filter(a => a.status !== 'skip');
+            const avgScore = scoredAttempts.length > 0
+                ? scoredAttempts.reduce((sum, a) => sum + a.score, 0) / scoredAttempts.length
+                : 0;
+            const won = avgScore >= 80;
+            const finalResultsEl = document.getElementById('finalResults');
+            const prizeTiers = {easy: 'BRONZE', medium: 'SILVER', hard: 'GOLD'};
+            const prizeTrophies = {easy: '🥉', medium: '🥈', hard: '🥇'};
+
+            if (won) {
+                document.getElementById('congratsTrophy').textContent = prizeTrophies[gameState.difficulty];
+                document.getElementById('congratsMessage').innerHTML = `You won the <strong>${prizeTiers[gameState.difficulty]}</strong> prize!`;
+                document.getElementById('congratsScore').textContent = `Average accuracy: ${avgScore.toFixed(1)}%`;
+                document.getElementById('congratsOverlay').style.display = 'flex';
+
+                finalResultsEl.innerHTML = `
+                    <h3 style="color: var(--success-green);">🎉 Congratulations!</h3>
+                    <p style="font-size: 1.2rem; margin: 15px 0;">
+                        Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>
+                    </p>
+                    <p style="font-size: 1rem;">Difficulty: <strong>${gameState.difficulty.toUpperCase()}</strong></p>
+                    <p style="margin-top: 15px;">Visit the Red Hat booth to claim your <strong>${prizeTiers[gameState.difficulty]}</strong> prize! 🏆</p>
+                `;
+            } else {
+                const lossTitle = avgScore >= 60 ? '😅 So close! 😅' : avgScore >= 30 ? '🫣 Not quite! 🫣' : '😬 Tough one! 😬';
+                document.getElementById('lossTitle').textContent = lossTitle;
+                document.getElementById('lossScore').innerHTML = `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('lossOverlay').style.display = 'flex';
+
+                finalResultsEl.innerHTML = `
+                    <h3 style="color: var(--danger-orange);">Almost there!</h3>
+                    <p style="font-size: 1.2rem; margin: 15px 0;">Average accuracy: <strong>${avgScore.toFixed(1)}%</strong></p>
+                    <p style="font-size: 1rem;">Needed: <strong>80%</strong> average to win</p>
+                    <p style="margin-top: 15px;">Try again for another shot at the prize!</p>
+                `;
+            }
+
+            finalResultsEl.style.display = 'block';
+            document.getElementById('challengeActions').style.display = 'none';
+        }
+
+        function closeCongratsModal() {
+            document.getElementById('congratsOverlay').style.display = 'none';
+        }
+
+        function closeLossModal() {
+            document.getElementById('lossOverlay').style.display = 'none';
+        }
+
+        function resetGame() {
+            gameState = {
+                difficulty: null,
+                attempts: [],
+                usedLanguages: [],
+                currentAttemptIndex: 0,
+                totalWins: 0,
+                skipsUsed: 0,
+                gameStarted: false,
+                gameCompleted: false
+            };
+
+            document.getElementById('difficultySelector').style.display = 'block';
+            document.getElementById('challengeContent').style.display = 'none';
+            document.getElementById('finalResults').style.display = 'none';
+            document.getElementById('progressTracker').innerHTML = '';
+            document.getElementById('averageAccuracy').textContent = '--';
+            document.getElementById('challengeActions').style.display = 'block';
+        }
+
+        // Recording controls (same as before)
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const transcription = document.getElementById('transcription');
+        const vadIndicator = document.getElementById('vadIndicator');
+        const vadStatus = document.getElementById('vadStatus');
+
+        recordBtn.addEventListener('click', startRecording);
+        stopBtn.addEventListener('click', stopRecording);
+
+        async function startRecording() {
+            transcription.textContent = '';
+            document.getElementById('accuracyScore').textContent = '--';
+
+            try {
+                const deviceId = document.getElementById('microphone').value;
+                const constraints = {
+                    audio: deviceId ? { deviceId: { exact: deviceId } } : true
+                };
+
+                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                audioContext = new AudioContext({ sampleRate: 48000 });
+                audioInput = audioContext.createMediaStreamSource(mediaStream);
+
+                recorder = new VADRecorder(audioContext, audioInput);
+                recorder.start();
+
+                isRecording = true;
+                recordBtn.disabled = true;
+                recordBtn.classList.add('recording');
+                stopBtn.disabled = false;
+                vadIndicator.classList.add('active');
+                vadStatus.textContent = 'Listening...';
+
+                startTimer();
+                document.getElementById('streamingIndicator').style.display = 'block';
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                alert('Error accessing microphone: ' + error.message);
+            }
+        }
+
+        async function stopRecording() {
+            isRecording = false;
+            stopBtn.disabled = true;
+            vadStatus.textContent = 'Processing...';
+
+            // Flush any remaining speech buffers the VAD hasn't sent yet
+            if (recorder && recorder.buffers.length > 0) {
+                const chunk = recorder.getChunk();
+                if (chunk.length > 0) {
+                    const p = sendChunk(chunk);
+                    pendingSends.push(p);
+                }
+            }
+
+            if (recorder) {
+                recorder.stop();
+            }
+
+            // Wait for all in-flight transcription requests to complete
+            if (pendingSends.length > 0) {
+                await Promise.all(pendingSends);
+                pendingSends = [];
+            }
+
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+
+            recordBtn.disabled = false;
+            recordBtn.classList.remove('recording');
+            vadIndicator.classList.remove('active', 'speaking');
+            vadStatus.textContent = 'Ready';
+
+            stopTimer();
+            document.getElementById('streamingIndicator').style.display = 'none';
+
+            // Calculate accuracy after all transcription is received
+            if (currentChallenge && transcription.textContent.trim()) {
+                calculateAccuracy(transcription.textContent.trim(), currentChallenge.phrase);
+            }
+        }
+
+        function startTimer() {
+            seconds = 0;
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function updateTimer() {
+            seconds++;
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${mins}:${secs}`;
+        }
+
+        function calculateAccuracy(transcribed, expected) {
+            // Normalize: lowercase, trim, remove punctuation
+            const normalize = (str) => {
+                return str.toLowerCase()
+                          .trim()
+                          .replace(/[.,!?;:]/g, '')  // Remove punctuation
+                          .replace(/\s+/g, ' ');     // Normalize whitespace
+            };
+
+            const t = normalize(transcribed);
+            const e = normalize(expected);
+
+            // Simple Levenshtein distance similarity
+            const similarity = levenshteinSimilarity(t, e);
+            const score = Math.round(similarity * 100);
+
+            document.getElementById('accuracyScore').textContent = score + '%';
+
+            // Update score color based on accuracy
+            const scoreElement = document.getElementById('accuracyScore');
+            if (score >= 90) {
+                scoreElement.style.color = 'var(--success-green)';
+            } else if (score >= 70) {
+                scoreElement.style.color = 'var(--interaction-blue)';
+            } else {
+                scoreElement.style.color = 'var(--danger-orange)';
+            }
+
+            // If game is active, record this attempt
+            if (gameState.gameStarted && !gameState.gameCompleted) {
+                recordAttempt(transcribed, score);
+            }
+
+            return score;
+        }
+
+        function levenshteinSimilarity(s1, s2) {
+            const longer = s1.length > s2.length ? s1 : s2;
+            const shorter = s1.length > s2.length ? s2 : s1;
+
+            if (longer.length === 0) return 1.0;
+
+            const editDistance = levenshteinDistance(longer, shorter);
+            return (longer.length - editDistance) / longer.length;
+        }
+
+        function levenshteinDistance(s1, s2) {
+            const costs = [];
+            for (let i = 0; i <= s1.length; i++) {
+                let lastValue = i;
+                for (let j = 0; j <= s2.length; j++) {
+                    if (i === 0) {
+                        costs[j] = j;
+                    } else if (j > 0) {
+                        let newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                        }
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+                if (i > 0) costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
+        }
+
+        // Metrics monitoring
+        function startMetricsMonitoring() {
+            updateMetrics();
+            metricsInterval = setInterval(updateMetrics, 2000);
+        }
+
+        async function updateMetrics() {
+            try {
+                const response = await fetch('/metrics');
+                const data = await response.json();
+
+                // Update VRAM
+                const vramUsed = data.vram_used || 0;
+                const vramTotal = data.vram_total || 46;
+                const vramPercent = (vramUsed / vramTotal) * 100;
+                document.getElementById('vramText').textContent = `${vramUsed.toFixed(1)} / ${vramTotal.toFixed(0)} GB`;
+                document.getElementById('vramBar').style.width = `${vramPercent}%`;
+
+                // Update temperature
+                const temp = data.temperature || 0;
+                document.getElementById('tempValue').textContent = temp;
+
+                // Update activity stats
+                const requestsProcessed = data.requests_processed || 0;
+                const tokensGenerated = data.vllm_generation_tokens || 0;
+
+                document.getElementById('requestsProcessed').textContent = requestsProcessed;
+                document.getElementById('tokensGenerated').textContent = tokensGenerated;
+
+                // Update tokens/s
+                document.getElementById('tokensPerSec').textContent =
+                    (data.tokens_per_sec || '--');
+
+                // Update vLLM metrics
+                const vllmTTFT = data.vllm_avg_ttft_ms;
+                const vllmE2E = data.vllm_avg_e2e_ms;
+                const vllmSuccessRate = data.vllm_success_rate || 100;
+
+                document.getElementById('vllmTTFT').textContent = vllmTTFT !== null ? vllmTTFT : '--';
+                document.getElementById('vllmE2E').textContent = vllmE2E !== null ? vllmE2E : '--';
+                document.getElementById('vllmSuccessRate').textContent = vllmSuccessRate + '%';
+
+            } catch (error) {
+                console.error('Error fetching metrics:', error);
+            }
+        }
+
+        // VAD Recorder (same as streaming version)
+        class VADRecorder {
+            constructor(audioContext, source) {
+                this.context = audioContext;
+                this.source = source;
+                this.buffers = [];
+                this.recording = false;
+                this.isSpeaking = false;
+                this.silenceStart = null;
+                this.speechStart = null;
+            }
+
+            start() {
+                this.buffers = [];
+                this.recording = true;
+                this.isSpeaking = false;
+                this.silenceStart = null;
+                this.speechStart = null;
+
+                const processor = this.context.createScriptProcessor(4096, 1, 1);
+                processor.onaudioprocess = (e) => {
+                    if (!this.recording) return;
+
+                    const channelData = e.inputBuffer.getChannelData(0);
+                    const buffer = new Float32Array(channelData);
+
+                    let sum = 0;
+                    for (let i = 0; i < buffer.length; i++) {
+                        sum += buffer[i] * buffer[i];
+                    }
+                    const rms = Math.sqrt(sum / buffer.length);
+
+                    const now = Date.now();
+
+                    if (rms > VAD_THRESHOLD) {
+                        if (!this.isSpeaking) {
+                            this.isSpeaking = true;
+                            this.speechStart = now;
+                            vadIndicator.classList.add('speaking');
+                            vadStatus.textContent = 'Speaking...';
+                        }
+                        this.silenceStart = null;
+                        this.buffers.push(buffer);
+                    } else {
+                        if (this.isSpeaking) {
+                            if (!this.silenceStart) {
+                                this.silenceStart = now;
+                            }
+
+                            const silenceDuration = now - this.silenceStart;
+                            const speechDuration = this.speechStart ? now - this.speechStart : 0;
+
+                            if (silenceDuration > SILENCE_DURATION_MS && speechDuration > MIN_SPEECH_DURATION_MS) {
+                                vadIndicator.classList.remove('speaking');
+                                vadStatus.textContent = 'Processing...';
+
+                                const chunk = this.getChunk();
+                                if (chunk.length > 0) {
+                                    const p = sendChunk(chunk);
+                                    pendingSends.push(p);
+                                    p.finally(() => { pendingSends = pendingSends.filter(x => x !== p); });
+                                }
+
+                                this.isSpeaking = false;
+                                this.silenceStart = null;
+                                this.speechStart = null;
+                                vadStatus.textContent = 'Listening...';
+                            } else {
+                                this.buffers.push(buffer);
+                            }
+                        }
+                    }
+                };
+
+                this.source.connect(processor);
+                processor.connect(this.context.destination);
+                this.processor = processor;
+            }
+
+            getChunk() {
+                const chunk = this.mergeBuffers(this.buffers);
+                this.buffers = [];
+                return chunk;
+            }
+
+            mergeBuffers(buffers) {
+                const length = buffers.reduce((acc, buf) => acc + buf.length, 0);
+                const merged = new Float32Array(length);
+                let offset = 0;
+                for (const buffer of buffers) {
+                    merged.set(buffer, offset);
+                    offset += buffer.length;
+                }
+                return merged;
+            }
+
+            stop() {
+                this.recording = false;
+                if (this.processor) {
+                    this.processor.disconnect();
+                    this.source.disconnect(this.processor);
+                }
+            }
+        }
+
+        async function sendChunk(samples) {
+            if (!samples || samples.length === 0) return;
+
+            const wavBlob = createWavBlob(samples, audioContext.sampleRate, 16000);
+            if (wavBlob.size < 1000) return;
+
+            const formData = new FormData();
+            formData.append('audio', wavBlob, 'chunk.wav');
+            formData.append('language', currentChallenge ? currentChallenge.lang : document.getElementById('language').value);
+            formData.append('mode', 'transcriptions');
+
+            try {
+                const response = await fetch('/transcribe-stream', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) return;
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const jsonStr = line.substring(6);
+                            try {
+                                const data = JSON.parse(jsonStr);
+                                if (data.text) {
+                                    if (transcription.textContent) {
+                                        transcription.textContent += data.text;
+                                    } else {
+                                        transcription.textContent = data.text;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('JSON parse error:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Chunk send error:', error);
+            }
+        }
+
+        function createWavBlob(samples, inputSampleRate, outputSampleRate) {
+            const resampled = resample(samples, inputSampleRate, outputSampleRate);
+            const buffer = new ArrayBuffer(44 + resampled.length * 2);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + resampled.length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, outputSampleRate, true);
+            view.setUint32(28, outputSampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, resampled.length * 2, true);
+
+            let offset = 44;
+            for (let i = 0; i < resampled.length; i++) {
+                const sample = Math.max(-1, Math.min(1, resampled[i]));
+                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                offset += 2;
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function resample(samples, inputRate, outputRate) {
+            if (inputRate === outputRate) return samples;
+            const ratio = inputRate / outputRate;
+            const newLength = Math.round(samples.length / ratio);
+            const result = new Float32Array(newLength);
+            for (let i = 0; i < newLength; i++) {
+                const srcIndex = i * ratio;
+                const srcIndexFloor = Math.floor(srcIndex);
+                const srcIndexCeil = Math.min(srcIndexFloor + 1, samples.length - 1);
+                const t = srcIndex - srcIndexFloor;
+                result[i] = samples[srcIndexFloor] * (1 - t) + samples[srcIndexCeil] * t;
+            }
+            return result;
+        }
+    </script>
+
+    <!-- Congratulations Modal Overlay -->
+    <div id="congratsOverlay" class="congrats-overlay">
+        <div class="congrats-modal">
+            <button class="congrats-close" onclick="closeCongratsModal()">×</button>
+            <h2>🎉 Congratulations! 🎉</h2>
+            <div class="trophy" id="congratsTrophy">🏆</div>
+            <p id="congratsMessage">You won the <strong>Gold</strong> prize!</p>
+            <p id="congratsScore" style="font-size: 1.2rem; margin-top: 20px;"></p>
+            <p style="font-size: 1rem; margin-top: 30px; opacity: 0.9;">Visit the Red Hat booth to claim your prize!</p>
+        </div>
+    </div>
+
+    <!-- Loss Modal Overlay -->
+    <div id="lossOverlay" class="congrats-overlay">
+        <div class="loss-modal">
+            <button class="congrats-close" onclick="closeLossModal()">×</button>
+            <h2 id="lossTitle">😅 So close! 😅</h2>
+            <div class="trophy" style="font-size: 6rem; margin: 20px 0;">💪</div>
+            <p id="lossScore" style="font-size: 1.5rem; margin: 15px 0; color: var(--white);"></p>
+            <p style="font-size: 1.2rem; color: var(--white);">Needed: <strong>80%</strong> average to win</p>
+            <p style="font-size: 1rem; margin-top: 30px; opacity: 0.9; color: var(--white);">Give it another shot! You've got this! 💪</p>
+        </div>
+    </div>
+
+</body>
+</html>

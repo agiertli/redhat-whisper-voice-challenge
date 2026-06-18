@@ -1,0 +1,253 @@
+{
+  "dashboard": {
+    "title": "Whisper GPU Utilization",
+    "tags": ["whisper", "gpu", "openshift-ai"],
+    "timezone": "browser",
+    "refresh": "5s",
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "GPU Utilization (%)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "DCGM_FI_DEV_GPU_UTIL{exported_namespace=\"whisper\"}",
+            "legendFormat": "GPU {{gpu}} - {{exported_pod}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "color": { "mode": "palette-classic" },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10
+            }
+          }
+        },
+        "options": {
+          "tooltip": { "mode": "multi" },
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "current"] }
+        }
+      },
+      {
+        "id": 2,
+        "title": "GPU Memory Usage",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "targets": [
+          {
+            "expr": "DCGM_FI_DEV_FB_USED{exported_namespace=\"whisper\"}",
+            "legendFormat": "Used - {{exported_pod}}",
+            "refId": "A"
+          },
+          {
+            "expr": "DCGM_FI_DEV_FB_FREE{exported_namespace=\"whisper\"}",
+            "legendFormat": "Free - {{exported_pod}}",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "decmbytes",
+            "color": { "mode": "palette-classic" },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10,
+              "stacking": { "mode": "normal" }
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Used" },
+              "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "Free" },
+              "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+            }
+          ]
+        },
+        "options": {
+          "tooltip": { "mode": "multi" },
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "current"] }
+        }
+      },
+      {
+        "id": 3,
+        "title": "GPU Memory Utilization (%)",
+        "type": "gauge",
+        "gridPos": { "h": 8, "w": 6, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "(DCGM_FI_DEV_FB_USED{exported_namespace=\"whisper\"} / (DCGM_FI_DEV_FB_USED{exported_namespace=\"whisper\"} + DCGM_FI_DEV_FB_FREE{exported_namespace=\"whisper\"})) * 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 70, "color": "yellow" },
+                { "value": 90, "color": "red" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        }
+      },
+      {
+        "id": 4,
+        "title": "GPU Temperature (°C)",
+        "type": "gauge",
+        "gridPos": { "h": 8, "w": 6, "x": 6, "y": 8 },
+        "targets": [
+          {
+            "expr": "DCGM_FI_DEV_GPU_TEMP{exported_namespace=\"whisper\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "celsius",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "blue" },
+                { "value": 60, "color": "green" },
+                { "value": 75, "color": "yellow" },
+                { "value": 85, "color": "red" }
+              ]
+            }
+          }
+        },
+        "options": {
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        }
+      },
+      {
+        "id": 5,
+        "title": "GPU Power Usage (W)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "DCGM_FI_DEV_POWER_USAGE{exported_namespace=\"whisper\"}",
+            "legendFormat": "Power - {{exported_pod}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "watt",
+            "color": { "mode": "palette-classic" },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10
+            }
+          }
+        },
+        "options": {
+          "tooltip": { "mode": "multi" },
+          "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "current"] }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Current Stats",
+        "type": "stat",
+        "gridPos": { "h": 6, "w": 24, "x": 0, "y": 16 },
+        "targets": [
+          {
+            "expr": "DCGM_FI_DEV_GPU_UTIL{exported_namespace=\"whisper\"}",
+            "legendFormat": "GPU Util %",
+            "refId": "A"
+          },
+          {
+            "expr": "DCGM_FI_DEV_FB_USED{exported_namespace=\"whisper\"}",
+            "legendFormat": "VRAM Used (MB)",
+            "refId": "B"
+          },
+          {
+            "expr": "DCGM_FI_DEV_FB_FREE{exported_namespace=\"whisper\"}",
+            "legendFormat": "VRAM Free (MB)",
+            "refId": "C"
+          },
+          {
+            "expr": "DCGM_FI_DEV_GPU_TEMP{exported_namespace=\"whisper\"}",
+            "legendFormat": "Temperature (°C)",
+            "refId": "D"
+          },
+          {
+            "expr": "DCGM_FI_DEV_POWER_USAGE{exported_namespace=\"whisper\"}",
+            "legendFormat": "Power (W)",
+            "refId": "E"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "thresholds" },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "VRAM Used (MB)" },
+              "properties": [{ "id": "unit", "value": "decmbytes" }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "VRAM Free (MB)" },
+              "properties": [{ "id": "unit", "value": "decmbytes" }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "GPU Util %" },
+              "properties": [{ "id": "unit", "value": "percent" }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "Temperature (°C)" },
+              "properties": [{ "id": "unit", "value": "celsius" }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "Power (W)" },
+              "properties": [{ "id": "unit", "value": "watt" }]
+            }
+          ]
+        },
+        "options": {
+          "orientation": "horizontal",
+          "textMode": "value_and_name",
+          "colorMode": "background",
+          "graphMode": "area",
+          "justifyMode": "auto"
+        }
+      }
+    ]
+  }
+}

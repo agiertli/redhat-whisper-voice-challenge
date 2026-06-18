@@ -1,0 +1,96 @@
+namespace: whisper
+
+image:
+  repository: quay.io/agiertli/whisper-ui
+  tag: ""
+  pullPolicy: Always
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8080
+
+route:
+  enabled: true
+  host: ""
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+# REQUIRED: Set to your cluster's apps domain
+# Find it with: oc get ingresses.config cluster -o jsonpath='{.spec.domain}'
+clusterDomain: "apps.your-cluster.example.com"
+
+whisperApi:
+  modelName: "whisper"
+  displayName: "RedHatAI/whisper-large-v3-turbo-quantized.w4a16"
+
+conference:
+  name: "Red Hat AI Voice Challenge"
+
+game:
+  requiredLanguage: "en"
+  challengeCount: "5"
+  winThreshold: "4"
+
+supportedLanguages: |
+  {
+    "sk": "Slovenčina",
+    "cs": "Čeština",
+    "hu": "Magyar",
+    "de": "Deutsch",
+    "es": "Español",
+    "fr": "Français",
+    "pl": "Polski",
+    "tr": "Türkçe",
+    "en": "English"
+  }
+
+dcgmExporterUrl: "http://nvidia-dcgm-exporter.nvidia-gpu-operator.svc:9400/metrics"
+
+thanosQuerier:
+  url: "https://thanos-querier.openshift-monitoring.svc.cluster.local:9091"
+
+gpu:
+  memoryUtilization: "0.2"
+
+model:
+  # Model weights pulled from Red Hat registry as OCI modelcar image (no S3 needed)
+  storageUri: "oci://registry.redhat.io/rhelai1/modelcar-whisper-large-v3-turbo-quantized-w4a16:1.5"
+  resources:
+    limits:
+      cpu: "2"
+      memory: 24Gi
+      nvidia.com/gpu: "1"
+    requests:
+      cpu: "2"
+      memory: 24Gi
+      nvidia.com/gpu: "1"
+  nodeSelector:
+    node-role.kubernetes.io/gpu-worker: "true"
+
+vllm:
+  image: "quay.io/modh/vllm:rhoai-2.25-cuda"

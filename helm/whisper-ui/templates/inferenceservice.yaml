@@ -1,0 +1,38 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  annotations:
+    opendatahub.io/model-type: generative
+    openshift.io/display-name: {{ .Values.whisperApi.modelName }}
+    security.opendatahub.io/enable-auth: "false"
+    serving.kserve.io/deploymentMode: RawDeployment
+  labels:
+    networking.kserve.io/visibility: exposed
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/genai-asset: "true"
+    {{- include "whisper-ui.labels" . | nindent 4 }}
+  name: {{ .Values.whisperApi.modelName }}
+  namespace: {{ include "whisper-ui.namespace" . }}
+spec:
+  predictor:
+    automountServiceAccountToken: false
+    deploymentStrategy:
+      type: Recreate
+    maxReplicas: 1
+    minReplicas: 1
+    model:
+      args:
+      - --gpu-memory-utilization={{ .Values.gpu.memoryUtilization }}
+      modelFormat:
+        name: vLLM
+      name: ""
+      resources:
+        {{- toYaml .Values.model.resources | nindent 8 }}
+      runtime: {{ .Values.whisperApi.modelName }}
+      storageUri: {{ .Values.model.storageUri }}
+    nodeSelector:
+      {{- toYaml .Values.model.nodeSelector | nindent 6 }}
+    tolerations:
+    - effect: NoSchedule
+      key: nvidia.com/gpu
+      operator: Exists

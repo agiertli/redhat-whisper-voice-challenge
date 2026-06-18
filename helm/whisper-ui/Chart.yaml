@@ -1,0 +1,16 @@
+apiVersion: v2
+name: whisper-ui
+description: Whisper speech-to-text demo app for conferences on OpenShift AI
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - whisper
+  - transcription
+  - openshift
+  - ai
+  - speech-to-text
+  - vllm
+  - kserve
+maintainers:
+  - name: agiertli

@@ -1,0 +1,14 @@
+*.mp3
+*.wav
+test-*
+k8s/
+translate.sh
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/

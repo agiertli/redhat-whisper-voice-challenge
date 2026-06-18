@@ -1,0 +1,5 @@
+Flask==3.0.3
+requests==2.31.0
+gunicorn==22.0.0
+pydub==0.25.1
+kubernetes==30.1.0

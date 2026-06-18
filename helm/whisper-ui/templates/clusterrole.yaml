@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "whisper-ui.fullname" . }}-prometheus-viewer
+  labels:
+    {{- include "whisper-ui.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["services/proxy"]
+  resourceNames: ["prometheus-k8s"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["endpoints"]
+  verbs: ["get", "list"]
+- nonResourceURLs: ["/api/v1/query"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
