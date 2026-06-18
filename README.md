@@ -2,7 +2,7 @@
   <img src="docs/logo.svg" alt="Red Hat AI Voice Challenge" width="400">
 </p>
 
-# Red Hat AI Voice Challenge
+<h1 align="center">Red Hat AI Voice Challenge</h1>
 
 An interactive voice transcription game for conference booths and demos. Attendees speak challenge phrases into a microphone, and an AI model (Whisper) transcribes their speech in real time. The game scores accuracy using Levenshtein distance and tracks live GPU/AI metrics on a dashboard.
 

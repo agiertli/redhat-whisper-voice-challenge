@@ -305,10 +305,15 @@ def index():
                          win_threshold=WIN_THRESHOLD,
                          challenge_phrases=CHALLENGE_PHRASES)
 
+@app.route('/logo.svg')
+def logo():
+    from flask import send_file
+    import os
+    logo_path = os.path.join(os.path.dirname(__file__), 'docs', 'logo.svg')
+    return send_file(logo_path, mimetype='image/svg+xml')
+
 @app.route('/architecture')
 def architecture():
-    """Architecture diagram (for technical audience)"""
-    # Serve static HTML file from docs directory
     from flask import send_file
     import os
     diagram_path = os.path.join(os.path.dirname(__file__), 'docs', 'architecture-diagram.html')
