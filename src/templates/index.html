@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Red Hat Whisper Voice Challenge | {{ conference_name }}</title>
@@ -201,21 +202,55 @@
         }
 
         .indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--gray-70);
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
         }
 
-        .indicator.active {
-            background: var(--success-green);
-            box-shadow: 0 0 10px var(--success-green);
+        .indicator .wave-bar {
+            transform-origin: center;
+            transition: fill 0.3s;
+            fill: var(--gray-60);
         }
 
-        .indicator.speaking {
-            background: var(--red-hat-red);
-            box-shadow: 0 0 10px var(--red-hat-red);
+        .indicator .hat-shadow { fill: #000000; opacity: 0.3; transition: opacity 0.3s; }
+        .indicator .hat-red { fill: var(--gray-60); transition: fill 0.3s; }
+        .indicator .ring-circle { stroke: var(--gray-60); transition: stroke 0.3s; }
+
+        .indicator.active .wave-bar { fill: var(--success-green); }
+        .indicator.active .hat-shadow { opacity: 1; }
+        .indicator.active .hat-red { fill: #EE0000; }
+        .indicator.active .ring-circle { stroke: var(--success-green); }
+
+        .indicator.speaking .wave-bar { fill: #EE0000; }
+        .indicator.speaking .hat-shadow { opacity: 1; }
+        .indicator.speaking .hat-red { fill: #EE0000; }
+        .indicator.speaking .ring-circle { stroke: #EE0000; }
+
+        @keyframes wave-pulse {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
         }
+
+        .indicator.active .wave-bar {
+            animation: wave-pulse 2s ease-in-out infinite;
+        }
+
+        .indicator.active .wave-bar:nth-child(1) { animation-delay: 0s; }
+        .indicator.active .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+        .indicator.active .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+        .indicator.active .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+        .indicator.active .wave-bar:nth-child(5) { animation-delay: 0.6s; }
+
+        .indicator.speaking .wave-bar {
+            animation: wave-pulse 0.5s ease-in-out infinite;
+        }
+
+        .indicator.speaking .wave-bar:nth-child(1) { animation-delay: 0s; }
+        .indicator.speaking .wave-bar:nth-child(2) { animation-delay: 0.07s; }
+        .indicator.speaking .wave-bar:nth-child(3) { animation-delay: 0.14s; }
+        .indicator.speaking .wave-bar:nth-child(4) { animation-delay: 0.21s; }
+        .indicator.speaking .wave-bar:nth-child(5) { animation-delay: 0.28s; }
 
         #transcription {
             background: var(--ux-black);
@@ -550,9 +585,9 @@
 <body>
     <div class="header">
         <a href="/architecture" target="_blank" class="architecture-link">Architecture</a>
-        <img src="/logo.svg" alt="Logo" style="height: 32px; width: auto;">
-        <h1><span class="red-hat-logo">Red Hat</span> Whisper Voice Challenge</h1>
-        <span class="subtitle">{{ model_display_name }} | {{ conference_name }}</span>
+        <img src="/logo.svg" alt="Red Hat Whisper" style="height: 44px; width: auto; flex-shrink: 0;">
+        <h1>{{ conference_name }}</h1>
+        <span class="subtitle">powered by {{ model_display_name }}</span>
     </div>
 
     <div class="container">
@@ -577,7 +612,29 @@
 
             <div class="status-bar">
                 <div class="status-item">
-                    <div class="indicator" id="vadIndicator"></div>
+                    <div class="indicator" id="vadIndicator">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                            <circle class="ring-circle" cx="50" cy="50" r="47" fill="none" stroke-width="1" stroke-dasharray="2 3" opacity="0.6"/>
+                            <g class="wave-group-left">
+                                <rect class="wave-bar" x="4" y="42" width="2" height="16" rx="0.5" opacity="0.5"/>
+                                <rect class="wave-bar" x="8" y="34" width="2" height="32" rx="0.5" opacity="0.7"/>
+                                <rect class="wave-bar" x="12" y="26" width="2" height="48" rx="0.5" opacity="0.9"/>
+                                <rect class="wave-bar" x="16" y="38" width="2" height="24" rx="0.5"/>
+                                <rect class="wave-bar" x="20" y="30" width="2" height="40" rx="0.5"/>
+                            </g>
+                            <g transform="translate(26, 31.9) scale(0.25)">
+                                <path class="hat-shadow" d="M157.77,62.61a14,14,0,0,1,.31,3.42c0,14.88-18.1,17.46-30.61,17.46C78.83,83.49,42.53,53.26,42.53,44a6.43,6.43,0,0,1,.22-1.94l-3.66,9.06a18.45,18.45,0,0,0-1.51,7.33c0,18.11,41,45.48,87.74,45.48,20.69,0,36.43-7.76,36.43-21.77,0-1.08,0-1.94-1.73-10.13Z"/>
+                                <path class="hat-red" d="M127.47,83.49c12.51,0,30.61-2.58,30.61-17.46a14,14,0,0,0-.31-3.42l-7.45-32.36c-1.72-7.12-3.23-10.35-15.73-16.6C124.89,8.69,103.76.5,97.51.5,91.69.5,90,8,83.06,8c-6.68,0-11.64-5.6-17.89-5.6-6,0-9.91,4.09-12.93,12.5,0,0-8.41,23.72-9.49,27.16A6.43,6.43,0,0,0,42.53,44c0,9.22,36.3,39.45,84.94,39.45M160,72.07c1.73,8.19,1.73,9.05,1.73,10.13,0,14-15.74,21.77-36.43,21.77C78.54,104,37.58,76.6,37.58,58.49a18.45,18.45,0,0,1,1.51-7.33C22.27,52,.5,55,.5,74.22c0,31.48,74.59,70.28,133.65,70.28,45.28,0,56.7-20.48,56.7-36.65,0-12.72-11-27.16-30.83-35.78"/>
+                            </g>
+                            <g class="wave-group-right">
+                                <rect class="wave-bar" x="78" y="30" width="2" height="40" rx="0.5"/>
+                                <rect class="wave-bar" x="82" y="38" width="2" height="24" rx="0.5"/>
+                                <rect class="wave-bar" x="86" y="26" width="2" height="48" rx="0.5" opacity="0.9"/>
+                                <rect class="wave-bar" x="90" y="34" width="2" height="32" rx="0.5" opacity="0.7"/>
+                                <rect class="wave-bar" x="94" y="42" width="2" height="16" rx="0.5" opacity="0.5"/>
+                            </g>
+                        </svg>
+                    </div>
                     <span id="vadStatus">Ready</span>
                 </div>
                 <div class="status-item">
@@ -742,15 +799,17 @@
         const WIN_THRESHOLD = {{ win_threshold }};
 
         const DIFFICULTY_POOLS = {
-            easy: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr'],
-            medium: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk'],
-            hard: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk', 'ja', 'ko', 'ar', 'zh', 'th', 'hi']
+            easy: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr'],
+            medium: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk', 'fi', 'is', 'no'],
+            hard: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk', 'fi', 'is', 'no', 'ja', 'ko', 'ar', 'zh', 'th', 'hi']
         };
 
         const LANGUAGE_INFO = {
             'sk': {flag: '🇸🇰', name: 'Slovak'}, 'cs': {flag: '🇨🇿', name: 'Czech'}, 'en': {flag: '🇬🇧', name: 'English'},
             'pl': {flag: '🇵🇱', name: 'Polish'}, 'hu': {flag: '🇭🇺', name: 'Hungarian'}, 'de': {flag: '🇩🇪', name: 'German'},
-            'es': {flag: '🇪🇸', name: 'Spanish'}, 'fr': {flag: '🇫🇷', name: 'French'}, 'tr': {flag: '🇹🇷', name: 'Turkish'},
+            'es': {flag: '🇪🇸', name: 'Spanish'}, 'fi': {flag: '🇫🇮', name: 'Finnish'}, 'fr': {flag: '🇫🇷', name: 'French'},
+            'hr': {flag: '🇭🇷', name: 'Croatian'}, 'is': {flag: '🇮🇸', name: 'Icelandic'}, 'no': {flag: '🇳🇴', name: 'Norwegian'},
+            'sr': {flag: '🇷🇸', name: 'Serbian'}, 'tr': {flag: '🇹🇷', name: 'Turkish'},
             'it': {flag: '🇮🇹', name: 'Italian'}, 'pt': {flag: '🇵🇹', name: 'Portuguese'}, 'nl': {flag: '🇳🇱', name: 'Dutch'},
             'sv': {flag: '🇸🇪', name: 'Swedish'}, 'ro': {flag: '🇷🇴', name: 'Romanian'}, 'uk': {flag: '🇺🇦', name: 'Ukrainian'},
             'ja': {flag: '🇯🇵', name: 'Japanese'}, 'ko': {flag: '🇰🇷', name: 'Korean'}, 'ar': {flag: '🇸🇦', name: 'Arabic'},
@@ -776,6 +835,10 @@
 
         async function loadMicrophones() {
             try {
+                // Request mic permission first so browser reveals real device labels
+                const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                tempStream.getTracks().forEach(track => track.stop());
+
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const audioInputs = devices.filter(device => device.kind === 'audioinput');
                 const micSelect = document.getElementById('microphone');

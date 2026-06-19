@@ -8,7 +8,7 @@ Interactive voice transcription game for Red Hat conference booths. Attendees sp
 - **Frontend**: `src/templates/index.html` (single-page HTML/CSS/JS)
 - **Challenge phrases**: `challengePhrases` in `helm/whisper/values.yaml` (Red Hat/OpenShift themed, 20+ languages)
 - **Helm chart**: `helm/whisper/` (deploys everything: UI, vLLM, RBAC, monitoring)
-- **Deploy script**: `./deploy.sh` (build + push + helm install)
+- **Deploy script**: `./deploy.sh` (prerequisites + build + push + helm install + model readiness wait)
 
 ## Installation Playbook
 
@@ -24,26 +24,39 @@ This section is written so that a Claude session (or a human) can deploy the ent
 1. **Red Hat OpenShift AI** (RHOAI) — provides KServe, ServingRuntime, InferenceService CRDs
 2. **NVIDIA GPU Operator** — manages GPU nodes and deploys DCGM exporter for metrics
 
-**GPU nodes**: At least one worker node with an NVIDIA GPU (12+ GB VRAM). The node must have the label `node-role.kubernetes.io/gpu-worker=true`. If no GPU nodes exist, you need to create a MachineSet (cloud-specific — e.g., `g6.4xlarge` on AWS).
+**GPU nodes**: At least one worker node with an NVIDIA GPU (12+ GB VRAM). The node must have the label `node-role.kubernetes.io/gpu-worker=true`. The `deploy.sh` script labels GPU nodes automatically by detecting `nvidia.com/gpu.present=true`. If no GPU nodes exist, you need to create a MachineSet (cloud-specific — e.g., `g6.4xlarge` on AWS).
+
+**SNO (Single-Node OpenShift)**: Fully supported. The single node serves as control plane, worker, and GPU node. The deploy script will auto-label it. Instance types like `g6.12xlarge` (4x L4 GPUs, 22 GB VRAM each) work well.
 
 **Tools on your workstation**: `oc`, `helm`, `podman` (or `docker`)
 
 **Registry access**: `registry.redhat.io` (Red Hat subscription required, for vLLM runtime and modelcar images)
 
-### Step 1: Enable User Workload Monitoring (optional, for persistent metrics)
+### Step 1: Cluster Prerequisites
 
-```bash
-oc apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cluster-monitoring-config
-  namespace: openshift-monitoring
-data:
-  config.yaml: |
-    enableUserWorkload: true
-EOF
-```
+The `deploy.sh` script handles these automatically, but if deploying manually:
+
+1. **Label GPU nodes** (required for SNO or clusters without the `gpu-worker` role):
+   ```bash
+   # Auto-detect and label all GPU nodes
+   for node in $(oc get nodes -l nvidia.com/gpu.present=true -o name); do
+     oc label "$node" node-role.kubernetes.io/gpu-worker=true --overwrite
+   done
+   ```
+
+2. **Enable user workload monitoring** (optional, for persistent metrics):
+   ```bash
+   oc apply -f - <<EOF
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: cluster-monitoring-config
+     namespace: openshift-monitoring
+   data:
+     config.yaml: |
+       enableUserWorkload: true
+   EOF
+   ```
 
 ### Step 2: Configure values
 
@@ -52,6 +65,7 @@ Edit `helm/whisper/values.yaml`:
 - `conference.name` — your conference name
 - `game.requiredLanguage` — default language code (e.g., `sk`, `cs`, `en`)
 - `model.nodeSelector` — match your GPU type if not using the default
+- `gpu.memoryUtilization` — fraction of GPU memory for vLLM (default: `0.9`). Do NOT set below `0.5` — the Whisper model's PyTorch activation peak (~10 GiB) will exceed the allocation and crash vLLM with "No available memory for the cache blocks"
 
 Edit `challengePhrases` in `helm/whisper/values.yaml` if you want different challenge phrases.
 

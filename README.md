@@ -6,7 +6,7 @@
 
 An interactive voice transcription game for conference booths and demos. Attendees speak challenge phrases into a microphone, and an AI model (Whisper) transcribes their speech in real time. The game scores accuracy using Levenshtein distance and tracks live GPU/AI metrics on a dashboard.
 
-Built for Red Hat employees to deploy at conferences worldwide. Runs on OpenShift AI with vLLM and supports 20+ languages out of the box.
+Built for Red Hat employees to deploy at conferences worldwide. Runs on OpenShift AI with vLLM and supports 26 languages out of the box.
 
 ## System Requirements
 
@@ -146,7 +146,7 @@ This game is designed to be forked and customized for different conferences, lan
 
 ### Challenge Phrases
 
-The phrases that attendees must speak are defined in **`helm/whisper/challenges.json`** at the repo root. This is the main file you'll edit when adapting the game for your conference.
+The phrases that attendees must speak are defined in **[`helm/whisper/challenges.json`](helm/whisper/challenges.json)**. This is the main file you'll edit when adapting the game for your conference.
 
 The default phrases are Red Hat / OpenShift / DevOps themed (e.g., "Red Hat leads in open source innovation", "Kubernetes simplifies application deployment") in 20+ languages. Edit them to match your conference theme:
 
@@ -184,7 +184,7 @@ helm upgrade whisper helm/whisper \
 
 ### Supported Languages
 
-The following languages ship with challenge phrases in `helm/whisper/challenges.json`:
+The following languages ship with challenge phrases in [`helm/whisper/challenges.json`](helm/whisper/challenges.json):
 
 | Code | Language | Phrases |
 |------|----------|---------|
@@ -193,17 +193,22 @@ The following languages ship with challenge phrases in `helm/whisper/challenges.
 | `de` | German | 9 |
 | `en` | English | 9 |
 | `es` | Spanish | 9 |
+| `fi` | Finnish | 9 |
 | `fr` | French | 9 |
 | `hi` | Hindi | 3 |
+| `hr` | Croatian | 9 |
 | `hu` | Hungarian | 9 |
+| `is` | Icelandic | 9 |
 | `it` | Italian | 3 |
 | `ja` | Japanese | 3 |
 | `ko` | Korean | 3 |
 | `nl` | Dutch | 3 |
+| `no` | Norwegian | 9 |
 | `pl` | Polish | 9 |
 | `pt` | Portuguese | 3 |
 | `ro` | Romanian | 3 |
 | `sk` | Slovak | 9 |
+| `sr` | Serbian | 9 |
 | `sv` | Swedish | 3 |
 | `th` | Thai | 3 |
 | `tr` | Turkish | 9 |

@@ -160,7 +160,7 @@ def query_vllm_metrics():
         ns = WHISPER_NAMESPACE
 
         http_requests_total = query_prometheus(
-            f'sum(increase(http_requests_total{{namespace="{ns}",handler="/v1/audio/transcriptions",status="2xx"}}[15d]))'
+            f'sum(increase(vllm:request_success_total{{namespace="{ns}"}}[15d]))'
         )
 
         generation_tokens = query_prometheus(
@@ -171,18 +171,18 @@ def query_vllm_metrics():
             f'sum(increase(vllm:prompt_tokens_total{{namespace="{ns}"}}[15d]))'
         )
 
-        ttft_sum_rate = query_prometheus(
-            f'rate(vllm:time_to_first_token_seconds_sum{{namespace="{ns}"}}[5m])'
+        ttft_sum = query_prometheus(
+            f'sum(increase(vllm:time_to_first_token_seconds_sum{{namespace="{ns}"}}[15d]))'
         )
-        ttft_count_rate = query_prometheus(
-            f'rate(vllm:time_to_first_token_seconds_count{{namespace="{ns}"}}[5m])'
+        ttft_count = query_prometheus(
+            f'sum(increase(vllm:time_to_first_token_seconds_count{{namespace="{ns}"}}[15d]))'
         )
 
-        e2e_sum_rate = query_prometheus(
-            f'rate(vllm:e2e_request_latency_seconds_sum{{namespace="{ns}"}}[5m])'
+        e2e_sum = query_prometheus(
+            f'sum(increase(vllm:e2e_request_latency_seconds_sum{{namespace="{ns}"}}[15d]))'
         )
-        e2e_count_rate = query_prometheus(
-            f'rate(vllm:e2e_request_latency_seconds_count{{namespace="{ns}"}}[5m])'
+        e2e_count = query_prometheus(
+            f'sum(increase(vllm:e2e_request_latency_seconds_count{{namespace="{ns}"}}[15d]))'
         )
 
         success_stop = query_prometheus(
@@ -194,19 +194,24 @@ def query_vllm_metrics():
 
         result = {}
 
-        if ttft_count_rate and ttft_sum_rate and ttft_count_rate > 0:
-            result['avg_ttft_ms'] = int((ttft_sum_rate / ttft_count_rate) * 1000)
+        if ttft_count and ttft_sum and ttft_count > 0:
+            result['avg_ttft_ms'] = int((ttft_sum / ttft_count) * 1000)
         else:
             result['avg_ttft_ms'] = None
 
-        if e2e_count_rate and e2e_sum_rate and e2e_count_rate > 0:
-            result['avg_e2e_ms'] = int((e2e_sum_rate / e2e_count_rate) * 1000)
+        if e2e_count and e2e_sum and e2e_count > 0:
+            result['avg_e2e_ms'] = int((e2e_sum / e2e_count) * 1000)
         else:
             result['avg_e2e_ms'] = None
 
         result['generation_tokens'] = int(generation_tokens) if generation_tokens else 0
         result['prompt_tokens'] = int(prompt_tokens) if prompt_tokens else 0
         result['http_requests_total'] = int(http_requests_total) if http_requests_total else 0
+
+        if generation_tokens and e2e_sum and e2e_sum > 0:
+            result['avg_tokens_per_sec'] = int(generation_tokens / e2e_sum)
+        else:
+            result['avg_tokens_per_sec'] = 0
 
         stop_count = success_stop or 0
         abort_count = success_abort or 0
@@ -304,8 +309,15 @@ def index():
 def logo():
     from flask import send_file
     import os
-    logo_path = os.path.join(os.path.dirname(__file__), 'docs', 'logo.svg')
+    logo_path = os.path.join(os.path.dirname(__file__), 'docs', 'navbar.svg')
     return send_file(logo_path, mimetype='image/svg+xml')
+
+@app.route('/favicon.svg')
+def favicon():
+    from flask import send_file
+    import os
+    favicon_path = os.path.join(os.path.dirname(__file__), 'docs', 'favicon.svg')
+    return send_file(favicon_path, mimetype='image/svg+xml')
 
 @app.route('/architecture')
 def architecture():
@@ -573,13 +585,8 @@ def get_metrics():
         # Convert deque to list for JSON serialization
         gpu_util_history_list = list(gpu_util_history)
 
-        # Tokens/sec from our tracking (persists until next player)
+        # Tokens/sec from Prometheus (lifetime average, multi-worker safe)
         tokens_per_sec = 0
-        if last_chunk_metrics['duration_ms'] > 0:
-            # Calculate tokens/second from last chunk
-            tokens_per_sec = int(
-                (last_chunk_metrics['tokens'] / last_chunk_metrics['duration_ms']) * 1000
-            )
 
         # KV cache usage (real-time gauge from vLLM, not DCGM)
         kv_cache_usage = query_vllm_gauge('vllm:kv_cache_usage_perc')
@@ -597,6 +604,7 @@ def get_metrics():
             prompt_tokens = vllm_metrics.get('prompt_tokens', 0)
             success_rate = vllm_metrics.get('success_rate', 100)
             http_requests_total = vllm_metrics.get('http_requests_total', 0)
+            tokens_per_sec = vllm_metrics.get('avg_tokens_per_sec', 0)
         else:
             avg_ttft_ms = None
             avg_e2e_ms = None

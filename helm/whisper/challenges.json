@@ -157,5 +157,60 @@
     "OpenShift एक शानदार उत्पाद है",
     "Red Hat ओपन सोर्स नवाचार में अग्रणी है",
     "कृत्रिम बुद्धिमत्ता व्यवसाय को बदल देती है"
+  ],
+  "fi": [
+    "OpenShift on erinomainen tuote",
+    "Red Hat johtaa avoimen lähdekoodin innovaatiossa",
+    "Tekoäly muuttaa liiketoimintaa",
+    "Kubernetes yksinkertaistaa sovellusten käyttöönottoa",
+    "Konttiteknologia on pilvipalvelujen tulevaisuus",
+    "Automaatio vapauttaa aikaa innovaatioille",
+    "Pilviratkaisut lisäävät tehokkuutta",
+    "DevOps yhdistää kehittäjät ja ylläpidon",
+    "Tietoturva on prioriteetti pilviympäristössä"
+  ],
+  "hr": [
+    "OpenShift je izvrstan proizvod",
+    "Red Hat predvodi u inovacijama otvorenog koda",
+    "Umjetna inteligencija transformira poslovanje",
+    "Kubernetes pojednostavljuje implementaciju aplikacija",
+    "Kontejnerizacija je budućnost oblaka",
+    "Automatizacija oslobađa vrijeme za inovacije",
+    "Rješenja u oblaku povećavaju učinkovitost",
+    "DevOps povezuje programere i operacije",
+    "Sigurnost je prioritet u oblačnom okruženju"
+  ],
+  "is": [
+    "OpenShift er frábær vara",
+    "Red Hat leiðir í nýsköpun opins hugbúnaðar",
+    "Gervigreind umbreytir viðskiptum",
+    "Kubernetes einfaldar dreifingu forrita",
+    "Gámavæðing er framtíð skýsins",
+    "Sjálfvirkni gefur tíma fyrir nýsköpun",
+    "Skýjalausnir auka skilvirkni",
+    "DevOps tengir saman forritara og rekstraraðila",
+    "Öryggi er forgangsmál í skýjaumhverfi"
+  ],
+  "no": [
+    "OpenShift er et fantastisk produkt",
+    "Red Hat leder innen åpen kildekode-innovasjon",
+    "Kunstig intelligens forandrer næringslivet",
+    "Kubernetes forenkler applikasjonsutrulling",
+    "Kontainerisering er fremtiden for skyen",
+    "Automatisering frigjør tid til innovasjon",
+    "Skyløsninger øker effektiviteten",
+    "DevOps kobler utviklere og drift",
+    "Sikkerhet er prioritet i skymiljøet"
+  ],
+  "sr": [
+    "OpenShift je odličan proizvod",
+    "Red Hat predvodi u inovacijama otvorenog koda",
+    "Veštačka inteligencija transformiše poslovanje",
+    "Kubernetes pojednostavljuje primenu aplikacija",
+    "Kontejnerizacija je budućnost oblaka",
+    "Automatizacija oslobađa vreme za inovacije",
+    "Rešenja u oblaku povećavaju efikasnost",
+    "DevOps povezuje programere i operacije",
+    "Bezbednost je prioritet u okruženju oblaka"
   ]
 }

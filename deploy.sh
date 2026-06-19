@@ -3,6 +3,7 @@
 # Red Hat AI Voice Challenge - Deploy Script
 #
 # Builds the container image, pushes it to a registry, and deploys via Helm.
+# Handles all cluster prerequisites automatically (node labeling, monitoring).
 #
 # Configuration via environment variables:
 #   IMAGE_REGISTRY  - Container registry (default: quay.io/agiertli)
@@ -31,7 +32,7 @@ SKIP_BUILD=false
 for arg in "$@"; do
     case $arg in
         --help|-h)
-            head -17 "$0" | tail -14
+            head -20 "$0" | tail -17
             echo ""
             echo "Environment variables:"
             echo "  IMAGE_REGISTRY  Container registry (current: ${IMAGE_REGISTRY})"
@@ -86,6 +87,43 @@ fi
 echo "  Tools: OK"
 echo "  Cluster: OK"
 
+# --- Cluster prerequisites ---
+echo ""
+echo "Ensuring cluster prerequisites..."
+
+# Label GPU nodes: the InferenceService nodeSelector requires gpu-worker label.
+# On SNO or clusters where GPU nodes lack this label, add it to any node with an NVIDIA GPU.
+GPU_NODES=$($KUBE_CLI get nodes -l nvidia.com/gpu.present=true -o name 2>/dev/null || true)
+if [ -n "$GPU_NODES" ]; then
+    for node in $GPU_NODES; do
+        if ! $KUBE_CLI get "$node" --show-labels 2>/dev/null | grep -q "node-role.kubernetes.io/gpu-worker"; then
+            echo "  Labeling $node with gpu-worker role..."
+            $KUBE_CLI label "$node" node-role.kubernetes.io/gpu-worker=true --overwrite
+        fi
+    done
+    echo "  GPU node labels: OK"
+else
+    echo "  WARNING: No nodes with nvidia.com/gpu.present=true found."
+    echo "  The InferenceService may fail to schedule. Ensure GPU nodes are available."
+fi
+
+# Enable user workload monitoring for Prometheus metrics persistence
+if ! $KUBE_CLI get configmap cluster-monitoring-config -n openshift-monitoring &>/dev/null 2>&1; then
+    echo "  Enabling user workload monitoring..."
+    $KUBE_CLI apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true
+EOF
+else
+    echo "  User workload monitoring: already configured"
+fi
+
 # --- Build & Push ---
 if [ "$SKIP_BUILD" = false ]; then
     echo ""
@@ -119,6 +157,18 @@ if [ -n "${HELM_VALUES:-}" ]; then
 fi
 
 helm "${HELM_ARGS[@]}"
+
+# --- Wait for InferenceService ---
+echo ""
+echo "Waiting for Whisper InferenceService to become ready (up to 10 minutes)..."
+echo "  (vLLM pulls model weights on first boot — this takes a few minutes)"
+if $KUBE_CLI wait --for=condition=Ready inferenceservice/whisper -n "${NAMESPACE}" --timeout=600s; then
+    echo "  InferenceService: Ready"
+else
+    echo "  WARNING: InferenceService did not become ready within 10 minutes."
+    echo "  Check logs: $KUBE_CLI logs -n ${NAMESPACE} deployment/whisper-predictor -c kserve-container"
+    exit 1
+fi
 
 # --- Print access info ---
 echo ""
