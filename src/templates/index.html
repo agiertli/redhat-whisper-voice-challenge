@@ -586,8 +586,11 @@
     <div class="header">
         <a href="/architecture" target="_blank" class="architecture-link">Architecture</a>
         <img src="/logo.svg" alt="Red Hat Whisper" style="height: 44px; width: auto; flex-shrink: 0;">
-        <h1>{{ conference_name }}</h1>
-        <span class="subtitle">powered by {{ model_display_name }}</span>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <h1>{{ conference_name }}</h1>
+            <span class="subtitle">powered by</span>
+            <span class="subtitle">{{ model_display_name }}</span>
+        </div>
     </div>
 
     <div class="container">
