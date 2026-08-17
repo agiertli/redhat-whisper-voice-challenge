@@ -1415,16 +1415,21 @@
             if (gameState.currentAttemptIndex === 0) {
                 selectedLang = REQUIRED_LANGUAGE;
             } else {
-                // For HARD mode: ensure at least 2 of the 4 random attempts use truly hard languages
                 const hardLanguages = ['ja', 'ko', 'ar', 'zh', 'th', 'hi'];
-                const hardLangsUsed = gameState.usedLanguages.filter(l => hardLanguages.includes(l)).length;
+                const mediumLanguages = ['tr', 'fi', 'is', 'no', 'ro', 'uk', 'sv', 'nl'];
                 const attemptsRemaining = CHALLENGE_COUNT - gameState.currentAttemptIndex;
+
+                const hardLangsUsed = gameState.usedLanguages.filter(l => hardLanguages.includes(l)).length;
                 const needHardLang = gameState.difficulty === 'hard' && hardLangsUsed < 2 && attemptsRemaining <= 3;
+
+                const medLangsUsed = gameState.usedLanguages.filter(l => mediumLanguages.includes(l)).length;
+                const needMedLang = gameState.difficulty === 'medium' && medLangsUsed < 3 && attemptsRemaining <= (4 - medLangsUsed);
 
                 let pool;
                 if (needHardLang) {
-                    // Force selection from truly hard languages
                     pool = hardLanguages.filter(l => !gameState.usedLanguages.includes(l));
+                } else if (needMedLang) {
+                    pool = mediumLanguages.filter(l => !gameState.usedLanguages.includes(l));
                 } else {
                     // Normal selection from difficulty pool
                     pool = DIFFICULTY_POOLS[gameState.difficulty].filter(l => !gameState.usedLanguages.includes(l));
@@ -1686,40 +1691,39 @@
                 ? `<p style="font-size: 1rem; color: var(--interaction-blue);">Leaderboard rank: <strong>#${rank}</strong></p>`
                 : '';
 
+            const bestText = isNewBest
+                ? '⭐ New Personal Best!'
+                : bestScore !== null ? `Your best: ${bestScore}` : '';
+            const rankText = rank !== null ? `Leaderboard rank: #${rank}` : '';
+
             if (won) {
                 document.getElementById('congratsTrophy').textContent = '🏆';
                 document.getElementById('congratsMessage').innerHTML = tournamentScore !== null
                     ? `Tournament score: <strong>${tournamentScore}</strong>`
                     : `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
-                document.getElementById('congratsScore').textContent = rank !== null
-                    ? `You are #${rank} on the leaderboard!`
-                    : `Average accuracy: ${avgScore.toFixed(1)}%`;
+                document.getElementById('congratsBest').textContent = bestText;
+                document.getElementById('congratsBest').style.color = isNewBest ? 'var(--success-green)' : 'var(--gray-40)';
+                document.getElementById('congratsRank').textContent = rankText;
                 document.getElementById('congratsOverlay').style.display = 'flex';
-
-                finalResultsEl.innerHTML = `
-                    <h3 style="color: var(--success-green);">Congratulations!</h3>
-                    ${scoreLine}
-                    ${bestLine}
-                    <p style="font-size: 1rem;">Accuracy: <strong>${avgScore.toFixed(1)}%</strong> | Difficulty: <strong>${gameState.difficulty.toUpperCase()}</strong></p>
-                    ${rankLine}
-                `;
             } else {
                 const lossTitle = avgScore >= 60 ? 'So close!' : avgScore >= 30 ? 'Not quite!' : 'Tough one!';
                 document.getElementById('lossTitle').textContent = lossTitle;
                 document.getElementById('lossScore').innerHTML = tournamentScore !== null
                     ? `Tournament score: <strong>${tournamentScore}</strong>`
                     : `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('lossBest').textContent = bestText;
+                document.getElementById('lossBest').style.color = isNewBest ? '#63993d' : '#a3a3a3';
+                document.getElementById('lossRank').textContent = rankText;
                 document.getElementById('lossOverlay').style.display = 'flex';
-
-                finalResultsEl.innerHTML = `
-                    <h3 style="color: var(--danger-orange);">Almost there!</h3>
-                    ${scoreLine}
-                    ${bestLine}
-                    <p style="font-size: 1rem;">Accuracy: <strong>${avgScore.toFixed(1)}%</strong> | Needed: <strong>80%</strong> to win</p>
-                    ${rankLine}
-                    <p style="margin-top: 10px;">Try again for a better score!</p>
-                `;
             }
+
+            finalResultsEl.innerHTML = `
+                <h3 style="color: ${won ? 'var(--success-green)' : 'var(--danger-orange)'};">${won ? 'Congratulations!' : 'Almost there!'}</h3>
+                ${scoreLine}
+                ${bestLine}
+                <p style="font-size: 1rem;">Accuracy: <strong>${avgScore.toFixed(1)}%</strong> | Difficulty: <strong>${gameState.difficulty.toUpperCase()}</strong></p>
+                ${rankLine}
+            `;
 
             finalResultsEl.style.display = 'block';
             document.getElementById('challengeActions').style.display = 'none';
@@ -2245,8 +2249,9 @@
             <h2>🎉 Congratulations! 🎉</h2>
             <div class="trophy" id="congratsTrophy">🏆</div>
             <p id="congratsMessage">You won the <strong>Gold</strong> prize!</p>
-            <p id="congratsScore" style="font-size: 1.2rem; margin-top: 20px;"></p>
-            <p style="font-size: 1rem; margin-top: 30px; opacity: 0.9;">Visit the Red Hat booth to claim your prize!</p>
+            <p id="congratsBest" style="font-size: 1.1rem; margin-top: 10px; font-weight: 700;"></p>
+            <p id="congratsRank" style="font-size: 1.2rem; margin-top: 10px; color: var(--interaction-blue);"></p>
+            <p style="font-size: 1rem; margin-top: 20px; opacity: 0.9;">Keep playing to climb the leaderboard!</p>
         </div>
     </div>
 
@@ -2257,8 +2262,9 @@
             <h2 id="lossTitle">😅 So close! 😅</h2>
             <div class="trophy" style="font-size: 6rem; margin: 20px 0;">💪</div>
             <p id="lossScore" style="font-size: 1.5rem; margin: 15px 0; color: var(--white);"></p>
-            <p style="font-size: 1.2rem; color: var(--white);">Needed: <strong>80%</strong> average to win</p>
-            <p style="font-size: 1rem; margin-top: 30px; opacity: 0.9; color: var(--white);">Give it another shot! You've got this! 💪</p>
+            <p id="lossBest" style="font-size: 1.1rem; font-weight: 700;"></p>
+            <p id="lossRank" style="font-size: 1.1rem; margin: 8px 0; color: var(--interaction-blue);"></p>
+            <p style="font-size: 1rem; margin-top: 20px; opacity: 0.9; color: var(--white);">Give it another shot! You've got this! 💪</p>
         </div>
     </div>
 
