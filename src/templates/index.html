@@ -94,7 +94,7 @@
         .container {
             display: grid;
             grid-template-columns: 1fr;
-            grid-template-rows: 1fr auto;
+            grid-template-rows: 1fr minmax(0, auto);
             gap: 8px;
             flex: 1;
             min-height: 0;
@@ -332,6 +332,7 @@
         #challenge-panel {
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
         }
 
         .challenge-card {
@@ -488,6 +489,8 @@
             grid-template-columns: 1fr 320px;
             gap: 8px;
             flex-shrink: 0;
+            max-height: 50vh;
+            overflow: hidden;
         }
 
         /* Congratulations Modal */
@@ -575,6 +578,265 @@
             background: rgba(255,255,255,0.3);
         }
 
+        /* Registration Panel */
+        #registrationPanel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .reg-form {
+            background: var(--gray-90);
+            padding: 30px 40px;
+            border-radius: 12px;
+            border-left: 4px solid var(--red-hat-red);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .reg-mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid var(--gray-70);
+        }
+
+        .reg-mode-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--gray-80);
+            border: none;
+            color: var(--gray-40);
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reg-mode-btn.active {
+            background: var(--red-hat-red);
+            color: var(--white);
+        }
+
+        .reg-mode-btn:hover:not(.active) {
+            background: var(--gray-70);
+            color: var(--white);
+        }
+
+        .reg-form h2 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 900;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: var(--red-hat-red);
+            text-align: center;
+        }
+
+        .reg-field {
+            margin-bottom: 14px;
+        }
+
+        .reg-field label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--gray-40);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .reg-field input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--gray-80);
+            border: 2px solid var(--gray-70);
+            color: var(--white);
+            border-radius: 4px;
+            font-family: 'Red Hat Text', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .reg-field input:focus {
+            outline: none;
+            border-color: var(--red-hat-red);
+        }
+
+        .reg-error {
+            color: var(--danger-orange);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            min-height: 1.2em;
+        }
+
+        .reg-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--red-hat-red);
+            border: none;
+            color: var(--white);
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reg-btn:hover {
+            background: var(--red-hat-red-dark);
+            transform: translateY(-2px);
+        }
+
+        .reg-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Mini leaderboard on registration page */
+        .mini-leaderboard {
+            width: 100%;
+            max-width: 500px;
+            background: var(--gray-90);
+            padding: 16px 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--interaction-blue);
+        }
+
+        .mini-leaderboard h3 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 0.95rem;
+            color: var(--interaction-blue);
+            margin-bottom: 10px;
+        }
+
+        .lb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            margin-bottom: 4px;
+            background: var(--gray-80);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .lb-row.top-3 {
+            border-left: 3px solid var(--red-hat-red);
+        }
+
+        .lb-row .lb-rank {
+            font-weight: 700;
+            width: 30px;
+            color: var(--gray-40);
+        }
+
+        .lb-row .lb-nick {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .lb-row .lb-score {
+            font-family: 'Red Hat Mono', monospace;
+            font-weight: 700;
+            color: var(--success-green);
+        }
+
+        .lb-row .lb-diff {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 8px;
+            font-weight: 700;
+        }
+
+        .lb-diff-easy { background: var(--success-green); color: var(--white); }
+        .lb-diff-medium { background: var(--interaction-blue); color: var(--white); }
+        .lb-diff-hard { background: var(--red-hat-red); color: var(--white); }
+
+        .lb-row .lb-time {
+            font-size: 0.75rem;
+            color: var(--gray-40);
+            margin-left: 8px;
+            width: 50px;
+            text-align: right;
+        }
+
+        .lb-row.highlight {
+            background: rgba(238, 0, 0, 0.15);
+            border: 1px solid var(--red-hat-red);
+        }
+
+        .lb-empty {
+            color: var(--gray-40);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 12px;
+        }
+
+        /* Player badge */
+        .player-badge {
+            position: absolute;
+            top: 4px;
+            left: 12px;
+            font-size: 0.75rem;
+            color: var(--gray-40);
+        }
+
+        .player-badge strong {
+            color: var(--white);
+        }
+
+        .player-badge a {
+            color: var(--interaction-blue);
+            text-decoration: none;
+            margin-left: 6px;
+            font-size: 0.65rem;
+        }
+
+        .player-badge a:hover {
+            text-decoration: underline;
+        }
+
+        /* Leaderboard tab toggle */
+        .tab-toggle {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 6px 12px;
+            background: var(--gray-80);
+            border: 2px solid var(--gray-70);
+            color: var(--gray-40);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            border-color: var(--red-hat-red);
+            color: var(--white);
+            background: var(--gray-70);
+        }
+
+        /* Full leaderboard panel */
+        #leaderboardContent {
+            display: none;
+            overflow-y: auto;
+            flex: 1;
+        }
+
         @media (max-width: 900px) {
             .bottom-row {
                 grid-template-columns: 1fr;
@@ -584,6 +846,10 @@
 </head>
 <body>
     <div class="header">
+        <div class="player-badge" id="playerBadge" style="display: none;">
+            Playing as: <strong id="playerNickname"></strong>
+            <a href="#" onclick="changePlayer(); return false;">change</a>
+        </div>
         <a href="/architecture" target="_blank" class="architecture-link">Architecture</a>
         <img src="/logo.svg" alt="Red Hat Whisper" style="height: 44px; width: auto; flex-shrink: 0;">
         <div style="display: flex; flex-direction: column; align-items: center;">
@@ -594,6 +860,54 @@
     </div>
 
     <div class="container">
+        <!-- Registration Panel (shown before game) -->
+        <div id="registrationPanel" style="grid-column: 1 / -1; grid-row: 1 / -1;">
+            <div class="reg-form">
+                <div class="reg-mode-toggle">
+                    <button class="reg-mode-btn active" id="modeNewBtn" onclick="switchRegMode('new')">New Player</button>
+                    <button class="reg-mode-btn" id="modeReturnBtn" onclick="switchRegMode('return')">Returning Player</button>
+                </div>
+
+                <!-- New Player Form -->
+                <div id="regNewForm">
+                    <h2>Join the Voice Challenge</h2>
+                    <div class="reg-field">
+                        <label>Nickname (public, shown on leaderboard)</label>
+                        <input type="text" id="regNickname" placeholder="e.g. PolyglotPro" maxlength="20">
+                    </div>
+                    <div class="reg-field">
+                        <label>Full name</label>
+                        <input type="text" id="regName" placeholder="Your full name">
+                    </div>
+                    <div class="reg-field">
+                        <label>Email</label>
+                        <input type="email" id="regEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="reg-error" id="regError"></div>
+                    <button class="reg-btn" id="regSubmitBtn" onclick="registerPlayer()">Join Tournament</button>
+                </div>
+
+                <!-- Returning Player Form -->
+                <div id="regReturnForm" style="display: none;">
+                    <h2>Welcome Back</h2>
+                    <div class="reg-field">
+                        <label>Nickname</label>
+                        <input type="text" id="loginNickname" placeholder="Your nickname" maxlength="20">
+                    </div>
+                    <div class="reg-field">
+                        <label>Email (used during registration)</label>
+                        <input type="email" id="loginEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="reg-error" id="loginError"></div>
+                    <button class="reg-btn" id="loginSubmitBtn" onclick="loginPlayer()">Log In</button>
+                </div>
+            </div>
+            <div class="mini-leaderboard" id="regLeaderboard">
+                <h3>Leaderboard</h3>
+                <div id="regLeaderboardRows"><div class="lb-empty">No scores yet — be the first!</div></div>
+            </div>
+        </div>
+
         <!-- TOP: Transcription (hero panel) -->
         <div class="panel" id="transcription-panel">
             <h2>Live Transcription</h2>
@@ -609,7 +923,7 @@
                     {% endfor %}
                 </select>
 
-                <button id="recordBtn">Start Recording</button>
+                <button id="recordBtn" disabled>Start Recording</button>
                 <button id="stopBtn" disabled>Stop</button>
             </div>
 
@@ -654,7 +968,13 @@
         <!-- BOTTOM ROW: Challenge + Metrics side by side -->
         <div class="bottom-row">
         <div class="panel" id="challenge-panel">
-            <h2>🏆 Voice Challenge</h2>
+            <div class="tab-toggle">
+                <button class="tab-btn active" id="tabChallenge" onclick="showTab('challenge')">Challenge</button>
+                <button class="tab-btn" id="tabLeaderboard" onclick="showTab('leaderboard')">Leaderboard</button>
+            </div>
+
+            <div id="challengeTab">
+            <h2>Voice Challenge</h2>
 
             <!-- Difficulty Selector (shown at start) -->
             <div id="difficultySelector">
@@ -714,8 +1034,14 @@
                 </div>
 
                 <button onclick="resetGame()" style="width: 100%; margin-top: 10px; background: var(--gray-70); padding: 10px;">
-                    🔄 Start New Game
+                    Start New Game
                 </button>
+            </div>
+            </div><!-- /challengeTab -->
+
+            <div id="leaderboardContent">
+                <h2 style="margin-bottom: 8px;">Leaderboard</h2>
+                <div id="fullLeaderboardRows"><div class="lb-empty">No scores yet</div></div>
             </div>
         </div>
 
@@ -823,18 +1149,29 @@
         let gameState = {
             difficulty: null,
             attempts: [],
-            usedLanguages: [],  // Track languages to avoid duplicates
+            usedLanguages: [],
             currentAttemptIndex: 0,
             totalWins: 0,
             skipsUsed: 0,
             gameStarted: false,
-            gameCompleted: false
+            gameCompleted: false,
+            gameId: null
         };
+
+        // Player session
+        let playerSession = {
+            token: null,
+            nickname: null,
+            playerId: null
+        };
+
+        let leaderboardInterval = null;
 
         // Initialize
         loadMicrophones();
-        checkGameStart();
+        restoreSession();
         startMetricsMonitoring();
+        startLeaderboardPolling();
 
         async function loadMicrophones() {
             try {
@@ -857,30 +1194,197 @@
             }
         }
 
-        function checkGameStart() {
-            // On page load, show difficulty selector
+        function restoreSession() {
+            const token = sessionStorage.getItem('tournament_token');
+            const nickname = sessionStorage.getItem('tournament_nickname');
+            if (token && nickname) {
+                playerSession.token = token;
+                playerSession.nickname = nickname;
+                showGameUI();
+            } else {
+                showRegistration();
+            }
+        }
+
+        function showRegistration() {
+            document.getElementById('registrationPanel').style.display = 'flex';
+            document.getElementById('transcription-panel').style.display = 'none';
+            document.querySelector('.bottom-row').style.display = 'none';
+            document.getElementById('playerBadge').style.display = 'none';
+            fetchLeaderboardPreview();
+        }
+
+        function showGameUI() {
+            document.getElementById('registrationPanel').style.display = 'none';
+            document.getElementById('transcription-panel').style.display = 'flex';
+            document.querySelector('.bottom-row').style.display = 'grid';
+            document.getElementById('playerBadge').style.display = 'block';
+            document.getElementById('playerNickname').textContent = playerSession.nickname;
             document.getElementById('difficultySelector').style.display = 'block';
             document.getElementById('challengeContent').style.display = 'none';
         }
 
-        function startGame(difficulty) {
-            gameState = {
-                difficulty: difficulty,
-                attempts: [],
-                usedLanguages: [],
-                currentAttemptIndex: 0,
-                totalWins: 0,
-                skipsUsed: 0,
-                gameStarted: true,
-                gameCompleted: false
-            };
+        async function registerPlayer() {
+            const nickname = document.getElementById('regNickname').value.trim();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const errorEl = document.getElementById('regError');
+            const btn = document.getElementById('regSubmitBtn');
 
-            document.getElementById('difficultySelector').style.display = 'none';
-            document.getElementById('challengeContent').style.display = 'block';
-            document.getElementById('finalResults').style.display = 'none';
+            errorEl.textContent = '';
 
-            initProgressTracker();
-            nextAttempt();
+            if (!nickname || nickname.length < 2) {
+                errorEl.textContent = 'Nickname must be at least 2 characters';
+                return;
+            }
+            if (!name || name.length < 2) {
+                errorEl.textContent = 'Please enter your full name';
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                errorEl.textContent = 'Please enter a valid email';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Joining...';
+
+            try {
+                const resp = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({nickname, name, email})
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    errorEl.textContent = data.error || 'Registration failed';
+                    btn.disabled = false;
+                    btn.textContent = 'Join Tournament';
+                    return;
+                }
+
+                playerSession.token = data.token;
+                playerSession.nickname = data.nickname;
+                playerSession.playerId = data.player_id;
+                sessionStorage.setItem('tournament_token', data.token);
+                sessionStorage.setItem('tournament_nickname', data.nickname);
+
+                showGameUI();
+            } catch (e) {
+                errorEl.textContent = 'Network error, please try again';
+                btn.disabled = false;
+                btn.textContent = 'Join Tournament';
+            }
+        }
+
+        function switchRegMode(mode) {
+            document.getElementById('modeNewBtn').classList.toggle('active', mode === 'new');
+            document.getElementById('modeReturnBtn').classList.toggle('active', mode === 'return');
+            document.getElementById('regNewForm').style.display = mode === 'new' ? 'block' : 'none';
+            document.getElementById('regReturnForm').style.display = mode === 'return' ? 'block' : 'none';
+            document.getElementById('regError').textContent = '';
+            document.getElementById('loginError').textContent = '';
+        }
+
+        async function loginPlayer() {
+            const nickname = document.getElementById('loginNickname').value.trim();
+            const email = document.getElementById('loginEmail').value.trim();
+            const errorEl = document.getElementById('loginError');
+            const btn = document.getElementById('loginSubmitBtn');
+
+            errorEl.textContent = '';
+
+            if (!nickname || nickname.length < 2) {
+                errorEl.textContent = 'Enter your nickname';
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                errorEl.textContent = 'Enter the email you registered with';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+
+            try {
+                const resp = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({nickname, email})
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    errorEl.textContent = data.error || 'Login failed';
+                    btn.disabled = false;
+                    btn.textContent = 'Log In';
+                    return;
+                }
+
+                playerSession.token = data.token;
+                playerSession.nickname = data.nickname;
+                playerSession.playerId = data.player_id;
+                sessionStorage.setItem('tournament_token', data.token);
+                sessionStorage.setItem('tournament_nickname', data.nickname);
+
+                showGameUI();
+            } catch (e) {
+                errorEl.textContent = 'Network error, please try again';
+                btn.disabled = false;
+                btn.textContent = 'Log In';
+            }
+        }
+
+        function changePlayer() {
+            sessionStorage.removeItem('tournament_token');
+            sessionStorage.removeItem('tournament_nickname');
+            playerSession = {token: null, nickname: null, playerId: null};
+            resetGame();
+            showRegistration();
+        }
+
+        function apiHeaders() {
+            const h = {'Content-Type': 'application/json'};
+            if (playerSession.token) h['Authorization'] = 'Bearer ' + playerSession.token;
+            return h;
+        }
+
+        async function startGame(difficulty) {
+            try {
+                const resp = await fetch('/api/game/start', {
+                    method: 'POST',
+                    headers: apiHeaders(),
+                    body: JSON.stringify({difficulty})
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    alert(data.error || 'Failed to start game');
+                    return;
+                }
+
+                gameState = {
+                    difficulty: difficulty,
+                    attempts: [],
+                    usedLanguages: [],
+                    currentAttemptIndex: 0,
+                    totalWins: 0,
+                    skipsUsed: 0,
+                    gameStarted: true,
+                    gameCompleted: false,
+                    gameId: data.game_id
+                };
+
+                document.getElementById('difficultySelector').style.display = 'none';
+                document.getElementById('challengeContent').style.display = 'block';
+                document.getElementById('finalResults').style.display = 'none';
+                document.getElementById('recordBtn').disabled = false;
+
+                initProgressTracker();
+                nextAttempt();
+            } catch (e) {
+                alert('Network error starting game');
+            }
         }
 
         function initProgressTracker() {
@@ -960,7 +1464,8 @@
         }
 
         function updateChallengeUI() {
-            document.getElementById('winsCounter').textContent = `Challenge ${gameState.currentAttemptIndex + 1}/${CHALLENGE_COUNT} | Need: ≥80% avg`;
+            const displayIndex = Math.min(gameState.currentAttemptIndex + 1, CHALLENGE_COUNT);
+            document.getElementById('winsCounter').textContent = `Challenge ${displayIndex}/${CHALLENGE_COUNT} | Need: ≥80% avg`;
             updateProgressTracker();
             updateAverageAccuracy();
 
@@ -990,18 +1495,44 @@
             }
         }
 
-        function recordAttempt(transcription, score) {
-            const status = score >= 80 ? 'win' : 'fail';
+        async function recordAttempt(transcription, score) {
+            // Submit to server for authoritative scoring
+            let serverAccuracy = score;
+            let serverStatus = score >= 80 ? 'win' : 'fail';
+
+            if (gameState.gameId) {
+                try {
+                    const resp = await fetch(`/api/game/${gameState.gameId}/attempt`, {
+                        method: 'POST',
+                        headers: apiHeaders(),
+                        body: JSON.stringify({
+                            attempt_index: gameState.currentAttemptIndex,
+                            language: currentChallenge.lang,
+                            phrase: currentChallenge.phrase,
+                            transcription: transcription,
+                            status: 'completed'
+                        })
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        serverAccuracy = Math.round(data.accuracy * 100);
+                        serverStatus = data.status;
+                        document.getElementById('accuracyScore').textContent = serverAccuracy + '%';
+                    }
+                } catch (e) {
+                    console.error('Failed to submit attempt:', e);
+                }
+            }
 
             gameState.attempts.push({
                 lang: currentChallenge.lang,
                 phrase: currentChallenge.phrase,
                 transcription: transcription,
-                score: score,
-                status: status
+                score: serverAccuracy,
+                status: serverStatus
             });
 
-            if (status === 'win') {
+            if (serverStatus === 'win') {
                 gameState.totalWins++;
             }
 
@@ -1018,9 +1549,25 @@
             }, 2000);
         }
 
-        function skipAttempt() {
-            if (gameState.skipsUsed >= 1) {
-                return; // Should not happen if button is disabled, but safety check
+        async function skipAttempt() {
+            if (gameState.skipsUsed >= 1) return;
+
+            if (gameState.gameId) {
+                try {
+                    await fetch(`/api/game/${gameState.gameId}/attempt`, {
+                        method: 'POST',
+                        headers: apiHeaders(),
+                        body: JSON.stringify({
+                            attempt_index: gameState.currentAttemptIndex,
+                            language: currentChallenge.lang,
+                            phrase: currentChallenge.phrase,
+                            transcription: '',
+                            status: 'skip'
+                        })
+                    });
+                } catch (e) {
+                    console.error('Failed to submit skip:', e);
+                }
             }
 
             gameState.attempts.push({
@@ -1090,8 +1637,35 @@
             document.getElementById('averageAccuracy').textContent = avg.toFixed(1) + '%';
         }
 
-        function finishGame() {
+        async function finishGame() {
             gameState.gameCompleted = true;
+
+            let tournamentScore = null;
+            let rank = null;
+            let totalPlayers = null;
+
+            // Call server to finalize and get composite score
+            let isNewBest = false;
+            let bestScore = null;
+
+            if (gameState.gameId) {
+                try {
+                    const resp = await fetch(`/api/game/${gameState.gameId}/complete`, {
+                        method: 'POST',
+                        headers: apiHeaders()
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        tournamentScore = data.total_score;
+                        rank = data.rank;
+                        isNewBest = data.is_new_best;
+                        bestScore = data.best_score;
+                        fetchLeaderboard();
+                    }
+                } catch (e) {
+                    console.error('Failed to complete game:', e);
+                }
+            }
 
             const scoredAttempts = gameState.attempts.filter(a => a.status !== 'skip');
             const avgScore = scoredAttempts.length > 0
@@ -1099,39 +1673,58 @@
                 : 0;
             const won = avgScore >= 80;
             const finalResultsEl = document.getElementById('finalResults');
-            const prizeTiers = {easy: 'BRONZE', medium: 'SILVER', hard: 'GOLD'};
-            const prizeTrophies = {easy: '🥉', medium: '🥈', hard: '🥇'};
+
+            const scoreLine = tournamentScore !== null
+                ? `<p style="font-size: 1.5rem; margin: 10px 0; color: var(--white);">Tournament score: <strong>${tournamentScore}</strong></p>`
+                : '';
+            const bestLine = isNewBest
+                ? `<p style="font-size: 1.1rem; color: var(--success-green); font-weight: 700;">⭐ New Personal Best!</p>`
+                : bestScore !== null
+                    ? `<p style="font-size: 0.9rem; color: var(--gray-40);">Your best: <strong>${bestScore}</strong></p>`
+                    : '';
+            const rankLine = rank !== null
+                ? `<p style="font-size: 1rem; color: var(--interaction-blue);">Leaderboard rank: <strong>#${rank}</strong></p>`
+                : '';
 
             if (won) {
-                document.getElementById('congratsTrophy').textContent = prizeTrophies[gameState.difficulty];
-                document.getElementById('congratsMessage').innerHTML = `You won the <strong>${prizeTiers[gameState.difficulty]}</strong> prize!`;
-                document.getElementById('congratsScore').textContent = `Average accuracy: ${avgScore.toFixed(1)}%`;
+                document.getElementById('congratsTrophy').textContent = '🏆';
+                document.getElementById('congratsMessage').innerHTML = tournamentScore !== null
+                    ? `Tournament score: <strong>${tournamentScore}</strong>`
+                    : `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('congratsScore').textContent = rank !== null
+                    ? `You are #${rank} on the leaderboard!`
+                    : `Average accuracy: ${avgScore.toFixed(1)}%`;
                 document.getElementById('congratsOverlay').style.display = 'flex';
 
                 finalResultsEl.innerHTML = `
-                    <h3 style="color: var(--success-green);">🎉 Congratulations!</h3>
-                    <p style="font-size: 1.2rem; margin: 15px 0;">
-                        Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>
-                    </p>
-                    <p style="font-size: 1rem;">Difficulty: <strong>${gameState.difficulty.toUpperCase()}</strong></p>
-                    <p style="margin-top: 15px;">Visit the Red Hat booth to claim your <strong>${prizeTiers[gameState.difficulty]}</strong> prize! 🏆</p>
+                    <h3 style="color: var(--success-green);">Congratulations!</h3>
+                    ${scoreLine}
+                    ${bestLine}
+                    <p style="font-size: 1rem;">Accuracy: <strong>${avgScore.toFixed(1)}%</strong> | Difficulty: <strong>${gameState.difficulty.toUpperCase()}</strong></p>
+                    ${rankLine}
                 `;
             } else {
-                const lossTitle = avgScore >= 60 ? '😅 So close! 😅' : avgScore >= 30 ? '🫣 Not quite! 🫣' : '😬 Tough one! 😬';
+                const lossTitle = avgScore >= 60 ? 'So close!' : avgScore >= 30 ? 'Not quite!' : 'Tough one!';
                 document.getElementById('lossTitle').textContent = lossTitle;
-                document.getElementById('lossScore').innerHTML = `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('lossScore').innerHTML = tournamentScore !== null
+                    ? `Tournament score: <strong>${tournamentScore}</strong>`
+                    : `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
                 document.getElementById('lossOverlay').style.display = 'flex';
 
                 finalResultsEl.innerHTML = `
                     <h3 style="color: var(--danger-orange);">Almost there!</h3>
-                    <p style="font-size: 1.2rem; margin: 15px 0;">Average accuracy: <strong>${avgScore.toFixed(1)}%</strong></p>
-                    <p style="font-size: 1rem;">Needed: <strong>80%</strong> average to win</p>
-                    <p style="margin-top: 15px;">Try again for another shot at the prize!</p>
+                    ${scoreLine}
+                    ${bestLine}
+                    <p style="font-size: 1rem;">Accuracy: <strong>${avgScore.toFixed(1)}%</strong> | Needed: <strong>80%</strong> to win</p>
+                    ${rankLine}
+                    <p style="margin-top: 10px;">Try again for a better score!</p>
                 `;
             }
 
             finalResultsEl.style.display = 'block';
             document.getElementById('challengeActions').style.display = 'none';
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('transcription').textContent = '';
         }
 
         function closeCongratsModal() {
@@ -1151,7 +1744,8 @@
                 totalWins: 0,
                 skipsUsed: 0,
                 gameStarted: false,
-                gameCompleted: false
+                gameCompleted: false,
+                gameId: null
             };
 
             document.getElementById('difficultySelector').style.display = 'block';
@@ -1160,6 +1754,8 @@
             document.getElementById('progressTracker').innerHTML = '';
             document.getElementById('averageAccuracy').textContent = '--';
             document.getElementById('challengeActions').style.display = 'block';
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('transcription').textContent = '';
         }
 
         // Recording controls (same as before)
@@ -1375,6 +1971,61 @@
             } catch (error) {
                 console.error('Error fetching metrics:', error);
             }
+        }
+
+        function startLeaderboardPolling() {
+            fetchLeaderboard();
+            leaderboardInterval = setInterval(fetchLeaderboard, 15000);
+        }
+
+        async function fetchLeaderboard() {
+            try {
+                const resp = await fetch('/api/leaderboard?limit=20');
+                const data = await resp.json();
+                renderLeaderboard(data.leaderboard, 'fullLeaderboardRows');
+            } catch (e) {
+                console.error('Leaderboard fetch error:', e);
+            }
+        }
+
+        async function fetchLeaderboardPreview() {
+            try {
+                const resp = await fetch('/api/leaderboard?limit=5');
+                const data = await resp.json();
+                renderLeaderboard(data.leaderboard, 'regLeaderboardRows');
+            } catch (e) {
+                console.error('Leaderboard preview error:', e);
+            }
+        }
+
+        function renderLeaderboard(entries, containerId) {
+            const container = document.getElementById(containerId);
+            if (!entries || entries.length === 0) {
+                container.innerHTML = '<div class="lb-empty">No scores yet — be the first!</div>';
+                return;
+            }
+
+            container.innerHTML = entries.map(e => {
+                const isMe = playerSession.nickname && e.nickname === playerSession.nickname;
+                const mins = Math.floor(e.duration_seconds / 60);
+                const secs = Math.round(e.duration_seconds % 60);
+                const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+                return `<div class="lb-row ${e.rank <= 3 ? 'top-3' : ''} ${isMe ? 'highlight' : ''}">
+                    <span class="lb-rank">${e.rank <= 3 ? ['🥇','🥈','🥉'][e.rank-1] : '#' + e.rank}</span>
+                    <span class="lb-nick">${e.nickname}${isMe ? ' (you)' : ''}</span>
+                    <span class="lb-score">${e.score}</span>
+                    <span class="lb-diff lb-diff-${e.difficulty}">${e.difficulty}</span>
+                    <span class="lb-time">${timeStr}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function showTab(tab) {
+            document.getElementById('tabChallenge').classList.toggle('active', tab === 'challenge');
+            document.getElementById('tabLeaderboard').classList.toggle('active', tab === 'leaderboard');
+            document.getElementById('challengeTab').style.display = tab === 'challenge' ? 'block' : 'none';
+            document.getElementById('leaderboardContent').style.display = tab === 'leaderboard' ? 'block' : 'none';
+            if (tab === 'leaderboard') fetchLeaderboard();
         }
 
         // VAD Recorder (same as streaming version)

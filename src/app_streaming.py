@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context, g
 import requests
 import os
 import tempfile
@@ -6,7 +6,14 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime
+import sqlite3
+import hashlib
+import hmac
+import csv
+import io
+import re
+from functools import wraps
+from datetime import datetime, timezone
 from kubernetes import client, config
 import urllib3
 
@@ -48,6 +55,11 @@ WIN_THRESHOLD = int(os.getenv('WIN_THRESHOLD', '4'))
 CHALLENGE_PHRASES = json.loads(os.getenv('CHALLENGE_PHRASES',
     '{"en": ["Artificial intelligence transforms business", "Kubernetes simplifies application deployment", "Cloud solutions increase efficiency"]}'))
 
+# Tournament settings
+TOURNAMENT_SECRET = os.getenv('TOURNAMENT_SECRET', 'change-me-in-production')
+ADMIN_TOKEN = os.getenv('ADMIN_TOKEN', 'admin-change-me')
+DB_PATH = os.getenv('DB_PATH', '/app/data/tournament.db')
+
 logger.info(f"Whisper UI starting - API URL: {WHISPER_API_URL}")
 logger.info(f"Model name: {WHISPER_MODEL_NAME}")
 logger.info(f"Supported languages: {list(SUPPORTED_LANGUAGES.keys())}")
@@ -87,6 +99,148 @@ dcgm_url_cache = {
     'timestamp': 0,
     'ttl': 300  # Cache for 5 minutes
 }
+
+# --- Tournament Database ---
+
+def init_db():
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    db = sqlite3.connect(DB_PATH)
+    db.execute('PRAGMA journal_mode=WAL')
+    db.executescript('''
+        CREATE TABLE IF NOT EXISTS players (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nickname TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_id INTEGER NOT NULL REFERENCES players(id),
+            difficulty TEXT NOT NULL CHECK(difficulty IN ('easy','medium','hard')),
+            started_at TEXT NOT NULL,
+            completed_at TEXT,
+            total_score REAL,
+            avg_accuracy REAL,
+            duration_seconds REAL,
+            won INTEGER DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id INTEGER NOT NULL REFERENCES games(id),
+            attempt_index INTEGER NOT NULL,
+            language TEXT NOT NULL,
+            phrase TEXT NOT NULL,
+            transcription TEXT,
+            accuracy REAL,
+            status TEXT NOT NULL CHECK(status IN ('win','fail','skip'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_games_player ON games(player_id);
+        CREATE INDEX IF NOT EXISTS idx_games_score ON games(total_score DESC);
+        CREATE INDEX IF NOT EXISTS idx_attempts_game ON attempts(game_id);
+    ''')
+    db.close()
+    logger.info(f"Tournament database initialized at {DB_PATH}")
+
+init_db()
+
+
+def get_db():
+    db = sqlite3.connect(DB_PATH, timeout=10)
+    db.row_factory = sqlite3.Row
+    db.execute('PRAGMA journal_mode=WAL')
+    db.execute('PRAGMA foreign_keys=ON')
+    return db
+
+
+def create_token(player_id):
+    payload = f"{player_id}:{int(time.time())}"
+    sig = hmac.new(TOURNAMENT_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    import base64
+    return base64.urlsafe_b64encode(f"{payload}:{sig}".encode()).decode()
+
+
+def verify_token(token):
+    try:
+        import base64
+        decoded = base64.urlsafe_b64decode(token.encode()).decode()
+        parts = decoded.rsplit(':', 1)
+        if len(parts) != 2:
+            return None
+        payload, sig = parts
+        expected = hmac.new(TOURNAMENT_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected):
+            return None
+        player_id = int(payload.split(':')[0])
+        return player_id
+    except Exception:
+        return None
+
+
+def require_token(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get('Authorization', '')
+        if not auth.startswith('Bearer '):
+            return jsonify({'error': 'Missing authorization'}), 401
+        player_id = verify_token(auth[7:])
+        if player_id is None:
+            return jsonify({'error': 'Invalid token'}), 401
+        g.player_id = player_id
+        return f(*args, **kwargs)
+    return decorated
+
+
+def require_admin(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get('Authorization', '')
+        if not auth.startswith('Bearer ') or auth[7:] != ADMIN_TOKEN:
+            return jsonify({'error': 'Forbidden'}), 403
+        return f(*args, **kwargs)
+    return decorated
+
+
+# --- Server-side scoring ---
+
+def normalize_text(text):
+    return re.sub(r'\s+', ' ', re.sub(r'[.,!?;:]', '', text.lower().strip()))
+
+
+def levenshtein_distance(s1, s2):
+    if len(s1) < len(s2):
+        return levenshtein_distance(s2, s1)
+    if len(s2) == 0:
+        return len(s1)
+    prev_row = list(range(len(s2) + 1))
+    for i, c1 in enumerate(s1):
+        curr_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = prev_row[j + 1] + 1
+            deletions = curr_row[j] + 1
+            substitutions = prev_row[j] + (c1 != c2)
+            curr_row.append(min(insertions, deletions, substitutions))
+        prev_row = curr_row
+    return prev_row[-1]
+
+
+def levenshtein_similarity(s1, s2):
+    t = normalize_text(s1)
+    e = normalize_text(s2)
+    longer = t if len(t) >= len(e) else e
+    if len(longer) == 0:
+        return 1.0
+    dist = levenshtein_distance(t, e)
+    return (len(longer) - dist) / len(longer)
+
+
+def compute_total_score(difficulty, avg_accuracy, duration_seconds):
+    multipliers = {'easy': 1.0, 'medium': 1.5, 'hard': 2.0}
+    difficulty_mult = multipliers.get(difficulty, 1.0)
+    accuracy_pts = avg_accuracy * 100
+    speed_bonus = max(0.8, 1.2 - (duration_seconds / 600))
+    return round(difficulty_mult * accuracy_pts * speed_bonus, 1)
+
 
 def query_vllm_gauge(metric_name):
     """Scrape a real-time gauge directly from the vLLM /metrics endpoint."""
@@ -659,6 +813,424 @@ def get_metrics():
             'kv_cache_usage_pct': 0,
             'model': WHISPER_MODEL_NAME
         })
+
+# --- Tournament API ---
+
+@app.route('/api/register', methods=['POST'])
+def api_register():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'JSON body required'}), 400
+
+    nickname = (data.get('nickname') or '').strip()
+    name = (data.get('name') or '').strip()
+    email = (data.get('email') or '').strip()
+
+    if not nickname or len(nickname) < 2 or len(nickname) > 20:
+        return jsonify({'error': 'Nickname must be 2-20 characters'}), 400
+    if not re.match(r'^[a-zA-Z0-9_-]+$', nickname):
+        return jsonify({'error': 'Nickname: letters, numbers, underscores, hyphens only'}), 400
+    if not name or len(name) < 2:
+        return jsonify({'error': 'Name is required (min 2 characters)'}), 400
+    if not email or '@' not in email:
+        return jsonify({'error': 'Valid email is required'}), 400
+
+    db = get_db()
+    try:
+        db.execute('INSERT INTO players (nickname, name, email) VALUES (?, ?, ?)',
+                   (nickname, name, email))
+        db.commit()
+        player_id = db.execute('SELECT id FROM players WHERE nickname = ?', (nickname,)).fetchone()['id']
+        token = create_token(player_id)
+        return jsonify({'player_id': player_id, 'nickname': nickname, 'token': token}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Nickname already taken'}), 409
+    finally:
+        db.close()
+
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'JSON body required'}), 400
+
+    nickname = (data.get('nickname') or '').strip()
+    email = (data.get('email') or '').strip()
+
+    if not nickname or not email:
+        return jsonify({'error': 'Nickname and email are required'}), 400
+
+    db = get_db()
+    try:
+        player = db.execute(
+            'SELECT id, nickname FROM players WHERE nickname = ? AND email = ?',
+            (nickname, email)).fetchone()
+        if not player:
+            return jsonify({'error': 'No account found with that nickname and email'}), 404
+        token = create_token(player['id'])
+        return jsonify({'player_id': player['id'], 'nickname': player['nickname'], 'token': token})
+    finally:
+        db.close()
+
+
+@app.route('/api/player/me', methods=['GET'])
+@require_token
+def api_player_me():
+    db = get_db()
+    try:
+        player = db.execute('SELECT id, nickname, created_at FROM players WHERE id = ?',
+                           (g.player_id,)).fetchone()
+        if not player:
+            return jsonify({'error': 'Player not found'}), 404
+        best = db.execute('SELECT MAX(total_score) as best_score FROM games WHERE player_id = ? AND total_score IS NOT NULL',
+                         (g.player_id,)).fetchone()
+        games_played = db.execute('SELECT COUNT(*) as count FROM games WHERE player_id = ? AND completed_at IS NOT NULL',
+                                 (g.player_id,)).fetchone()['count']
+        return jsonify({
+            'player_id': player['id'],
+            'nickname': player['nickname'],
+            'best_score': best['best_score'] if best else None,
+            'games_played': games_played
+        })
+    finally:
+        db.close()
+
+
+@app.route('/api/game/start', methods=['POST'])
+@require_token
+def api_game_start():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'JSON body required'}), 400
+
+    difficulty = data.get('difficulty')
+    if difficulty not in ('easy', 'medium', 'hard'):
+        return jsonify({'error': 'Invalid difficulty'}), 400
+
+    started_at = datetime.now(timezone.utc).isoformat()
+    db = get_db()
+    try:
+        cursor = db.execute(
+            'INSERT INTO games (player_id, difficulty, started_at) VALUES (?, ?, ?)',
+            (g.player_id, difficulty, started_at))
+        db.commit()
+        return jsonify({
+            'game_id': cursor.lastrowid,
+            'difficulty': difficulty,
+            'started_at': started_at
+        }), 201
+    finally:
+        db.close()
+
+
+@app.route('/api/game/<int:game_id>/attempt', methods=['POST'])
+@require_token
+def api_game_attempt(game_id):
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'JSON body required'}), 400
+
+    db = get_db()
+    try:
+        game = db.execute('SELECT * FROM games WHERE id = ? AND player_id = ?',
+                         (game_id, g.player_id)).fetchone()
+        if not game:
+            return jsonify({'error': 'Game not found'}), 404
+        if game['completed_at']:
+            return jsonify({'error': 'Game already completed'}), 400
+
+        attempt_index = data.get('attempt_index')
+        language = data.get('language', '')
+        phrase = data.get('phrase', '')
+        transcription = data.get('transcription', '')
+        status = data.get('status', 'completed')
+
+        if attempt_index is None or not isinstance(attempt_index, int) or attempt_index < 0:
+            return jsonify({'error': 'Invalid attempt_index'}), 400
+
+        existing = db.execute('SELECT id FROM attempts WHERE game_id = ? AND attempt_index = ?',
+                             (game_id, attempt_index)).fetchone()
+        if existing:
+            return jsonify({'error': 'Attempt already submitted'}), 400
+
+        lang_phrases = CHALLENGE_PHRASES.get(language, [])
+        if phrase not in lang_phrases and status != 'skip':
+            return jsonify({'error': 'Invalid phrase for language'}), 400
+
+        if status == 'skip':
+            skip_count = db.execute(
+                "SELECT COUNT(*) as cnt FROM attempts WHERE game_id = ? AND status = 'skip'",
+                (game_id,)).fetchone()['cnt']
+            if skip_count >= 1:
+                return jsonify({'error': 'Maximum 1 skip per game'}), 400
+            accuracy = 0.0
+            result_status = 'skip'
+        else:
+            accuracy = levenshtein_similarity(transcription, phrase)
+            result_status = 'win' if accuracy >= 0.80 else 'fail'
+
+        db.execute(
+            'INSERT INTO attempts (game_id, attempt_index, language, phrase, transcription, accuracy, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (game_id, attempt_index, language, phrase, transcription, round(accuracy, 4), result_status))
+        db.commit()
+
+        return jsonify({'accuracy': round(accuracy, 4), 'status': result_status})
+    finally:
+        db.close()
+
+
+@app.route('/api/game/<int:game_id>/complete', methods=['POST'])
+@require_token
+def api_game_complete(game_id):
+    db = get_db()
+    try:
+        game = db.execute('SELECT * FROM games WHERE id = ? AND player_id = ?',
+                         (game_id, g.player_id)).fetchone()
+        if not game:
+            return jsonify({'error': 'Game not found'}), 404
+        if game['completed_at']:
+            return jsonify({'error': 'Game already completed'}), 400
+
+        completed_at = datetime.now(timezone.utc).isoformat()
+        started_dt = datetime.fromisoformat(game['started_at'])
+        completed_dt = datetime.fromisoformat(completed_at)
+        duration_seconds = (completed_dt - started_dt).total_seconds()
+
+        attempts = db.execute('SELECT * FROM attempts WHERE game_id = ?', (game_id,)).fetchall()
+        scored = [a for a in attempts if a['status'] != 'skip']
+        avg_accuracy = sum(a['accuracy'] for a in scored) / len(scored) if scored else 0.0
+        won = 1 if avg_accuracy >= 0.80 else 0
+        total_score = compute_total_score(game['difficulty'], avg_accuracy, duration_seconds)
+
+        db.execute('''UPDATE games SET completed_at=?, total_score=?, avg_accuracy=?,
+                      duration_seconds=?, won=? WHERE id=?''',
+                   (completed_at, total_score, round(avg_accuracy, 4),
+                    round(duration_seconds, 1), won, game_id))
+        db.commit()
+
+        best_row = db.execute('SELECT MAX(total_score) as best FROM games WHERE player_id = ? AND completed_at IS NOT NULL',
+                             (g.player_id,)).fetchone()
+        best_score = best_row['best'] if best_row else total_score
+        is_new_best = total_score >= best_score
+
+        rank_row = db.execute('''
+            SELECT COUNT(*) + 1 as rank FROM (
+                SELECT player_id, MAX(total_score) as best
+                FROM games WHERE completed_at IS NOT NULL AND total_score IS NOT NULL
+                GROUP BY player_id
+            ) WHERE best > ?''', (best_score,)).fetchone()
+        rank = rank_row['rank'] if rank_row else 1
+
+        return jsonify({
+            'total_score': total_score,
+            'avg_accuracy': round(avg_accuracy, 4),
+            'duration_seconds': round(duration_seconds, 1),
+            'difficulty': game['difficulty'],
+            'won': bool(won),
+            'rank': rank,
+            'best_score': best_score,
+            'is_new_best': is_new_best
+        })
+    finally:
+        db.close()
+
+
+@app.route('/api/leaderboard', methods=['GET'])
+def api_leaderboard():
+    limit = min(int(request.args.get('limit', 20)), 100)
+    db = get_db()
+    try:
+        rows = db.execute('''
+            SELECT p.nickname, g.total_score, g.difficulty, g.avg_accuracy, g.duration_seconds
+            FROM games g
+            JOIN players p ON p.id = g.player_id
+            WHERE g.completed_at IS NOT NULL AND g.total_score IS NOT NULL
+            AND g.id = (
+                SELECT g2.id FROM games g2
+                WHERE g2.player_id = g.player_id AND g2.completed_at IS NOT NULL
+                ORDER BY g2.total_score DESC LIMIT 1
+            )
+            GROUP BY g.player_id
+            ORDER BY g.total_score DESC
+            LIMIT ?
+        ''', (limit,)).fetchall()
+
+        total_players = db.execute('SELECT COUNT(DISTINCT player_id) as cnt FROM games WHERE completed_at IS NOT NULL').fetchone()['cnt']
+
+        leaderboard = []
+        for i, row in enumerate(rows):
+            leaderboard.append({
+                'rank': i + 1,
+                'nickname': row['nickname'],
+                'score': row['total_score'],
+                'difficulty': row['difficulty'],
+                'avg_accuracy': round(row['avg_accuracy'] * 100, 1) if row['avg_accuracy'] else 0,
+                'duration_seconds': round(row['duration_seconds'], 1) if row['duration_seconds'] else 0
+            })
+
+        return jsonify({
+            'leaderboard': leaderboard,
+            'total_players': total_players,
+            'updated_at': datetime.now(timezone.utc).isoformat()
+        })
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/players', methods=['GET'])
+@require_admin
+def api_admin_players():
+    db = get_db()
+    try:
+        rows = db.execute('''
+            SELECT p.id, p.nickname, p.name, p.email, p.created_at,
+                   MAX(g.total_score) as best_score,
+                   COUNT(CASE WHEN g.completed_at IS NOT NULL THEN 1 END) as games_played
+            FROM players p
+            LEFT JOIN games g ON g.player_id = p.id
+            GROUP BY p.id
+            ORDER BY best_score DESC NULLS LAST
+        ''').fetchall()
+
+        players = []
+        for row in rows:
+            players.append({
+                'id': row['id'],
+                'nickname': row['nickname'],
+                'name': row['name'],
+                'email': row['email'],
+                'best_score': row['best_score'],
+                'games_played': row['games_played'],
+                'created_at': row['created_at']
+            })
+
+        return jsonify({'players': players})
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/export', methods=['GET'])
+def api_admin_export():
+    auth = request.headers.get('Authorization', '')
+    token_param = request.args.get('token', '')
+    if not ((auth.startswith('Bearer ') and auth[7:] == ADMIN_TOKEN) or token_param == ADMIN_TOKEN):
+        return jsonify({'error': 'Forbidden'}), 403
+    db = get_db()
+    try:
+        rows = db.execute('''
+            SELECT p.nickname, p.name, p.email,
+                   MAX(g.total_score) as best_score, g.difficulty,
+                   COUNT(CASE WHEN g.completed_at IS NOT NULL THEN 1 END) as games_played
+            FROM players p
+            LEFT JOIN games g ON g.player_id = p.id
+            GROUP BY p.id
+            ORDER BY best_score DESC NULLS LAST
+        ''').fetchall()
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['rank', 'nickname', 'name', 'email', 'best_score', 'difficulty', 'games_played'])
+        for i, row in enumerate(rows):
+            writer.writerow([i + 1, row['nickname'], row['name'], row['email'],
+                           row['best_score'] or 0, row['difficulty'] or '', row['games_played']])
+
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=tournament_results.csv'}
+        )
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/players/<int:player_id>/games', methods=['GET'])
+@require_admin
+def api_admin_player_games(player_id):
+    db = get_db()
+    try:
+        games = db.execute('''
+            SELECT id, difficulty, total_score, avg_accuracy, duration_seconds,
+                   started_at, completed_at, won
+            FROM games WHERE player_id = ? AND completed_at IS NOT NULL
+            ORDER BY total_score DESC
+        ''', (player_id,)).fetchall()
+
+        return jsonify({'games': [{
+            'id': g['id'],
+            'difficulty': g['difficulty'],
+            'score': g['total_score'],
+            'accuracy': round((g['avg_accuracy'] or 0) * 100, 1),
+            'duration': round(g['duration_seconds'] or 0, 1),
+            'started_at': g['started_at'],
+            'completed_at': g['completed_at'],
+            'won': bool(g['won'])
+        } for g in games]})
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/export-games', methods=['GET'])
+def api_admin_export_games():
+    auth = request.headers.get('Authorization', '')
+    token_param = request.args.get('token', '')
+    if not ((auth.startswith('Bearer ') and auth[7:] == ADMIN_TOKEN) or token_param == ADMIN_TOKEN):
+        return jsonify({'error': 'Forbidden'}), 403
+    db = get_db()
+    try:
+        rows = db.execute('''
+            SELECT p.nickname, p.name, p.email,
+                   g.id as game_id, g.difficulty, g.total_score, g.avg_accuracy,
+                   g.duration_seconds, g.started_at, g.completed_at, g.won
+            FROM games g
+            JOIN players p ON p.id = g.player_id
+            WHERE g.completed_at IS NOT NULL
+            ORDER BY g.total_score DESC
+        ''').fetchall()
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['nickname', 'name', 'email', 'game_id', 'difficulty', 'score',
+                        'accuracy_%', 'duration_s', 'started_at', 'completed_at', 'won'])
+        for row in rows:
+            writer.writerow([row['nickname'], row['name'], row['email'],
+                           row['game_id'], row['difficulty'], row['total_score'] or 0,
+                           round((row['avg_accuracy'] or 0) * 100, 1),
+                           round(row['duration_seconds'] or 0, 1),
+                           row['started_at'], row['completed_at'],
+                           'yes' if row['won'] else 'no'])
+
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=tournament_all_games.csv'}
+        )
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/reset-scores', methods=['POST'])
+@require_admin
+def api_admin_reset_scores():
+    db = get_db()
+    try:
+        db.execute('DELETE FROM attempts')
+        db.execute('DELETE FROM games')
+        db.commit()
+        return jsonify({'message': 'All games and attempts deleted', 'players_kept': True})
+    finally:
+        db.close()
+
+
+@app.route('/admin')
+def admin_page():
+    return render_template('admin.html')
+
+
+@app.route('/tv')
+def tv_page():
+    return render_template('tv.html', conference_name=CONFERENCE_NAME)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)

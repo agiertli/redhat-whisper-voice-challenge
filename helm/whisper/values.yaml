@@ -2,7 +2,7 @@ namespace: whisper
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: "v1.1.2"
+  tag: "v2.0.0-rc8"
   pullPolicy: Always
 
 replicaCount: 1
@@ -42,17 +42,17 @@ readinessProbe:
 
 # REQUIRED: Set to your cluster's apps domain
 # Find it with: oc get ingresses.config cluster -o jsonpath='{.spec.domain}'
-clusterDomain: "apps.ocp.gksnv.sandbox1323.opentlc.com"
+clusterDomain: "apps.ocp.dghv9.sandbox258.opentlc.com"
 
 whisperApi:
   modelName: "whisper"
   displayName: "RedHatAI/whisper-large-v3-turbo-quantized.w4a16"
 
 conference:
-  name: "Red Hat Whisper Voice Challenge"
+  name: "Summit Connect Warsaw"
 
 game:
-  requiredLanguage: "en"
+  requiredLanguage: "pl"
   challengeCount: "5"
   winThreshold: "4"
 
@@ -97,5 +97,10 @@ model:
   nodeSelector:
     node-role.kubernetes.io/gpu-worker: "true"
 
+tournament:
+  storage: "1Gi"
+  secret: ""       # Auto-generated if empty
+  adminToken: ""   # Auto-generated if empty; override with --set tournament.adminToken=xxx
+
 vllm:
-  image: "quay.io/modh/vllm:rhoai-2.25-cuda"
+  image: "registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.4"

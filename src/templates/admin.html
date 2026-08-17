@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Tournament</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Red Hat Text', sans-serif;
+            background: #151515;
+            color: #ffffff;
+            padding: 20px 40px;
+        }
+        h1 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 900;
+            color: #ee0000;
+            margin-bottom: 20px;
+        }
+        .auth-form {
+            max-width: 400px;
+            margin: 80px auto;
+            text-align: center;
+        }
+        .auth-form input {
+            width: 100%;
+            padding: 12px;
+            background: #292929;
+            border: 2px solid #383838;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: 'Red Hat Mono', monospace;
+            margin-bottom: 12px;
+        }
+        .auth-form input:focus { outline: none; border-color: #ee0000; }
+        .auth-form button {
+            width: 100%;
+            padding: 12px;
+            background: #ee0000;
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .auth-error { color: #f0561d; margin-bottom: 10px; font-size: 0.9rem; }
+        .admin-content { display: none; }
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .toolbar button {
+            padding: 8px 16px;
+            background: #292929;
+            border: 2px solid #383838;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .toolbar button:hover { border-color: #ee0000; }
+        .stat { font-size: 0.9rem; color: #a3a3a3; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            background: #292929;
+            color: #a3a3a3;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #292929;
+        }
+        .player-row { cursor: pointer; }
+        .player-row:hover td { background: #1f1f1f; }
+        .player-row .expand-icon { transition: transform 0.2s; display: inline-block; margin-right: 6px; }
+        .player-row.expanded .expand-icon { transform: rotate(90deg); }
+        .score { font-family: 'Red Hat Mono', monospace; font-weight: 700; color: #63993d; }
+        .games-detail { display: none; }
+        .games-detail td {
+            padding: 6px 12px 6px 50px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #222;
+            font-size: 0.82rem;
+            color: #a3a3a3;
+        }
+        .games-detail .score { font-size: 0.82rem; }
+        .diff-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .diff-easy { background: #63993d; color: #fff; }
+        .diff-medium { background: #0066cc; color: #fff; }
+        .diff-hard { background: #ee0000; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="auth-form" id="authForm">
+        <h1>Tournament Admin</h1>
+        <div class="auth-error" id="authError"></div>
+        <input type="password" id="adminToken" placeholder="Enter admin token">
+        <button onclick="authenticate()">Login</button>
+    </div>
+
+    <div class="admin-content" id="adminContent">
+        <h1>Tournament Admin</h1>
+        <div class="toolbar">
+            <button onclick="exportCSV()">Export Best Scores</button>
+            <button onclick="exportAllGames()">Export All Games</button>
+            <button onclick="loadPlayers()">Refresh</button>
+            <button onclick="resetScores()" style="background: #a60000; border-color: #a60000;">Reset All Scores</button>
+            <span class="stat" id="playerCount"></span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Nickname</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Best Score</th>
+                    <th>Games</th>
+                    <th>Registered</th>
+                </tr>
+            </thead>
+            <tbody id="playerTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let token = '';
+
+        async function authenticate() {
+            token = document.getElementById('adminToken').value;
+            try {
+                const resp = await fetch('/api/admin/players', {
+                    headers: {'Authorization': 'Bearer ' + token}
+                });
+                if (resp.status === 403) {
+                    document.getElementById('authError').textContent = 'Invalid token';
+                    return;
+                }
+                document.getElementById('authForm').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                loadPlayers();
+            } catch (e) {
+                document.getElementById('authError').textContent = 'Connection error';
+            }
+        }
+
+        async function loadPlayers() {
+            try {
+                const resp = await fetch('/api/admin/players', {
+                    headers: {'Authorization': 'Bearer ' + token}
+                });
+                const data = await resp.json();
+                document.getElementById('playerCount').textContent = `${data.players.length} players registered`;
+
+                const tbody = document.getElementById('playerTable');
+                tbody.innerHTML = data.players.map((p, i) => `
+                    <tr class="player-row" onclick="toggleGames(this, ${p.id})" id="player-${p.id}">
+                        <td>${i + 1}</td>
+                        <td><span class="expand-icon">&#9654;</span><strong>${p.nickname}</strong></td>
+                        <td>${p.name}</td>
+                        <td>${p.email}</td>
+                        <td class="score">${p.best_score || '--'}</td>
+                        <td>${p.games_played}</td>
+                        <td>${p.created_at || ''}</td>
+                    </tr>
+                    <tr class="games-detail" id="games-${p.id}">
+                        <td colspan="7">Loading...</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Load error:', e);
+            }
+        }
+
+        async function toggleGames(row, playerId) {
+            const detailRow = document.getElementById('games-' + playerId);
+            const isExpanded = row.classList.contains('expanded');
+
+            if (isExpanded) {
+                row.classList.remove('expanded');
+                detailRow.style.display = 'none';
+                return;
+            }
+
+            row.classList.add('expanded');
+            detailRow.style.display = 'table-row';
+
+            try {
+                const resp = await fetch(`/api/admin/players/${playerId}/games`, {
+                    headers: {'Authorization': 'Bearer ' + token}
+                });
+                const data = await resp.json();
+
+                if (!data.games || data.games.length === 0) {
+                    detailRow.innerHTML = '<td colspan="7" style="padding-left:50px;background:#1a1a1a;color:#a3a3a3;">No completed games</td>';
+                    return;
+                }
+
+                const header = `<td colspan="7" style="padding:0;background:transparent;border:none;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <tr>
+                            <th style="width:60px;padding:6px 12px 6px 50px;">#</th>
+                            <th style="padding:6px 12px;">Difficulty</th>
+                            <th style="padding:6px 12px;">Score</th>
+                            <th style="padding:6px 12px;">Accuracy</th>
+                            <th style="padding:6px 12px;">Time</th>
+                            <th style="padding:6px 12px;">Won</th>
+                            <th style="padding:6px 12px;">Played at</th>
+                        </tr>
+                        ${data.games.map((g, j) => {
+                            const mins = Math.floor(g.duration / 60);
+                            const secs = Math.round(g.duration % 60);
+                            return `<tr style="background:${j === 0 ? '#1f2a1f' : '#1a1a1a'};">
+                                <td style="padding:6px 12px 6px 50px;color:#a3a3a3;border-bottom:1px solid #222;">${j + 1}</td>
+                                <td style="padding:6px 12px;border-bottom:1px solid #222;">
+                                    <span class="diff-badge diff-${g.difficulty}">${g.difficulty}</span>
+                                </td>
+                                <td class="score" style="padding:6px 12px;border-bottom:1px solid #222;">${g.score || 0}</td>
+                                <td style="padding:6px 12px;border-bottom:1px solid #222;color:#a3a3a3;">${g.accuracy}%</td>
+                                <td style="padding:6px 12px;border-bottom:1px solid #222;color:#a3a3a3;">${mins}:${secs.toString().padStart(2,'0')}</td>
+                                <td style="padding:6px 12px;border-bottom:1px solid #222;">${g.won ? 'Yes' : 'No'}</td>
+                                <td style="padding:6px 12px;border-bottom:1px solid #222;color:#a3a3a3;font-size:0.8rem;">${g.completed_at || ''}</td>
+                            </tr>`;
+                        }).join('')}
+                    </table>
+                </td>`;
+
+                detailRow.innerHTML = header;
+            } catch (e) {
+                detailRow.innerHTML = '<td colspan="7" style="padding-left:50px;background:#1a1a1a;color:#f0561d;">Failed to load games</td>';
+            }
+        }
+
+        function exportCSV() {
+            window.open('/api/admin/export?token=' + encodeURIComponent(token), '_blank');
+        }
+
+        function exportAllGames() {
+            window.open('/api/admin/export-games?token=' + encodeURIComponent(token), '_blank');
+        }
+
+        async function resetScores() {
+            if (!confirm('This will DELETE all games and scores. Players will be kept.\n\nAre you sure?')) return;
+            if (!confirm('FINAL WARNING: This cannot be undone. Proceed?')) return;
+            try {
+                const resp = await fetch('/api/admin/reset-scores', {
+                    method: 'POST',
+                    headers: {'Authorization': 'Bearer ' + token}
+                });
+                const data = await resp.json();
+                alert(data.message || 'Scores reset');
+                loadPlayers();
+            } catch (e) {
+                alert('Reset failed: ' + e.message);
+            }
+        }
+
+        document.getElementById('adminToken').addEventListener('keypress', e => {
+            if (e.key === 'Enter') authenticate();
+        });
+    </script>
+</body>
+</html>
