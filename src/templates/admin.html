@@ -127,7 +127,10 @@
         <div class="toolbar">
             <button onclick="exportCSV()">Export Best Scores</button>
             <button onclick="exportAllGames()">Export All Games</button>
+            <button onclick="downloadBackup()">Download Backup</button>
             <button onclick="loadPlayers()">Refresh</button>
+            <button onclick="document.getElementById('restoreFile').click()" style="background: #0066cc; border-color: #0066cc;">Restore from Backup</button>
+            <input type="file" id="restoreFile" accept=".db" style="display:none;" onchange="restoreBackup(this)">
             <button onclick="resetScores()" style="background: #a60000; border-color: #a60000;">Reset All Scores</button>
             <span class="stat" id="playerCount"></span>
         </div>
@@ -261,6 +264,44 @@
 
         function exportAllGames() {
             window.open('/api/admin/export-games?token=' + encodeURIComponent(token), '_blank');
+        }
+
+        function downloadBackup() {
+            window.open('/api/admin/backup?token=' + encodeURIComponent(token), '_blank');
+        }
+
+        async function restoreBackup(input) {
+            const file = input.files[0];
+            if (!file) return;
+            input.value = '';
+
+            if (!file.name.endsWith('.db')) {
+                alert('Please select a .db file');
+                return;
+            }
+
+            if (!confirm(`Restore from "${file.name}"?\n\nThis will REPLACE all current data (players, games, scores) with the backup contents.`)) return;
+            if (!confirm('FINAL WARNING: Current data will be overwritten. This cannot be undone.\n\nProceed?')) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('token', token);
+
+            try {
+                const resp = await fetch('/api/admin/restore', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    alert('Restore failed: ' + (data.error || 'Unknown error'));
+                    return;
+                }
+                alert(data.message);
+                loadPlayers();
+            } catch (e) {
+                alert('Restore failed: ' + e.message);
+            }
         }
 
         async function resetScores() {

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context, g
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context, g, send_file
 import requests
 import os
 import tempfile
@@ -31,6 +31,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 WHISPER_API_URL = os.getenv('WHISPER_API_URL', 'http://whisper-model.whisper.svc.cluster.local:8080/v1/audio/transcriptions')
 WHISPER_MODEL_NAME = os.getenv('WHISPER_MODEL_NAME', 'whisper-turbo')
@@ -1220,6 +1221,77 @@ def api_admin_reset_scores():
         return jsonify({'message': 'All games and attempts deleted', 'players_kept': True})
     finally:
         db.close()
+
+
+@app.route('/api/admin/restore', methods=['POST'])
+def api_admin_restore():
+    auth = request.headers.get('Authorization', '')
+    token_param = request.form.get('token', '')
+    if not ((auth.startswith('Bearer ') and auth[7:] == ADMIN_TOKEN) or token_param == ADMIN_TOKEN):
+        return jsonify({'error': 'Forbidden'}), 403
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+
+    uploaded = request.files['file']
+    if not uploaded.filename:
+        return jsonify({'error': 'No file selected'}), 400
+
+    tmp_path = os.path.join(tempfile.gettempdir(), 'restore_upload.db')
+    try:
+        uploaded.save(tmp_path)
+
+        source = sqlite3.connect(tmp_path)
+        try:
+            tables = [r[0] for r in source.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            for required in ('players', 'games', 'attempts'):
+                if required not in tables:
+                    source.close()
+                    return jsonify({'error': f'Invalid backup: missing table "{required}"'}), 400
+        except sqlite3.DatabaseError:
+            source.close()
+            return jsonify({'error': 'Uploaded file is not a valid SQLite database'}), 400
+
+        player_count = source.execute('SELECT COUNT(*) FROM players').fetchone()[0]
+        game_count = source.execute('SELECT COUNT(*) FROM games').fetchone()[0]
+
+        target = sqlite3.connect(DB_PATH)
+        source.backup(target)
+        source.close()
+        target.close()
+
+        logger.info(f"Database restored from backup: {player_count} players, {game_count} games")
+        return jsonify({
+            'message': f'Database restored: {player_count} players, {game_count} games',
+            'players': player_count,
+            'games': game_count
+        })
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
+@app.route('/api/admin/backup', methods=['GET'])
+def api_admin_backup():
+    auth = request.headers.get('Authorization', '')
+    token_param = request.args.get('token', '')
+    if not ((auth.startswith('Bearer ') and auth[7:] == ADMIN_TOKEN) or token_param == ADMIN_TOKEN):
+        return jsonify({'error': 'Forbidden'}), 403
+
+    tmp_path = os.path.join(tempfile.gettempdir(), 'backup_download.db')
+    try:
+        source = sqlite3.connect(DB_PATH)
+        target = sqlite3.connect(tmp_path)
+        source.backup(target)
+        source.close()
+        target.close()
+
+        return send_file(tmp_path, mimetype='application/x-sqlite3',
+                        as_attachment=True, download_name='tournament_backup.db')
+    except Exception as e:
+        logger.error(f"Backup download failed: {e}")
+        return jsonify({'error': 'Backup failed'}), 500
 
 
 @app.route('/admin')
