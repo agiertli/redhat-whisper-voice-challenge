@@ -153,6 +153,16 @@
     <script>
         let token = '';
 
+        function saveToken(t) {
+            const expires = new Date(Date.now() + 8 * 60 * 60 * 1000).toUTCString();
+            document.cookie = `admin_token=${encodeURIComponent(t)}; expires=${expires}; path=/admin; SameSite=Strict`;
+        }
+
+        function loadToken() {
+            const match = document.cookie.match(/(?:^|; )admin_token=([^;]*)/);
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
         async function authenticate() {
             token = document.getElementById('adminToken').value;
             try {
@@ -163,6 +173,7 @@
                     document.getElementById('authError').textContent = 'Invalid token';
                     return;
                 }
+                saveToken(token);
                 document.getElementById('authForm').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
                 loadPlayers();
@@ -170,6 +181,23 @@
                 document.getElementById('authError').textContent = 'Connection error';
             }
         }
+
+        // Auto-login from cookie
+        (async function tryAutoLogin() {
+            const saved = loadToken();
+            if (!saved) return;
+            try {
+                const resp = await fetch('/api/admin/players', {
+                    headers: {'Authorization': 'Bearer ' + saved}
+                });
+                if (resp.ok) {
+                    token = saved;
+                    document.getElementById('authForm').style.display = 'none';
+                    document.getElementById('adminContent').style.display = 'block';
+                    loadPlayers();
+                }
+            } catch (e) {}
+        })();
 
         async function loadPlayers() {
             try {
