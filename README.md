@@ -23,7 +23,7 @@ Built for Red Hat employees to deploy at conferences worldwide. Runs on OpenShif
 
 | Component | Requirement |
 |-----------|-------------|
-| GPU | 1x NVIDIA GPU with 12+ GB VRAM (tested on L40S 48GB) |
+| GPU | 1x NVIDIA GPU with 12+ GB VRAM (tested on L4 24GB, L40S 48GB) |
 | GPU node label | `node-role.kubernetes.io/gpu-worker=true` |
 | Model memory | ~24 GB RAM for vLLM pod (includes KV cache overhead) |
 | UI pod | 256Mi-512Mi RAM, 0.25-1 CPU core |
@@ -32,7 +32,7 @@ Built for Red Hat employees to deploy at conferences worldwide. Runs on OpenShif
 
 Model weights are pulled automatically from the Red Hat registry as an OCI modelcar image — **no S3 bucket or Data Connection needed**.
 
-Default: `oci://registry.redhat.io/rhelai1/modelcar-whisper-large-v3-turbo-quantized-w4a16:1.5`
+Default: `oci://registry.redhat.io/rhai/modelcar-openai-whisper-large-v3:3.0`
 
 ### Client Tools
 
@@ -84,7 +84,7 @@ game:
   winThreshold: "4"         # Wins needed to complete
 ```
 
-The Whisper API URL is constructed automatically from `clusterDomain` and `whisperApi.modelName`. Model weights are pulled from the Red Hat registry as an OCI modelcar image — no S3 or Data Connection setup needed.
+The Whisper API URL uses the cluster-internal KServe service (`{modelName}-metrics.{namespace}.svc.cluster.local:8080`) — no external route needed for backend communication. The `clusterDomain` is still required for the browser-facing UI and Whisper routes. Model weights are pulled from the Red Hat registry as an OCI modelcar image — no S3 or Data Connection setup needed.
 
 ### 3. Deploy
 
@@ -167,9 +167,9 @@ The default phrases are Red Hat / OpenShift / DevOps themed (e.g., "Red Hat lead
 
 Each key is a language code, and the value is an array of phrases. The game randomly picks from these phrases during challenges. You need at least as many phrases per language as `game.challengeCount` in your Helm values.
 
-After editing `helm/whisper/challenges.json`, rebuild and redeploy:
+After editing `helm/whisper/challenges.json`, redeploy with Helm (no image rebuild needed — the JSON is loaded via `.Files.Get`):
 ```bash
-./deploy.sh
+helm upgrade whisper helm/whisper -n whisper
 ```
 
 ### Conference Name & Language
@@ -290,10 +290,10 @@ All Helm values:
 | `game.challengeCount` | `5` | Challenges per game |
 | `game.winThreshold` | `4` | Wins to complete |
 | `supportedLanguages` | JSON | Language dropdown options |
-| `gpu.memoryUtilization` | `0.2` | vLLM GPU memory fraction |
-| `model.storageUri` | `oci://registry.redhat.io/...` | OCI modelcar URI for model weights |
-| `model.nodeSelector` | L40S | GPU node selector |
-| `vllm.image` | `quay.io/modh/vllm:rhoai-2.25-cuda` | vLLM runtime image |
+| `gpu.memoryUtilization` | `0.9` | vLLM GPU memory fraction |
+| `model.storageUri` | `oci://registry.redhat.io/rhai/modelcar-openai-whisper-large-v3:3.0` | OCI modelcar URI for model weights |
+| `model.nodeSelector` | `gpu-worker` | GPU node selector (`node-role.kubernetes.io/gpu-worker=true`) |
+| `vllm.image` | `registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.4` | vLLM runtime image |
 | `dcgmExporterUrl` | cluster-internal | DCGM metrics endpoint |
 | `thanosQuerier.url` | cluster-internal | Thanos querier endpoint |
 

@@ -106,21 +106,23 @@ Open the UI URL in a browser and test a voice challenge.
 
 ## Current Deployment
 
-**Cluster**: SNO (Single-Node OpenShift 4.20) on AWS `g6.12xlarge` (4x NVIDIA L4 GPUs, 22 GB VRAM each)
-**RHOAI version**: 3.4.3
+**Cluster**: SNO (Single-Node OpenShift 4.20) on AWS `g6.16xlarge` (1x NVIDIA L4 GPU, 24 GB VRAM)
+**RHOAI version**: 3.5.0
 **vLLM image**: `registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.4` (RHOAI 3.x image)
+**Modelcar image**: `oci://registry.redhat.io/rhai/modelcar-openai-whisper-large-v3:3.0`
 **Namespace**: `whisper`
-**Language**: Polish (`pl`)
-**UI URL**: `https://whisper-ui-whisper.apps.ocp.dghv9.sandbox258.opentlc.com`
-**Whisper API URL**: `https://whisper-whisper.apps.ocp.dghv9.sandbox258.opentlc.com`
+**Language**: Slovak (`sk`)
+**UI URL**: `https://whisper-ui-whisper.apps.ocp.tkrg8.sandbox840.opentlc.com`
+**Whisper API URL**: `https://whisper-whisper.apps.ocp.tkrg8.sandbox840.opentlc.com`
 **User workload monitoring**: Enabled (cluster-monitoring-config ConfigMap created)
 
 ### Redeployment notes
 
 - The SNO node was labeled `node-role.kubernetes.io/gpu-worker=true` manually (auto-detected via `nvidia.com/gpu.present=true`)
 - RHOAI 3.x uses vLLM images from `registry.redhat.io/rhaiis/` (not `quay.io/modh/` as in RHOAI 2.x). Check the installed ServingRuntimes for the correct image tag: `oc get servingruntimes -A -o yaml | grep image:`
-- The modelcar image `registry.redhat.io/rhelai1/modelcar-whisper-large-v3-turbo-quantized-w4a16:1.5` works with both RHOAI 2.x and 3.x
-- KServe API versions (`ServingRuntime v1alpha1`, `InferenceService v1beta1`) are unchanged in RHOAI 3.4.3
+- The modelcar image `registry.redhat.io/rhai/modelcar-openai-whisper-large-v3:3.0` is the RHOAI 3.x modelcar for Whisper large-v3
+- KServe API versions (`ServingRuntime v1alpha1`, `InferenceService v1beta1`) are unchanged in RHOAI 3.5.0
+- A pre-existing `llama-32-3b-instruct` InferenceService in `my-first-model` namespace was scaled to zero to free the single GPU for Whisper
 
 ## Tournament Mode
 

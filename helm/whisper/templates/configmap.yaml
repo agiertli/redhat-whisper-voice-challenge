@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "whisper-ui.labels" . | nindent 4 }}
 data:
-  WHISPER_API_URL: "https://{{ .Values.whisperApi.modelName }}-{{ include "whisper-ui.namespace" . }}.{{ .Values.clusterDomain }}/v1/audio/transcriptions"
+  WHISPER_API_URL: "http://{{ .Values.whisperApi.modelName }}-metrics.{{ include "whisper-ui.namespace" . }}.svc.cluster.local:8080/v1/audio/transcriptions"
   WHISPER_MODEL_NAME: {{ .Values.whisperApi.modelName | quote }}
   MODEL_DISPLAY_NAME: {{ .Values.whisperApi.displayName | quote }}
   CONFERENCE_NAME: {{ .Values.conference.name | quote }}
