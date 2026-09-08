@@ -18,8 +18,6 @@ data:
   THANOS_QUERIER_URL: {{ .Values.thanosQuerier.url | quote }}
   DIFFICULTY_POOLS: |
     {{- .Values.difficultyPools | nindent 4 }}
-  SUPPORTED_LANGUAGES: |
-    {{- .Values.supportedLanguages | nindent 4 }}
   DB_PATH: "/app/data/tournament.db"
   CHALLENGE_PHRASES: |
     {{- .Files.Get "challenges.json" | nindent 4 }}

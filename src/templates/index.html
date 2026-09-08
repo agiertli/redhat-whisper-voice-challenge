@@ -945,12 +945,6 @@
                     <option value="">Select Microphone</option>
                 </select>
 
-                <select id="language" style="display: none;">
-                    {% for code, name in languages.items() %}
-                    <option value="{{ code }}" {% if code == 'en' %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-
                 <button id="recordBtn" disabled>Start Recording</button>
                 <button id="stopBtn" disabled>Stop</button>
             </div>
@@ -1484,12 +1478,6 @@
 
             updateChallengeUI();
 
-            // Sync language dropdown if the language exists in it
-            const langDropdown = document.getElementById('language');
-            const langOptions = Array.from(langDropdown.options).map(opt => opt.value);
-            if (langOptions.includes(selectedLang)) {
-                langDropdown.value = selectedLang;
-            }
         }
 
         function updateChallengeUI() {
@@ -2212,7 +2200,7 @@
 
             const formData = new FormData();
             formData.append('audio', wavBlob, 'chunk.wav');
-            formData.append('language', currentChallenge ? currentChallenge.lang : document.getElementById('language').value);
+            formData.append('language', currentChallenge ? currentChallenge.lang : REQUIRED_LANGUAGE);
             formData.append('mode', 'transcriptions');
 
             try {

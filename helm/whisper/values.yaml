@@ -63,24 +63,6 @@ difficultyPools: |
     "hard": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no", "ja", "ko", "ar", "zh", "th", "hi"]
   }
 
-supportedLanguages: |
-  {
-    "sk": "Slovenčina",
-    "cs": "Čeština",
-    "hu": "Magyar",
-    "de": "Deutsch",
-    "es": "Español",
-    "fr": "Français",
-    "pl": "Polski",
-    "tr": "Türkçe",
-    "en": "English",
-    "fi": "Suomi",
-    "hr": "Hrvatski",
-    "is": "Íslenska",
-    "no": "Norsk",
-    "sr": "Srpski"
-  }
-
 dcgmExporterUrl: "http://nvidia-dcgm-exporter.nvidia-gpu-operator.svc:9400/metrics"
 
 thanosQuerier:

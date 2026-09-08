@@ -37,8 +37,6 @@ WHISPER_API_URL = os.getenv('WHISPER_API_URL', 'http://whisper-model.whisper.svc
 WHISPER_MODEL_NAME = os.getenv('WHISPER_MODEL_NAME', 'whisper-turbo')
 MODEL_DISPLAY_NAME = os.getenv('MODEL_DISPLAY_NAME', 'Whisper Turbo')
 CONFERENCE_NAME = os.getenv('CONFERENCE_NAME', 'Red Hat Whisper Voice Challenge')
-SUPPORTED_LANGUAGES = json.loads(os.getenv('SUPPORTED_LANGUAGES',
-    '{"sk": "Slovenčina", "cs": "Čeština", "hu": "Magyar", "de": "Deutsch", "es": "Español", "fr": "Français", "en": "English"}'))
 DCGM_EXPORTER_URL = os.getenv('DCGM_EXPORTER_URL', 'http://nvidia-dcgm-exporter.nvidia-gpu-operator.svc:9400/metrics')
 WHISPER_NAMESPACE = os.getenv('WHISPER_NAMESPACE', 'whisper')
 THANOS_QUERIER_URL = os.getenv('THANOS_QUERIER_URL', 'https://thanos-querier.openshift-monitoring.svc.cluster.local:9091')
@@ -66,7 +64,6 @@ DB_PATH = os.getenv('DB_PATH', '/app/data/tournament.db')
 
 logger.info(f"Whisper UI starting - API URL: {WHISPER_API_URL}")
 logger.info(f"Model name: {WHISPER_MODEL_NAME}")
-logger.info(f"Supported languages: {list(SUPPORTED_LANGUAGES.keys())}")
 logger.info(f"Challenge languages loaded: {list(CHALLENGE_PHRASES.keys())}")
 logger.info(f"DCGM Exporter URL: {DCGM_EXPORTER_URL}")
 logger.info(f"Thanos Querier URL: {THANOS_QUERIER_URL}")
@@ -455,7 +452,6 @@ def discover_dcgm_exporter_url():
 def index():
     """Interactive voice challenge game (for conferences)"""
     return render_template('index.html',
-                         languages=SUPPORTED_LANGUAGES,
                          model_display_name=MODEL_DISPLAY_NAME,
                          conference_name=CONFERENCE_NAME,
                          required_language=REQUIRED_CHALLENGE_LANGUAGE,
