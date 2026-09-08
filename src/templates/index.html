@@ -1155,11 +1155,7 @@
         const CHALLENGE_COUNT = {{ challenge_count }};
         const WIN_THRESHOLD = {{ win_threshold }};
 
-        const DIFFICULTY_POOLS = {
-            easy: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr'],
-            medium: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk', 'fi', 'is', 'no'],
-            hard: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk', 'fi', 'is', 'no', 'ja', 'ko', 'ar', 'zh', 'th', 'hi']
-        };
+        const DIFFICULTY_POOLS = {{ difficulty_pools | tojson }};
 
         const LANGUAGE_INFO = {
             'sk': {flag: '🇸🇰', name: 'Slovak'}, 'cs': {flag: '🇨🇿', name: 'Czech'}, 'en': {flag: '🇬🇧', name: 'English'},
@@ -1443,8 +1439,8 @@
             if (gameState.currentAttemptIndex === 0) {
                 selectedLang = REQUIRED_LANGUAGE;
             } else {
-                const hardLanguages = ['ja', 'ko', 'ar', 'zh', 'th', 'hi'];
-                const mediumLanguages = ['tr', 'fi', 'is', 'no', 'ro', 'uk', 'sv', 'nl'];
+                const hardLanguages = DIFFICULTY_POOLS.hard.filter(l => !DIFFICULTY_POOLS.medium.includes(l));
+                const mediumLanguages = DIFFICULTY_POOLS.medium.filter(l => !DIFFICULTY_POOLS.easy.includes(l));
                 const attemptsRemaining = CHALLENGE_COUNT - gameState.currentAttemptIndex;
 
                 const hardLangsUsed = gameState.usedLanguages.filter(l => hardLanguages.includes(l)).length;

@@ -56,6 +56,13 @@ game:
   challengeCount: "5"
   winThreshold: "4"
 
+difficultyPools: |
+  {
+    "easy": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr"],
+    "medium": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no"],
+    "hard": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no", "ja", "ko", "ar", "zh", "th", "hi"]
+  }
+
 supportedLanguages: |
   {
     "sk": "Slovenčina",

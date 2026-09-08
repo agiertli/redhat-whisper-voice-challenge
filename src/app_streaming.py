@@ -53,6 +53,9 @@ CHALLENGE_COUNT = int(os.getenv('CHALLENGE_COUNT', '5'))
 WIN_THRESHOLD = int(os.getenv('WIN_THRESHOLD', '4'))
 
 
+DIFFICULTY_POOLS = json.loads(os.getenv('DIFFICULTY_POOLS',
+    '{"easy": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr"], "medium": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no"], "hard": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no", "ja", "ko", "ar", "zh", "th", "hi"]}'))
+
 CHALLENGE_PHRASES = json.loads(os.getenv('CHALLENGE_PHRASES',
     '{"en": ["Artificial intelligence transforms business", "Kubernetes simplifies application deployment", "Cloud solutions increase efficiency"]}'))
 
@@ -458,7 +461,8 @@ def index():
                          required_language=REQUIRED_CHALLENGE_LANGUAGE,
                          challenge_count=CHALLENGE_COUNT,
                          win_threshold=WIN_THRESHOLD,
-                         challenge_phrases=CHALLENGE_PHRASES)
+                         challenge_phrases=CHALLENGE_PHRASES,
+                         difficulty_pools=DIFFICULTY_POOLS)
 
 @app.route('/logo.svg')
 def logo():

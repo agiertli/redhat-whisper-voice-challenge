@@ -16,6 +16,8 @@ data:
   WIN_THRESHOLD: {{ .Values.game.winThreshold | quote }}
   DCGM_EXPORTER_URL: {{ .Values.dcgmExporterUrl | quote }}
   THANOS_QUERIER_URL: {{ .Values.thanosQuerier.url | quote }}
+  DIFFICULTY_POOLS: |
+    {{- .Values.difficultyPools | nindent 4 }}
   SUPPORTED_LANGUAGES: |
     {{- .Values.supportedLanguages | nindent 4 }}
   DB_PATH: "/app/data/tournament.db"
