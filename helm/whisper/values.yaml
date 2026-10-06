@@ -2,7 +2,7 @@ namespace: whisper
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: "v2.1.6"
+  tag: "v2.2.0"
   pullPolicy: Always
 
 replicaCount: 1
@@ -42,7 +42,7 @@ readinessProbe:
 
 # REQUIRED: Set to your cluster's apps domain
 # Find it with: oc get ingresses.config cluster -o jsonpath='{.spec.domain}'
-clusterDomain: "apps.ocp.tkrg8.sandbox840.opentlc.com"
+clusterDomain: "apps.ocp.6rklz.sandbox744.opentlc.com"
 
 whisperApi:
   modelName: "whisper"

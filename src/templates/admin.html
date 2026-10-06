@@ -143,6 +143,7 @@
                     <th>Email</th>
                     <th>Best Score</th>
                     <th>Games</th>
+                    <th>Follow Up</th>
                     <th>Registered</th>
                 </tr>
             </thead>
@@ -216,10 +217,15 @@
                         <td>${p.email}</td>
                         <td class="score">${p.best_score || '--'}</td>
                         <td>${p.games_played}</td>
+                        <td style="text-align:center;" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${p.follow_up ? 'checked' : ''}
+                                   onchange="toggleFollowUp(${p.id}, this.checked)"
+                                   style="width:18px;height:18px;cursor:pointer;accent-color:#ee0000;">
+                        </td>
                         <td>${p.created_at || ''}</td>
                     </tr>
                     <tr class="games-detail" id="games-${p.id}">
-                        <td colspan="7">Loading...</td>
+                        <td colspan="8">Loading...</td>
                     </tr>
                 `).join('');
             } catch (e) {
@@ -247,11 +253,11 @@
                 const data = await resp.json();
 
                 if (!data.games || data.games.length === 0) {
-                    detailRow.innerHTML = '<td colspan="7" style="padding-left:50px;background:#1a1a1a;color:#a3a3a3;">No completed games</td>';
+                    detailRow.innerHTML = '<td colspan="8" style="padding-left:50px;background:#1a1a1a;color:#a3a3a3;">No completed games</td>';
                     return;
                 }
 
-                const header = `<td colspan="7" style="padding:0;background:transparent;border:none;">
+                const header = `<td colspan="8" style="padding:0;background:transparent;border:none;">
                     <table style="width:100%;border-collapse:collapse;">
                         <tr>
                             <th style="width:60px;padding:6px 12px 6px 50px;">#</th>
@@ -282,7 +288,19 @@
 
                 detailRow.innerHTML = header;
             } catch (e) {
-                detailRow.innerHTML = '<td colspan="7" style="padding-left:50px;background:#1a1a1a;color:#f0561d;">Failed to load games</td>';
+                detailRow.innerHTML = '<td colspan="8" style="padding-left:50px;background:#1a1a1a;color:#f0561d;">Failed to load games</td>';
+            }
+        }
+
+        async function toggleFollowUp(playerId, checked) {
+            try {
+                await fetch(`/api/admin/players/${playerId}/follow-up`, {
+                    method: 'PUT',
+                    headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+                    body: JSON.stringify({follow_up: checked})
+                });
+            } catch (e) {
+                console.error('Follow-up toggle failed:', e);
             }
         }
 

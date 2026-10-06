@@ -332,7 +332,13 @@
         #challenge-panel {
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+
+        #challengeTab {
+            flex: 1;
             overflow-y: auto;
+            min-height: 0;
         }
 
         .challenge-card {
@@ -406,9 +412,9 @@
             background: rgba(240, 86, 29, 0.15);
         }
 
-        .progress-slot.skip {
-            border-color: var(--gray-40);
-            background: rgba(163, 163, 163, 0.1);
+        .progress-slot.swap {
+            border-color: var(--interaction-blue);
+            background: rgba(0, 102, 204, 0.1);
         }
 
         .progress-slot .slot-num {
@@ -1038,15 +1044,15 @@
                     <div class="challenge-phrase" id="challengePhrase">OpenShift je skvelý produkt</div>
                 </div>
 
-                <!-- Score + Skip in one row -->
+                <!-- Score + Swap in one row -->
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
                     <div class="score-display" style="flex: 1; margin-bottom: 0;">
                         <div style="font-size: 0.7rem; color: var(--gray-40); letter-spacing: 1px;">Score</div>
                         <div class="score-value" id="accuracyScore">--</div>
                     </div>
                     <div id="challengeActions" style="flex: 1;">
-                        <button id="skipButton" onclick="skipAttempt()" style="width: 100%; background: var(--gray-70); padding: 14px 10px; font-size: 0.8rem;">
-                            ⏭️ Skip (1 free skip remaining)
+                        <button id="swapButton" onclick="swapChallenge()" style="width: 100%; background: var(--gray-70); padding: 14px 10px; font-size: 0.8rem; display: none;">
+                            🔀 Swap (1 left)
                         </button>
                     </div>
                 </div>
@@ -1170,7 +1176,7 @@
             usedLanguages: [],
             currentAttemptIndex: 0,
             totalWins: 0,
-            skipsUsed: 0,
+            swapsUsed: 0,
             gameStarted: false,
             gameCompleted: false,
             gameId: null
@@ -1229,6 +1235,19 @@
             document.getElementById('transcription-panel').style.display = 'none';
             document.querySelector('.bottom-row').style.display = 'none';
             document.getElementById('playerBadge').style.display = 'none';
+            const regBtn = document.getElementById('regSubmitBtn');
+            regBtn.disabled = false;
+            regBtn.textContent = 'Join Tournament';
+            const loginBtn = document.getElementById('loginSubmitBtn');
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Log In';
+            document.getElementById('regNickname').value = '';
+            document.getElementById('regName').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('loginNickname').value = '';
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('regError').textContent = '';
+            document.getElementById('loginError').textContent = '';
             fetchLeaderboardPreview();
         }
 
@@ -1387,7 +1406,7 @@
                     usedLanguages: [],
                     currentAttemptIndex: 0,
                     totalWins: 0,
-                    skipsUsed: 0,
+                    swapsUsed: 0,
                     gameStarted: true,
                     gameCompleted: false,
                     gameId: data.game_id
@@ -1497,17 +1516,21 @@
             document.getElementById('accuracyScore').textContent = '--';
             document.getElementById('accuracyScore').style.color = 'var(--white)';
 
-            // Update skip button
-            const skipBtn = document.getElementById('skipButton');
-            if (skipBtn) {
-                if (gameState.skipsUsed >= 1) {
-                    skipBtn.disabled = true;
-                    skipBtn.textContent = '⏭️ Skip (0 left)';
-                    skipBtn.style.opacity = '0.5';
+            const swapBtn = document.getElementById('swapButton');
+            if (swapBtn) {
+                if (gameState.difficulty === 'hard') {
+                    swapBtn.style.display = 'block';
+                    if (gameState.swapsUsed >= 1) {
+                        swapBtn.disabled = true;
+                        swapBtn.textContent = '🔀 Swap (0 left)';
+                        swapBtn.style.opacity = '0.5';
+                    } else {
+                        swapBtn.disabled = false;
+                        swapBtn.textContent = '🔀 Swap (1 left)';
+                        swapBtn.style.opacity = '1';
+                    }
                 } else {
-                    skipBtn.disabled = false;
-                    skipBtn.textContent = '⏭️ Skip (1 left)';
-                    skipBtn.style.opacity = '1';
+                    swapBtn.style.display = 'none';
                 }
             }
         }
@@ -1566,43 +1589,43 @@
             }, 2000);
         }
 
-        async function skipAttempt() {
-            if (gameState.skipsUsed >= 1) return;
+        function swapChallenge() {
+            if (gameState.swapsUsed >= 1 || gameState.difficulty !== 'hard') return;
 
-            if (gameState.gameId) {
-                try {
-                    await fetch(`/api/game/${gameState.gameId}/attempt`, {
-                        method: 'POST',
-                        headers: apiHeaders(),
-                        body: JSON.stringify({
-                            attempt_index: gameState.currentAttemptIndex,
-                            language: currentChallenge.lang,
-                            phrase: currentChallenge.phrase,
-                            transcription: '',
-                            status: 'skip'
-                        })
-                    });
-                } catch (e) {
-                    console.error('Failed to submit skip:', e);
-                }
-            }
+            const oldLang = currentChallenge.lang;
+            const hardOnlyLangs = DIFFICULTY_POOLS.hard.filter(l => !DIFFICULTY_POOLS.medium.includes(l));
+            const oldIsHardOnly = hardOnlyLangs.includes(oldLang);
 
-            gameState.attempts.push({
-                lang: currentChallenge.lang,
-                phrase: currentChallenge.phrase,
-                transcription: '(skipped)',
-                score: 0,
-                status: 'skip'
-            });
+            const otherUsed = gameState.usedLanguages.filter(l => l !== oldLang);
+            const hardOnlyUsedAfterSwap = otherUsed.filter(l => hardOnlyLangs.includes(l)).length;
+            const attemptsRemaining = CHALLENGE_COUNT - gameState.currentAttemptIndex - 1;
+            const needHardOnly = hardOnlyUsedAfterSwap < 2 && (hardOnlyUsedAfterSwap + attemptsRemaining) < 2;
 
-            gameState.skipsUsed++;
-            gameState.currentAttemptIndex++;
-
-            if (gameState.currentAttemptIndex < CHALLENGE_COUNT) {
-                nextAttempt();
+            let pool;
+            if (oldIsHardOnly && needHardOnly) {
+                pool = hardOnlyLangs.filter(l => l !== oldLang && !otherUsed.includes(l));
             } else {
-                finishGame();
+                pool = DIFFICULTY_POOLS.hard.filter(l => l !== oldLang && !otherUsed.includes(l));
             }
+            if (pool.length === 0) {
+                pool = DIFFICULTY_POOLS.hard.filter(l => l !== oldLang);
+            }
+            if (pool.length === 0) return;
+
+            const newLang = pool[Math.floor(Math.random() * pool.length)];
+            const phrasesForLang = challenges[newLang];
+            if (!phrasesForLang || phrasesForLang.length === 0) return;
+
+            const newPhrase = phrasesForLang[Math.floor(Math.random() * phrasesForLang.length)];
+
+            const oldLangIdx = gameState.usedLanguages.indexOf(oldLang);
+            if (oldLangIdx !== -1) gameState.usedLanguages.splice(oldLangIdx, 1);
+            gameState.usedLanguages.push(newLang);
+
+            currentChallenge = { lang: newLang, phrase: newPhrase };
+            gameState.swapsUsed++;
+
+            updateChallengeUI();
         }
 
         function updateProgressTracker() {
@@ -1615,9 +1638,9 @@
                 if (i < gameState.attempts.length) {
                     const attempt = gameState.attempts[i];
                     const langInfo = LANGUAGE_INFO[attempt.lang];
-                    const icon = attempt.status === 'win' ? '✅' : attempt.status === 'fail' ? '❌' : '⏭️';
-                    const scoreText = attempt.status === 'skip' ? '—' : `${attempt.score}%`;
-                    const scoreColor = attempt.status === 'win' ? 'var(--success-green)' : attempt.status === 'fail' ? 'var(--danger-orange)' : 'var(--gray-40)';
+                    const icon = attempt.status === 'win' ? '✅' : '❌';
+                    const scoreText = `${attempt.score}%`;
+                    const scoreColor = attempt.status === 'win' ? 'var(--success-green)' : 'var(--danger-orange)';
 
                     slot.classList.add(attempt.status);
                     slot.innerHTML = `
@@ -1644,13 +1667,12 @@
         }
 
         function updateAverageAccuracy() {
-            const scoredAttempts = gameState.attempts.filter(a => a.status !== 'skip');
-            if (scoredAttempts.length === 0) {
+            if (gameState.attempts.length === 0) {
                 document.getElementById('averageAccuracy').textContent = '--';
                 return;
             }
 
-            const avg = scoredAttempts.reduce((sum, a) => sum + a.score, 0) / scoredAttempts.length;
+            const avg = gameState.attempts.reduce((sum, a) => sum + a.score, 0) / gameState.attempts.length;
             document.getElementById('averageAccuracy').textContent = avg.toFixed(1) + '%';
         }
 
@@ -1684,9 +1706,8 @@
                 }
             }
 
-            const scoredAttempts = gameState.attempts.filter(a => a.status !== 'skip');
-            const avgScore = scoredAttempts.length > 0
-                ? scoredAttempts.reduce((sum, a) => sum + a.score, 0) / scoredAttempts.length
+            const avgScore = gameState.attempts.length > 0
+                ? gameState.attempts.reduce((sum, a) => sum + a.score, 0) / gameState.attempts.length
                 : 0;
             const won = avgScore >= 80;
             const finalResultsEl = document.getElementById('finalResults');
@@ -1758,7 +1779,7 @@
                 usedLanguages: [],
                 currentAttemptIndex: 0,
                 totalWins: 0,
-                skipsUsed: 0,
+                swapsUsed: 0,
                 gameStarted: false,
                 gameCompleted: false,
                 gameId: null
@@ -2025,7 +2046,7 @@
 
                 document.getElementById('vllmTTFT').textContent = vllmTTFT !== null ? vllmTTFT : '--';
                 document.getElementById('vllmE2E').textContent = vllmE2E !== null ? vllmE2E : '--';
-                document.getElementById('vllmSuccessRate').textContent = vllmSuccessRate + '%';
+                document.getElementById('vllmSuccessRate').textContent = vllmSuccessRate;
 
             } catch (error) {
                 console.error('Error fetching metrics:', error);

@@ -140,6 +140,10 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_games_score ON games(total_score DESC);
         CREATE INDEX IF NOT EXISTS idx_attempts_game ON attempts(game_id);
     ''')
+    cols = {row[1] for row in db.execute('PRAGMA table_info(players)').fetchall()}
+    if 'follow_up' not in cols:
+        db.execute('ALTER TABLE players ADD COLUMN follow_up INTEGER NOT NULL DEFAULT 0')
+        db.commit()
     db.close()
     logger.info(f"Tournament database initialized at {DB_PATH}")
 
@@ -1085,7 +1089,7 @@ def api_admin_players():
     db = get_db()
     try:
         rows = db.execute('''
-            SELECT p.id, p.nickname, p.name, p.email, p.created_at,
+            SELECT p.id, p.nickname, p.name, p.email, p.created_at, p.follow_up,
                    MAX(g.total_score) as best_score,
                    COUNT(CASE WHEN g.completed_at IS NOT NULL THEN 1 END) as games_played
             FROM players p
@@ -1103,10 +1107,25 @@ def api_admin_players():
                 'email': row['email'],
                 'best_score': row['best_score'],
                 'games_played': row['games_played'],
-                'created_at': row['created_at']
+                'created_at': row['created_at'],
+                'follow_up': bool(row['follow_up'])
             })
 
         return jsonify({'players': players})
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/players/<int:player_id>/follow-up', methods=['PUT'])
+@require_admin
+def api_admin_toggle_follow_up(player_id):
+    data = request.get_json(force=True)
+    value = 1 if data.get('follow_up') else 0
+    db = get_db()
+    try:
+        db.execute('UPDATE players SET follow_up = ? WHERE id = ?', (value, player_id))
+        db.commit()
+        return jsonify({'ok': True, 'follow_up': bool(value)})
     finally:
         db.close()
 
@@ -1120,7 +1139,7 @@ def api_admin_export():
     db = get_db()
     try:
         rows = db.execute('''
-            SELECT p.nickname, p.name, p.email,
+            SELECT p.nickname, p.name, p.email, p.follow_up,
                    MAX(g.total_score) as best_score, g.difficulty,
                    COUNT(CASE WHEN g.completed_at IS NOT NULL THEN 1 END) as games_played
             FROM players p
@@ -1131,10 +1150,11 @@ def api_admin_export():
 
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(['rank', 'nickname', 'name', 'email', 'best_score', 'difficulty', 'games_played'])
+        writer.writerow(['rank', 'nickname', 'name', 'email', 'best_score', 'difficulty', 'games_played', 'follow_up'])
         for i, row in enumerate(rows):
             writer.writerow([i + 1, row['nickname'], row['name'], row['email'],
-                           row['best_score'] or 0, row['difficulty'] or '', row['games_played']])
+                           row['best_score'] or 0, row['difficulty'] or '', row['games_played'],
+                           'yes' if row['follow_up'] else 'no'])
 
         return Response(
             output.getvalue(),
@@ -1180,7 +1200,7 @@ def api_admin_export_games():
     db = get_db()
     try:
         rows = db.execute('''
-            SELECT p.nickname, p.name, p.email,
+            SELECT p.nickname, p.name, p.email, p.follow_up,
                    g.id as game_id, g.difficulty, g.total_score, g.avg_accuracy,
                    g.duration_seconds, g.started_at, g.completed_at, g.won
             FROM games g
@@ -1192,14 +1212,15 @@ def api_admin_export_games():
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(['nickname', 'name', 'email', 'game_id', 'difficulty', 'score',
-                        'accuracy_%', 'duration_s', 'started_at', 'completed_at', 'won'])
+                        'accuracy_%', 'duration_s', 'started_at', 'completed_at', 'won', 'follow_up'])
         for row in rows:
             writer.writerow([row['nickname'], row['name'], row['email'],
                            row['game_id'], row['difficulty'], row['total_score'] or 0,
                            round((row['avg_accuracy'] or 0) * 100, 1),
                            round(row['duration_seconds'] or 0, 1),
                            row['started_at'], row['completed_at'],
-                           'yes' if row['won'] else 'no'])
+                           'yes' if row['won'] else 'no',
+                           'yes' if row['follow_up'] else 'no'])
 
         return Response(
             output.getvalue(),
