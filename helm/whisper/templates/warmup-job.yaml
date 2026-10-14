@@ -1,0 +1,98 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: whisper-vllm-warmup
+  namespace: {{ include "whisper-ui.namespace" . }}
+  labels:
+    {{- include "whisper-ui.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: whisper-warmup
+    spec:
+      initContainers:
+      - name: wait-for-vllm
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command:
+        - python3
+        - -c
+        - |
+          import urllib.request, time, sys
+          url = "http://{{ .Values.whisperApi.modelName }}-metrics.{{ include "whisper-ui.namespace" . }}.svc.cluster.local:8080/v1/models"
+          for i in range(120):
+              try:
+                  resp = urllib.request.urlopen(url, timeout=5)
+                  if resp.status == 200:
+                      print(f"vLLM ready after {i*5}s")
+                      sys.exit(0)
+              except Exception as e:
+                  if i % 6 == 0:
+                      print(f"Waiting for vLLM... ({i*5}s, {e})")
+              time.sleep(5)
+          print("Timeout waiting for vLLM")
+          sys.exit(1)
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+      containers:
+      - name: warmup
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command:
+        - python3
+        - -c
+        - |
+          import struct, urllib.request, json, time
+
+          sample_rate = 16000
+          num_samples = sample_rate
+          data = b'\x00\x00' * num_samples
+          header = struct.pack('<4sI4s4sIHHIIHH4sI',
+              b'RIFF', 36 + len(data), b'WAVE',
+              b'fmt ', 16, 1, 1, sample_rate, sample_rate * 2, 2, 16,
+              b'data', len(data))
+          wav = header + data
+
+          boundary = b'warmup-boundary-12345'
+          body = b'--' + boundary + b'\r\n'
+          body += b'Content-Disposition: form-data; name="file"; filename="warmup.wav"\r\n'
+          body += b'Content-Type: audio/wav\r\n\r\n'
+          body += wav + b'\r\n'
+          body += b'--' + boundary + b'\r\n'
+          body += b'Content-Disposition: form-data; name="model"\r\n\r\n'
+          body += b'{{ .Values.whisperApi.modelName }}\r\n'
+          body += b'--' + boundary + b'--\r\n'
+
+          url = "http://{{ .Values.whisperApi.modelName }}-metrics.{{ include "whisper-ui.namespace" . }}.svc.cluster.local:8080/v1/audio/transcriptions"
+          req = urllib.request.Request(url, data=body, method='POST')
+          req.add_header('Content-Type', 'multipart/form-data; boundary=' + boundary.decode())
+
+          start = time.time()
+          try:
+              resp = urllib.request.urlopen(req, timeout=120)
+              result = json.loads(resp.read())
+              elapsed = time.time() - start
+              print(f"Warmup completed in {elapsed:.1f}s: {json.dumps(result)}")
+          except Exception as e:
+              elapsed = time.time() - start
+              print(f"Warmup sent in {elapsed:.1f}s (response: {e})")
+              print("First inference path is now initialized.")
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+      restartPolicy: Never

@@ -106,23 +106,39 @@ Open the UI URL in a browser and test a voice challenge.
 
 ## Current Deployment
 
-**Cluster**: SNO (Single-Node OpenShift 4.20) on AWS `g6.16xlarge` (1x NVIDIA L4 GPU, 24 GB VRAM)
-**RHOAI version**: 3.5.0
+See `now.env` for the live cluster URLs, tokens, and image tags. **Keep `now.env` up to date on every deployment or cluster change.**
+
+**Cluster**: SNO on AWS (1x NVIDIA L4 GPU, 24 GB VRAM)
+**RHOAI version**: 3.5.1
 **vLLM image**: `registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.4` (RHOAI 3.x image)
 **Modelcar image**: `oci://registry.redhat.io/rhai/modelcar-openai-whisper-large-v3:3.0`
 **Namespace**: `whisper`
 **Language**: Slovak (`sk`)
-**UI URL**: `https://whisper-ui-whisper.apps.ocp.tkrg8.sandbox840.opentlc.com`
-**Whisper API URL**: `https://whisper-whisper.apps.ocp.tkrg8.sandbox840.opentlc.com`
-**User workload monitoring**: Enabled (cluster-monitoring-config ConfigMap created)
+**Admin password**: `whisper@r3dh4t!` (use this for all deployments)
+
+### RHDP RHOAI 3.x Clusters — GPU Prep
+
+RHDP "RHOAI on OCP" clusters ship with a `llama-32-3b-instruct` InferenceService in the `my-first-model` namespace that holds the only GPU. **You must free it before deploying Whisper.**
+
+```bash
+# One command — patches minReplicas=0, scales deployment, waits for termination
+./scripts/free-gpu.sh
+
+# Or with custom namespace/name
+./scripts/free-gpu.sh my-first-model llama-32-3b-instruct
+```
+
+### vLLM Warmup
+
+A Helm hook Job (`warmup-job.yaml`) runs automatically on every `helm install` and `helm upgrade`. It waits for the vLLM predictor to become ready, then sends a dummy audio request to trigger CUDA/PyTorch lazy initialization. Without this, the first real user request takes ~20s and returns gibberish.
 
 ### Redeployment notes
 
 - The SNO node was labeled `node-role.kubernetes.io/gpu-worker=true` manually (auto-detected via `nvidia.com/gpu.present=true`)
 - RHOAI 3.x uses vLLM images from `registry.redhat.io/rhaiis/` (not `quay.io/modh/` as in RHOAI 2.x). Check the installed ServingRuntimes for the correct image tag: `oc get servingruntimes -A -o yaml | grep image:`
 - The modelcar image `registry.redhat.io/rhai/modelcar-openai-whisper-large-v3:3.0` is the RHOAI 3.x modelcar for Whisper large-v3
-- KServe API versions (`ServingRuntime v1alpha1`, `InferenceService v1beta1`) are unchanged in RHOAI 3.5.0
-- A pre-existing `llama-32-3b-instruct` InferenceService in `my-first-model` namespace was scaled to zero to free the single GPU for Whisper
+- KServe API versions (`ServingRuntime v1alpha1`, `InferenceService v1beta1`) are unchanged in RHOAI 3.5.x
+- Always use `--set tournament.adminToken='whisper@r3dh4t!'` on helm install/upgrade
 
 ## Tournament Mode
 
