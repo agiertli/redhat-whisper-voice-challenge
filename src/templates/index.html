@@ -928,10 +928,6 @@
                         <label>Nickname</label>
                         <input type="text" id="loginNickname" placeholder="Your nickname" maxlength="20">
                     </div>
-                    <div class="reg-field">
-                        <label>Email (used during registration)</label>
-                        <input type="email" id="loginEmail" placeholder="your@email.com">
-                    </div>
                     <div class="reg-error" id="loginError"></div>
                     <button class="reg-btn" id="loginSubmitBtn" onclick="loginPlayer()">Log In</button>
                 </div>
@@ -1156,18 +1152,10 @@
         const WIN_THRESHOLD = {{ win_threshold }};
 
         const DIFFICULTY_POOLS = {{ difficulty_pools | tojson }};
+        let MAINSTAGE_MODE = {{ mainstage_mode | tojson }};
+        const MAINSTAGE_PHRASES = {{ mainstage_phrases | tojson }};
 
-        const LANGUAGE_INFO = {
-            'sk': {flag: '🇸🇰', name: 'Slovak'}, 'cs': {flag: '🇨🇿', name: 'Czech'}, 'en': {flag: '🇬🇧', name: 'English'},
-            'pl': {flag: '🇵🇱', name: 'Polish'}, 'hu': {flag: '🇭🇺', name: 'Hungarian'}, 'de': {flag: '🇩🇪', name: 'German'},
-            'es': {flag: '🇪🇸', name: 'Spanish'}, 'fi': {flag: '🇫🇮', name: 'Finnish'}, 'fr': {flag: '🇫🇷', name: 'French'},
-            'hr': {flag: '🇭🇷', name: 'Croatian'}, 'is': {flag: '🇮🇸', name: 'Icelandic'}, 'no': {flag: '🇳🇴', name: 'Norwegian'},
-            'sr': {flag: '🇷🇸', name: 'Serbian'}, 'tr': {flag: '🇹🇷', name: 'Turkish'},
-            'it': {flag: '🇮🇹', name: 'Italian'}, 'pt': {flag: '🇵🇹', name: 'Portuguese'}, 'nl': {flag: '🇳🇱', name: 'Dutch'},
-            'sv': {flag: '🇸🇪', name: 'Swedish'}, 'ro': {flag: '🇷🇴', name: 'Romanian'}, 'uk': {flag: '🇺🇦', name: 'Ukrainian'},
-            'ja': {flag: '🇯🇵', name: 'Japanese'}, 'ko': {flag: '🇰🇷', name: 'Korean'}, 'ar': {flag: '🇸🇦', name: 'Arabic'},
-            'zh': {flag: '🇨🇳', name: 'Chinese'}, 'th': {flag: '🇹🇭', name: 'Thai'}, 'hi': {flag: '🇮🇳', name: 'Hindi'}
-        };
+        const LANGUAGE_INFO = {{ language_info | tojson }};
 
         // Game State
         let gameState = {
@@ -1245,7 +1233,6 @@
             document.getElementById('regName').value = '';
             document.getElementById('regEmail').value = '';
             document.getElementById('loginNickname').value = '';
-            document.getElementById('loginEmail').value = '';
             document.getElementById('regError').textContent = '';
             document.getElementById('loginError').textContent = '';
             fetchLeaderboardPreview();
@@ -1326,7 +1313,6 @@
 
         async function loginPlayer() {
             const nickname = document.getElementById('loginNickname').value.trim();
-            const email = document.getElementById('loginEmail').value.trim();
             const errorEl = document.getElementById('loginError');
             const btn = document.getElementById('loginSubmitBtn');
 
@@ -1334,10 +1320,6 @@
 
             if (!nickname || nickname.length < 2) {
                 errorEl.textContent = 'Enter your nickname';
-                return;
-            }
-            if (!email || !email.includes('@')) {
-                errorEl.textContent = 'Enter the email you registered with';
                 return;
             }
 
@@ -1348,7 +1330,7 @@
                 const resp = await fetch('/api/login', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({nickname, email})
+                    body: JSON.stringify({nickname})
                 });
                 const data = await resp.json();
 
@@ -1441,6 +1423,14 @@
             }
         }
 
+        const NON_LATIN_LANGS = new Set(['bg', 'ka', 'ja', 'ko', 'ar', 'zh', 'th', 'hi', 'uk']);
+        const MIN_NON_LATIN = 2;
+        const MAX_NON_LATIN = 3;
+
+        function countNonLatin(langs) {
+            return langs.filter(l => NON_LATIN_LANGS.has(l)).length;
+        }
+
         function nextAttempt() {
             if (gameState.currentAttemptIndex >= CHALLENGE_COUNT) {
                 finishGame();
@@ -1448,6 +1438,16 @@
             }
 
             let selectedLang;
+
+            if (gameState.currentAttemptIndex === 0 && MAINSTAGE_MODE && MAINSTAGE_PHRASES[REQUIRED_LANGUAGE]) {
+                currentChallenge = {
+                    lang: REQUIRED_LANGUAGE,
+                    phrase: MAINSTAGE_PHRASES[REQUIRED_LANGUAGE]
+                };
+                gameState.usedLanguages.push(REQUIRED_LANGUAGE);
+                updateChallengeUI();
+                return;
+            }
 
             if (gameState.currentAttemptIndex === 0) {
                 selectedLang = REQUIRED_LANGUAGE;
@@ -1462,18 +1462,24 @@
                 const medLangsUsed = gameState.usedLanguages.filter(l => mediumLanguages.includes(l)).length;
                 const needMedLang = gameState.difficulty === 'medium' && medLangsUsed < 3 && attemptsRemaining <= (4 - medLangsUsed);
 
+                const nonLatinUsed = countNonLatin(gameState.usedLanguages);
+                const needNonLatin = gameState.difficulty === 'hard' && nonLatinUsed < MIN_NON_LATIN && (nonLatinUsed + attemptsRemaining) <= MIN_NON_LATIN;
+                const maxedNonLatin = gameState.difficulty === 'hard' && nonLatinUsed >= MAX_NON_LATIN;
+
                 let pool;
-                if (needHardLang) {
+                if (needNonLatin) {
+                    pool = DIFFICULTY_POOLS.hard.filter(l => NON_LATIN_LANGS.has(l) && !gameState.usedLanguages.includes(l));
+                } else if (needHardLang) {
                     pool = hardLanguages.filter(l => !gameState.usedLanguages.includes(l));
+                    if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
                 } else if (needMedLang) {
                     pool = mediumLanguages.filter(l => !gameState.usedLanguages.includes(l));
                 } else {
-                    // Normal selection from difficulty pool
                     pool = DIFFICULTY_POOLS[gameState.difficulty].filter(l => !gameState.usedLanguages.includes(l));
+                    if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
                 }
 
                 if (pool.length === 0) {
-                    // Fallback: if all languages used, allow reuse
                     selectedLang = DIFFICULTY_POOLS[gameState.difficulty][Math.floor(Math.random() * DIFFICULTY_POOLS[gameState.difficulty].length)];
                 } else {
                     selectedLang = pool[Math.floor(Math.random() * pool.length)];
@@ -1601,11 +1607,19 @@
             const attemptsRemaining = CHALLENGE_COUNT - gameState.currentAttemptIndex - 1;
             const needHardOnly = hardOnlyUsedAfterSwap < 2 && (hardOnlyUsedAfterSwap + attemptsRemaining) < 2;
 
+            const nonLatinAfterSwap = countNonLatin(otherUsed);
+            const needNonLatin = nonLatinAfterSwap < MIN_NON_LATIN && (nonLatinAfterSwap + attemptsRemaining) < MIN_NON_LATIN;
+            const maxedNonLatin = nonLatinAfterSwap >= MAX_NON_LATIN;
+
             let pool;
-            if (oldIsHardOnly && needHardOnly) {
+            if (needNonLatin) {
+                pool = DIFFICULTY_POOLS.hard.filter(l => NON_LATIN_LANGS.has(l) && l !== oldLang && !otherUsed.includes(l));
+            } else if (oldIsHardOnly && needHardOnly) {
                 pool = hardOnlyLangs.filter(l => l !== oldLang && !otherUsed.includes(l));
+                if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
             } else {
                 pool = DIFFICULTY_POOLS.hard.filter(l => l !== oldLang && !otherUsed.includes(l));
+                if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
             }
             if (pool.length === 0) {
                 pool = DIFFICULTY_POOLS.hard.filter(l => l !== oldLang);

@@ -58,9 +58,42 @@ game:
 
 difficultyPools: |
   {
-    "easy": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr"],
-    "medium": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no"],
-    "hard": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no", "ja", "ko", "ar", "zh", "th", "hi"]
+    "easy": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "sl"],
+    "medium": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "sl", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no"],
+    "hard": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "sl", "bg", "ka", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no", "ja", "ko", "ar", "zh", "th", "hi"]
+  }
+
+languageInfo: |
+  {
+    "sk": {"flag": "🇸🇰", "name": "Slovak"},
+    "cs": {"flag": "🇨🇿", "name": "Czech"},
+    "en": {"flag": "🇬🇧", "name": "English"},
+    "pl": {"flag": "🇵🇱", "name": "Polish"},
+    "hu": {"flag": "🇭🇺", "name": "Hungarian"},
+    "de": {"flag": "🇩🇪", "name": "German"},
+    "es": {"flag": "🇪🇸", "name": "Spanish"},
+    "fi": {"flag": "🇫🇮", "name": "Finnish"},
+    "fr": {"flag": "🇫🇷", "name": "French"},
+    "hr": {"flag": "🇭🇷", "name": "Croatian"},
+    "is": {"flag": "🇮🇸", "name": "Icelandic"},
+    "no": {"flag": "🇳🇴", "name": "Norwegian"},
+    "sr": {"flag": "🇷🇸", "name": "Serbian"},
+    "sl": {"flag": "🇸🇮", "name": "Slovenian"},
+    "bg": {"flag": "🇧🇬", "name": "Bulgarian"},
+    "ka": {"flag": "🇬🇪", "name": "Georgian"},
+    "tr": {"flag": "🇹🇷", "name": "Turkish"},
+    "it": {"flag": "🇮🇹", "name": "Italian"},
+    "pt": {"flag": "🇵🇹", "name": "Portuguese"},
+    "nl": {"flag": "🇳🇱", "name": "Dutch"},
+    "sv": {"flag": "🇸🇪", "name": "Swedish"},
+    "ro": {"flag": "🇷🇴", "name": "Romanian"},
+    "uk": {"flag": "🇺🇦", "name": "Ukrainian"},
+    "ja": {"flag": "🇯🇵", "name": "Japanese"},
+    "ko": {"flag": "🇰🇷", "name": "Korean"},
+    "ar": {"flag": "🇸🇦", "name": "Arabic"},
+    "zh": {"flag": "🇨🇳", "name": "Chinese"},
+    "th": {"flag": "🇹🇭", "name": "Thai"},
+    "hi": {"flag": "🇮🇳", "name": "Hindi"}
   }
 
 dcgmExporterUrl: "http://nvidia-dcgm-exporter.nvidia-gpu-operator.svc:9400/metrics"

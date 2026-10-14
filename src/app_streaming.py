@@ -57,6 +57,18 @@ DIFFICULTY_POOLS = json.loads(os.getenv('DIFFICULTY_POOLS',
 CHALLENGE_PHRASES = json.loads(os.getenv('CHALLENGE_PHRASES',
     '{"en": ["Artificial intelligence transforms business", "Kubernetes simplifies application deployment", "Cloud solutions increase efficiency"]}'))
 
+LANGUAGE_INFO = json.loads(os.getenv('LANGUAGE_INFO', '{}'))
+
+# Mainstage mode — in-memory toggle, no restart needed
+MAINSTAGE_PHRASE = os.getenv('MAINSTAGE_PHRASE',
+    json.dumps({
+        "hr": "Dobrodošli na Innovate Together konferenciju! Hvala vam što ste ovdje.",
+        "sk": "Vitajte na konferencii Innovate Together! Ďakujeme, že ste tu.",
+        "cs": "Vítejte na konferenci Innovate Together! Děkujeme, že jste tady.",
+        "en": "Welcome to the Innovate Together conference! Thank you for being here."
+    }))
+MAINSTAGE_PHRASES = json.loads(MAINSTAGE_PHRASE)
+
 # Tournament settings
 TOURNAMENT_SECRET = os.getenv('TOURNAMENT_SECRET', 'change-me-in-production')
 ADMIN_TOKEN = os.getenv('ADMIN_TOKEN', 'admin-change-me')
@@ -139,6 +151,10 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_games_player ON games(player_id);
         CREATE INDEX IF NOT EXISTS idx_games_score ON games(total_score DESC);
         CREATE INDEX IF NOT EXISTS idx_attempts_game ON attempts(game_id);
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
     ''')
     cols = {row[1] for row in db.execute('PRAGMA table_info(players)').fetchall()}
     if 'follow_up' not in cols:
@@ -156,6 +172,22 @@ def get_db():
     db.execute('PRAGMA journal_mode=WAL')
     db.execute('PRAGMA foreign_keys=ON')
     return db
+
+def is_mainstage_enabled():
+    db = get_db()
+    try:
+        row = db.execute("SELECT value FROM settings WHERE key = 'mainstage'").fetchone()
+        return row is not None and row['value'] == '1'
+    finally:
+        db.close()
+
+def set_mainstage(enabled):
+    db = get_db()
+    try:
+        db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('mainstage', ?)", ('1' if enabled else '0',))
+        db.commit()
+    finally:
+        db.close()
 
 
 def create_token(player_id):
@@ -462,7 +494,14 @@ def index():
                          challenge_count=CHALLENGE_COUNT,
                          win_threshold=WIN_THRESHOLD,
                          challenge_phrases=CHALLENGE_PHRASES,
-                         difficulty_pools=DIFFICULTY_POOLS)
+                         difficulty_pools=DIFFICULTY_POOLS,
+                         mainstage_mode=is_mainstage_enabled(),
+                         mainstage_phrases=MAINSTAGE_PHRASES,
+                         language_info=LANGUAGE_INFO)
+
+@app.route('/register')
+def register_page():
+    return render_template('register.html', conference_name=CONFERENCE_NAME)
 
 @app.route('/logo.svg')
 def logo():
@@ -861,18 +900,17 @@ def api_login():
         return jsonify({'error': 'JSON body required'}), 400
 
     nickname = (data.get('nickname') or '').strip()
-    email = (data.get('email') or '').strip()
 
-    if not nickname or not email:
-        return jsonify({'error': 'Nickname and email are required'}), 400
+    if not nickname:
+        return jsonify({'error': 'Nickname is required'}), 400
 
     db = get_db()
     try:
         player = db.execute(
-            'SELECT id, nickname FROM players WHERE nickname = ? AND email = ?',
-            (nickname, email)).fetchone()
+            'SELECT id, nickname FROM players WHERE nickname = ?',
+            (nickname,)).fetchone()
         if not player:
-            return jsonify({'error': 'No account found with that nickname and email'}), 404
+            return jsonify({'error': 'No account found with that nickname'}), 404
         token = create_token(player['id'])
         return jsonify({'player_id': player['id'], 'nickname': player['nickname'], 'token': token})
     finally:
@@ -960,7 +998,8 @@ def api_game_attempt(game_id):
             return jsonify({'error': 'Attempt already submitted'}), 400
 
         lang_phrases = CHALLENGE_PHRASES.get(language, [])
-        if phrase not in lang_phrases and status != 'skip':
+        mainstage_phrase = MAINSTAGE_PHRASES.get(language, '')
+        if phrase not in lang_phrases and phrase != mainstage_phrase and status != 'skip':
             return jsonify({'error': 'Invalid phrase for language'}), 400
 
         if status == 'skip':
@@ -1231,6 +1270,54 @@ def api_admin_export_games():
         db.close()
 
 
+@app.route('/api/admin/mainstage', methods=['POST'])
+@require_admin
+def api_admin_mainstage_toggle():
+    data = request.get_json(force=True)
+    set_mainstage(bool(data.get('enabled')))
+    logger.info(f"Mainstage mode: {'ON' if is_mainstage_enabled() else 'OFF'}")
+    return jsonify({'enabled': is_mainstage_enabled()})
+
+
+@app.route('/api/admin/mainstage', methods=['GET'])
+@require_admin
+def api_admin_mainstage_status():
+    return jsonify({'enabled': is_mainstage_enabled()})
+
+
+@app.route('/api/admin/players/<int:player_id>', methods=['DELETE'])
+@require_admin
+def api_admin_delete_player(player_id):
+    db = get_db()
+    try:
+        player = db.execute('SELECT id, nickname FROM players WHERE id = ?', (player_id,)).fetchone()
+        if not player:
+            return jsonify({'error': 'Player not found'}), 404
+        db.execute('DELETE FROM attempts WHERE game_id IN (SELECT id FROM games WHERE player_id = ?)', (player_id,))
+        db.execute('DELETE FROM games WHERE player_id = ?', (player_id,))
+        db.execute('DELETE FROM players WHERE id = ?', (player_id,))
+        db.commit()
+        return jsonify({'message': f'Player "{player["nickname"]}" deleted'})
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/games/<int:game_id>', methods=['DELETE'])
+@require_admin
+def api_admin_delete_game(game_id):
+    db = get_db()
+    try:
+        game = db.execute('SELECT id FROM games WHERE id = ?', (game_id,)).fetchone()
+        if not game:
+            return jsonify({'error': 'Game not found'}), 404
+        db.execute('DELETE FROM attempts WHERE game_id = ?', (game_id,))
+        db.execute('DELETE FROM games WHERE id = ?', (game_id,))
+        db.commit()
+        return jsonify({'message': 'Game deleted'})
+    finally:
+        db.close()
+
+
 @app.route('/api/admin/reset-scores', methods=['POST'])
 @require_admin
 def api_admin_reset_scores():
@@ -1238,8 +1325,9 @@ def api_admin_reset_scores():
     try:
         db.execute('DELETE FROM attempts')
         db.execute('DELETE FROM games')
+        db.execute('DELETE FROM players')
         db.commit()
-        return jsonify({'message': 'All games and attempts deleted', 'players_kept': True})
+        return jsonify({'message': 'All data deleted — ready for a new conference'})
     finally:
         db.close()
 
