@@ -212,5 +212,38 @@
     "Rešenja u oblaku povećavaju efikasnost",
     "DevOps povezuje programere i operacije",
     "Bezbednost je prioritet u okruženju oblaka"
+  ],
+  "bg": [
+    "OpenShift е отличен продукт",
+    "Red Hat води в иновациите с отворен код",
+    "Изкуственият интелект трансформира бизнеса",
+    "Kubernetes опростява внедряването на приложения",
+    "Контейнеризацията е бъдещето на облака",
+    "Автоматизацията освобождава време за иновации",
+    "Облачните решения повишават ефективността",
+    "DevOps свързва разработчици и операции",
+    "Сигурността е приоритет в облачната среда"
+  ],
+  "sl": [
+    "OpenShift je odličen izdelek",
+    "Red Hat vodi v inovacijah odprtokodne programske opreme",
+    "Umetna inteligenca spreminja poslovanje",
+    "Kubernetes poenostavlja namestitev aplikacij",
+    "Kontejnerizacija je prihodnost oblaka",
+    "Avtomatizacija sprošča čas za inovacije",
+    "Oblačne rešitve povečujejo učinkovitost",
+    "DevOps povezuje razvijalce in operacije",
+    "Varnost je prednostna naloga v oblačnem okolju"
+  ],
+  "ka": [
+    "OpenShift შესანიშნავი პროდუქტია",
+    "Red Hat ლიდერობს ღია კოდის ინოვაციებში",
+    "ხელოვნური ინტელექტი ცვლის ბიზნესს",
+    "Kubernetes ამარტივებს აპლიკაციების განთავსებას",
+    "კონტეინერიზაცია ღრუბლის მომავალია",
+    "ავტომატიზაცია ათავისუფლებს დროს ინოვაციებისთვის",
+    "ღრუბლოვანი გადაწყვეტილებები ზრდის ეფექტურობას",
+    "DevOps აკავშირებს დეველოპერებსა და ოპერაციებს",
+    "უსაფრთხოება პრიორიტეტია ღრუბლოვან გარემოში"
   ]
 }

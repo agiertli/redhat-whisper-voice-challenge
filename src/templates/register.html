@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | {{ conference_name }}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Red Hat Text', sans-serif;
+            background: #151515;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 40px;
+        }
+        h1 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 900;
+            color: #ee0000;
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #a3a3a3;
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+        }
+        .field {
+            margin-bottom: 16px;
+        }
+        .field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #a3a3a3;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .field input {
+            width: 100%;
+            padding: 14px;
+            background: #292929;
+            border: 2px solid #383838;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-family: 'Red Hat Text', sans-serif;
+        }
+        .field input:focus {
+            outline: none;
+            border-color: #ee0000;
+        }
+        .error {
+            color: #f0561d;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            min-height: 1.2em;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: #ee0000;
+            border: none;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Red Hat Display', sans-serif;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn:hover { background: #cc0000; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .success {
+            text-align: center;
+            display: none;
+        }
+        .success .check {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        .success h2 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: #63993d;
+            margin-bottom: 8px;
+        }
+        .success .nick {
+            font-family: 'Red Hat Mono', monospace;
+            font-size: 1.4rem;
+            color: #ee0000;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .success p {
+            color: #a3a3a3;
+            font-size: 1rem;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="formView">
+            <h1>{{ conference_name }}</h1>
+            <div class="subtitle">Register to play the Whisper Voice Challenge</div>
+            <div class="field">
+                <label>Nickname</label>
+                <input type="text" id="nickname" placeholder="Choose a nickname" maxlength="20" autocomplete="off">
+            </div>
+            <div class="field">
+                <label>Full Name</label>
+                <input type="text" id="name" placeholder="Your name" autocomplete="off">
+            </div>
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="your@email.com" autocomplete="off">
+            </div>
+            <div class="error" id="error"></div>
+            <button class="btn" id="submitBtn" onclick="register()">Register</button>
+        </div>
+
+        <div class="success" id="successView">
+            <div class="check">&#10003;</div>
+            <h2>Registered!</h2>
+            <div class="nick" id="successNick"></div>
+            <p>Head to the game tablet and log in with your nickname.</p>
+            <button class="btn" onclick="reset()">Register Next Player</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('nickname').focus();
+
+        async function register() {
+            const nickname = document.getElementById('nickname').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const errorEl = document.getElementById('error');
+            const btn = document.getElementById('submitBtn');
+
+            errorEl.textContent = '';
+
+            if (!nickname || nickname.length < 2) { errorEl.textContent = 'Nickname must be at least 2 characters'; return; }
+            if (!name || name.length < 2) { errorEl.textContent = 'Name is required'; return; }
+            if (!email || !email.includes('@')) { errorEl.textContent = 'Valid email is required'; return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Registering...';
+
+            try {
+                const resp = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({nickname, name, email})
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    errorEl.textContent = data.error || 'Registration failed';
+                    btn.disabled = false;
+                    btn.textContent = 'Register';
+                    return;
+                }
+
+                document.getElementById('successNick').textContent = data.nickname;
+                document.getElementById('formView').style.display = 'none';
+                document.getElementById('successView').style.display = 'block';
+            } catch (e) {
+                errorEl.textContent = 'Connection error';
+                btn.disabled = false;
+                btn.textContent = 'Register';
+            }
+        }
+
+        function reset() {
+            document.getElementById('nickname').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('error').textContent = '';
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').textContent = 'Register';
+            document.getElementById('formView').style.display = 'block';
+            document.getElementById('successView').style.display = 'none';
+            document.getElementById('nickname').focus();
+        }
+
+        document.querySelectorAll('#formView input').forEach(input => {
+            input.addEventListener('keypress', e => { if (e.key === 'Enter') register(); });
+        });
+    </script>
+</body>
+</html>

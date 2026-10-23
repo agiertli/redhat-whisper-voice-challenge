@@ -1,0 +1,14 @@
+# Copy to your own venue file and use the SAME file on every install/upgrade.
+# No credentials belong in this file. Empty chart keys reuse the installed Secret.
+game:
+  # REQUIRED owner decision. cs=Czech, sk=Slovak, de=German, en=English.
+  # This is the FIRST challenge, not a restriction on all later challenges.
+  requiredLanguage: "cs"
+
+registration:
+  # full collects nickname/name/email. username uses one field to join/resume.
+  mode: "full"
+
+tournament:
+  # false selects anonymous standalone play; it does not erase existing results.
+  enabled: true

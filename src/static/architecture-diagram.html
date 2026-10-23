@@ -22,6 +22,11 @@
             50% { filter: drop-shadow(0 0 14px rgba(34, 197, 94, 0.7)); }
         }
         .node-active { animation: pulse-node 1.5s ease-in-out infinite; }
+        /* Every description participates in sizing, so changing steps cannot
+           steal height from the SVG and make the diagram appear to zoom. */
+        .step-copy { display: grid; grid-template-columns: minmax(0, 1fr); }
+        .step-copy > div { grid-area: 1 / 1; min-width: 0; }
+        .step-size-reference { visibility: hidden; pointer-events: none; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 selection:bg-red-500 selection:text-white">
@@ -53,12 +58,14 @@
                 <button onclick="prevStep()" id="btn-prev" class="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition border border-slate-800 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                 </button>
-                <div class="flex-1 text-center min-w-0">
+                <div id="step-copy" class="step-copy flex-1 text-center min-w-0">
+                  <div id="step-active-copy">
                     <div class="flex items-baseline justify-center gap-3">
                         <span id="step-indicator" class="text-[11px] font-mono text-red-400 uppercase tracking-widest font-bold"></span>
                         <h3 id="step-title" class="text-sm md:text-base font-bold text-white"></h3>
                     </div>
                     <p id="step-desc" class="text-xs md:text-sm text-slate-400 max-w-3xl mx-auto leading-snug"></p>
+                  </div>
                 </div>
                 <button onclick="nextStep()" id="btn-next" class="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition border border-slate-800 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
@@ -169,7 +176,7 @@
                         </g>
                         <text x="70" y="25" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Microphone</text>
                         <text x="70" y="40" text-anchor="middle" font-size="9" fill="#3b82f6" font-weight="bold">Web Audio API</text>
-                        <text x="70" y="55" text-anchor="middle" font-size="9" fill="#64748b">48kHz, Stereo</text>
+                        <text x="70" y="55" text-anchor="middle" font-size="9" fill="#64748b">48kHz capture</text>
                     </g>
 
                     <!-- VAD Engine -->
@@ -177,9 +184,9 @@
                         <rect width="140" height="95" rx="10" fill="url(#slateGrad)" stroke="#3b82f6" stroke-width="2"/>
                         <text x="70" y="22" text-anchor="middle" font-size="13" fill="#f1f5f9" font-weight="800">VAD Engine</text>
                         <line x1="15" y1="30" x2="125" y2="30" stroke="#334155" stroke-width="1"/>
-                        <text x="70" y="47" text-anchor="middle" font-size="10" fill="#cbd5e1">RMS Energy: 0.02</text>
-                        <text x="70" y="62" text-anchor="middle" font-size="10" fill="#cbd5e1">Silence: 400ms</text>
-                        <text x="70" y="77" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="bold">Min. Speech: 500ms</text>
+                        <text x="70" y="47" text-anchor="middle" font-size="10" fill="#cbd5e1">RMS Energy: 0.05</text>
+                        <text x="70" y="62" text-anchor="middle" font-size="10" fill="#cbd5e1">Silence: 1000ms</text>
+                        <text x="70" y="77" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="bold">Min. Speech: 600ms</text>
                     </g>
 
                     <!-- WAV Encoder -->
@@ -219,8 +226,8 @@
                         <text x="50" y="20" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Whisper</text>
                         <text x="50" y="34" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">API</text>
                         <line x1="10" y1="41" x2="90" y2="41" stroke="#334155" stroke-width="1"/>
-                        <text x="50" y="56" text-anchor="middle" font-size="9" fill="#cbd5e1">v3-turbo</text>
-                        <text x="50" y="69" text-anchor="middle" font-size="9" fill="#cbd5e1">809M params</text>
+                        <text x="50" y="56" text-anchor="middle" font-size="9" fill="#cbd5e1">Configured model</text>
+                        <text x="50" y="69" text-anchor="middle" font-size="9" fill="#cbd5e1">Modelcar weights</text>
                         <rect x="10" y="78" width="80" height="16" rx="4" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-width="0.5"/>
                         <text x="50" y="89" text-anchor="middle" font-size="8" fill="#f59e0b" font-weight="bold">vLLM + GPU</text>
                     </g>
@@ -245,7 +252,7 @@
                         <rect width="175" height="60" rx="10" fill="url(#slateGrad)" stroke="#22c55e" stroke-width="1.5"/>
                         <text x="87" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Game Mode</text>
                         <text x="87" y="38" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="bold">Levenshtein Score</text>
-                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">&ge;90% = Win</text>
+                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">&ge;80% avg = Win</text>
                     </g>
 
                     <!-- Decorative: audio waveform on left side -->
@@ -373,13 +380,13 @@ sequenceDiagram
 flowchart TB
     subgraph Browser["Browser Real-time"]
         Mic["Microphone Input"]
-        VAD["VAD Engine RMS 0.02 Silence 400ms Min Speech 500ms"]
+        VAD["VAD Engine RMS 0.05 Silence 1000ms Min Speech 600ms"]
         Buffer["Audio Buffer"]
         Encoder["WAV Encoder"]
         SSE["SSE Client"]
         Mic --> VAD
         VAD -->|"Speech Detected"| Buffer
-        VAD -->|"Silence 400ms"| Encoder
+        VAD -->|"Silence 1000ms"| Encoder
         Buffer --> Encoder
         Encoder -->|"POST Chunk"| SSE
     end
@@ -405,7 +412,7 @@ flowchart TB
                     <pre class="mermaid">
 flowchart TD
     Start["Audio Sample 4096 frames"] --> RMS["Calculate RMS Energy"]
-    RMS --> Compare{"RMS > 0.02?"}
+    RMS --> Compare{"RMS > 0.05?"}
     Compare -->|"YES"| Speech["Speech Detected"]
     Compare -->|"NO"| Silence["Silence Detected"]
     Speech --> IsSpeaking{"Already speaking?"}
@@ -413,7 +420,7 @@ flowchart TD
     IsSpeaking -->|"YES"| Buffer1["Add to Buffer Reset Silence Timer"]
     Silence --> WasSpeaking{"Was speaking?"}
     WasSpeaking -->|"NO"| Ignore["Ignore waiting for speech"]
-    WasSpeaking -->|"YES"| CheckDuration{"Silence > 400ms AND Speech > 500ms?"}
+    WasSpeaking -->|"YES"| CheckDuration{"Silence > 1000ms AND Speech > 600ms?"}
     CheckDuration -->|"NO"| Buffer2["Add to Buffer short pause"]
     CheckDuration -->|"YES"| Send["Send Chunk Reset Buffers"]
                     </pre>
@@ -433,13 +440,13 @@ flowchart LR
     Lev --> Calc["Similarity = length - distance / length"]
     Calc --> Score["Accuracy % = Similarity x 100"]
     Score --> Color{"Score?"}
-    Color -->|">= 90%"| Green["Success + Prize"]
-    Color -->|"70-89%"| Blue["Good"]
-    Color -->|"< 70%"| Orange["Needs Improvement"]
+    Color -->|">= 90%"| Green["Green accuracy display"]
+    Color -->|"70-89%"| Blue["Blue accuracy display"]
+    Color -->|"< 70%"| Orange["Orange accuracy display"]
                     </pre>
                     <div class="mt-4 text-sm text-slate-400 space-y-2">
                         <p><strong class="text-slate-200">Formula:</strong> <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">similarity = (longer.length - editDistance) / longer.length</code></p>
-                        <p><strong class="text-slate-200">Implementation:</strong> Client-side JavaScript in <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">src/templates/index.html</code></p>
+                        <p><strong class="text-slate-200">Implementation:</strong> Tournament accuracy and final scoring are computed and saved on the server; standalone results stay local. A game wins at average accuracy ≥80%. Display colors above are separate from winning.</p>
                     </div>
                 </div>
             </details>
@@ -470,7 +477,7 @@ flowchart LR
                 title: "Voice Activity Detection (VAD)",
                 elements: ["flow-3"],
                 nodes: ["node-vad"],
-                desc: "The VAD engine analyzes the RMS energy of each audio block in real time. If energy exceeds the 0.02 threshold, speech is detected. After 400ms of silence and at least 500ms of continuous speech, it identifies a complete speech segment."
+                desc: "The VAD engine analyzes the RMS energy of each audio block in real time. If energy exceeds the 0.05 threshold, speech is detected. After 1000ms of silence and at least 600ms of continuous speech, it identifies a complete speech segment."
             },
             {
                 id: 4,
@@ -498,19 +505,49 @@ flowchart LR
                 title: "AI Transcription (Whisper)",
                 elements: ["flow-7"],
                 nodes: ["node-whisper", "node-flask"],
-                desc: "The whisper-large-v3-turbo model (809M parameters) runs on GPU via the vLLM serving runtime. It processes the WAV input and generates a text transcription. OpenShift AI provides model serving and scaling."
+                desc: "The configured Whisper model runs on GPU via the vLLM serving runtime. It processes the WAV input and generates a text transcription. OpenShift AI provides model serving and scaling."
             },
             {
                 id: 8,
                 title: "Streamed Response and Display",
                 elements: ["flow-8a", "flow-8b", "flow-8c"],
                 nodes: ["node-sse", "node-display", "node-game"],
-                desc: "The transcription is streamed back via SSE (Server-Sent Events). Text is appended to the existing transcription in real time. In game mode, accuracy is calculated using Levenshtein distance — a score of ≥90% means a win."
+                desc: "The transcription is streamed back via SSE (Server-Sent Events). Text is appended to the existing transcription in real time. In game mode, accuracy is calculated using Levenshtein distance — a game wins at average accuracy ≥80%. Tournament results are confirmed by the server."
             }
         ];
 
-        const allFlowIds = tourSteps.flatMap(s => s.elements || []);
-        const allNodeIds = tourSteps.flatMap(s => s.nodes || []);
+        // Invisible grid siblings reserve the largest copy height at the actual
+        // viewport/font size. No pixel estimates, resize listeners or clipping.
+        const activeCopy = document.getElementById('step-active-copy');
+        tourSteps.forEach(step => {
+            const reference = activeCopy.cloneNode(true);
+            reference.removeAttribute('id');
+            reference.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+            reference.classList.add('step-size-reference');
+            reference.setAttribute('aria-hidden', 'true');
+            reference.querySelector('span').textContent = `Step ${step.id} of ${tourSteps.length}`;
+            reference.querySelector('h3').textContent = step.title;
+            reference.querySelector('p').textContent = step.desc;
+            document.getElementById('step-copy').appendChild(reference);
+        });
+
+        const allFlowIds = [...new Set(tourSteps.flatMap(s => s.elements || []))];
+        const allNodeIds = [...new Set(tourSteps.flatMap(s => s.nodes || []))];
+        const originalFlowStyles = new Map(allFlowIds.map(id => {
+            const el = document.getElementById(id);
+            return [id, {
+                stroke: el.getAttribute('stroke'),
+                width: el.getAttribute('stroke-width'),
+                marker: el.getAttribute('marker-end')
+            }];
+        }));
+        const originalNodeStyles = new Map(allNodeIds.map(id => {
+            const rect = document.getElementById(id).querySelector('rect');
+            return [id, rect ? {
+                stroke: rect.getAttribute('stroke'),
+                width: rect.getAttribute('stroke-width')
+            } : null];
+        }));
 
         function updateStep() {
             const step = tourSteps[currentStep];
@@ -519,51 +556,32 @@ flowchart LR
             document.getElementById('step-title').textContent = step.title;
             document.getElementById('step-desc').textContent = step.desc;
 
-            // Reset all paths
+            const activeFlows = new Set(step.elements || []);
             allFlowIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (!el) return;
-                el.setAttribute('stroke', '#64748b');
-                el.setAttribute('stroke-width', id.includes('flow-3') || id.includes('flow-7') ? '1.5' : '2');
-                el.classList.remove('animated-flow', 'glow-green');
-                el.setAttribute('marker-end', 'url(#arr)');
+                const active = activeFlows.has(id);
+                const original = originalFlowStyles.get(id);
+                el.setAttribute('stroke', active ? '#22c55e' : original.stroke);
+                el.setAttribute('stroke-width', active ? '3' : original.width);
+                el.classList.toggle('animated-flow', active);
+                el.classList.toggle('glow-green', active);
+                const marker = active ? 'url(#arr-g)' : original.marker;
+                if (marker) el.setAttribute('marker-end', marker);
+                else el.removeAttribute('marker-end');
             });
 
-            // Reset all nodes
+            // Toggle directly to the next state. Shared nodes (notably VAD in
+            // steps 2, 3 and 4) keep their existing pulse animation and phase.
+            const activeNodes = new Set(step.nodes || []);
             allNodeIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (!el) return;
-                el.classList.remove('node-active');
+                const active = activeNodes.has(id);
+                el.classList.toggle('node-active', active);
                 const rect = el.querySelector('rect');
-                if (rect && rect.dataset.origStroke) {
-                    rect.setAttribute('stroke', rect.dataset.origStroke);
-                    rect.setAttribute('stroke-width', rect.dataset.origWidth || '1.5');
-                }
-            });
-
-            // Highlight active paths
-            (step.elements || []).forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.setAttribute('stroke', '#22c55e');
-                el.setAttribute('stroke-width', '3');
-                el.classList.add('animated-flow', 'glow-green');
-                el.setAttribute('marker-end', 'url(#arr-g)');
-            });
-
-            // Highlight active nodes
-            (step.nodes || []).forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.classList.add('node-active');
-                const rect = el.querySelector('rect');
-                if (rect) {
-                    if (!rect.dataset.origStroke) {
-                        rect.dataset.origStroke = rect.getAttribute('stroke');
-                        rect.dataset.origWidth = rect.getAttribute('stroke-width');
-                    }
-                    rect.setAttribute('stroke', '#22c55e');
-                    rect.setAttribute('stroke-width', '2.5');
+                const original = originalNodeStyles.get(id);
+                if (rect && original) {
+                    rect.setAttribute('stroke', active ? '#22c55e' : original.stroke);
+                    rect.setAttribute('stroke-width', active ? '2.5' : original.width);
                 }
             });
         }

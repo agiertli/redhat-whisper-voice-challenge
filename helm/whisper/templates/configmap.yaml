@@ -1,3 +1,4 @@
+{{- include "whisper-ui.validate" . -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,17 +7,22 @@ metadata:
   labels:
     {{- include "whisper-ui.labels" . | nindent 4 }}
 data:
-  WHISPER_API_URL: "https://{{ .Values.whisperApi.modelName }}-{{ include "whisper-ui.namespace" . }}.{{ .Values.clusterDomain }}/v1/audio/transcriptions"
+  GUNICORN_CMD_ARGS: {{ .Values.server.gunicornArgs | quote }}
+  WHISPER_API_URL: "http://{{ .Values.whisperApi.modelName }}-metrics.{{ include "whisper-ui.namespace" . }}.svc.cluster.local:8080/v1/audio/transcriptions"
   WHISPER_MODEL_NAME: {{ .Values.whisperApi.modelName | quote }}
   MODEL_DISPLAY_NAME: {{ .Values.whisperApi.displayName | quote }}
+  TOURNAMENT_ENABLED: {{ if hasKey .Values.tournament "enabled" }}{{ .Values.tournament.enabled | quote }}{{ else }}"true"{{ end }}
+  REGISTRATION_MODE: {{ .Values.registration.mode | quote }}
   CONFERENCE_NAME: {{ .Values.conference.name | quote }}
   WHISPER_NAMESPACE: {{ include "whisper-ui.namespace" . | quote }}
   REQUIRED_CHALLENGE_LANGUAGE: {{ .Values.game.requiredLanguage | quote }}
   CHALLENGE_COUNT: {{ .Values.game.challengeCount | quote }}
-  WIN_THRESHOLD: {{ .Values.game.winThreshold | quote }}
   DCGM_EXPORTER_URL: {{ .Values.dcgmExporterUrl | quote }}
   THANOS_QUERIER_URL: {{ .Values.thanosQuerier.url | quote }}
-  SUPPORTED_LANGUAGES: |
-    {{- .Values.supportedLanguages | nindent 4 }}
+  DIFFICULTY_POOLS: |
+    {{- .Values.difficultyPools | nindent 4 }}
+  LANGUAGE_INFO: |
+    {{- .Values.languageInfo | nindent 4 }}
+  DB_PATH: "/app/data/tournament.db"
   CHALLENGE_PHRASES: |
     {{- .Files.Get "challenges.json" | nindent 4 }}

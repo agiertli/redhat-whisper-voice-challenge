@@ -1,8 +1,9 @@
-namespace: whisper
+# Normally inherited from --namespace; retained as an optional legacy override.
+namespace: ""
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: "v1.1.2"
+  tag: "v2.12.0-rc.4"
   pullPolicy: Always
 
 replicaCount: 1
@@ -40,38 +41,56 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
-# REQUIRED: Set to your cluster's apps domain
-# Find it with: oc get ingresses.config cluster -o jsonpath='{.spec.domain}'
-clusterDomain: "apps.ocp.gksnv.sandbox1323.opentlc.com"
-
 whisperApi:
   modelName: "whisper"
-  displayName: "RedHatAI/whisper-large-v3-turbo-quantized.w4a16"
+  displayName: "Whisper large-v3 (Red Hat modelcar)"
 
 conference:
   name: "Red Hat Whisper Voice Challenge"
 
 game:
-  requiredLanguage: "en"
+  # REQUIRED owner decision: e.g. cs for Czechia, sk for Slovakia, en for English.
+  requiredLanguage: ""
   challengeCount: "5"
-  winThreshold: "4"
 
-supportedLanguages: |
+difficultyPools: |
   {
-    "sk": "Slovenčina",
-    "cs": "Čeština",
-    "hu": "Magyar",
-    "de": "Deutsch",
-    "es": "Español",
-    "fr": "Français",
-    "pl": "Polski",
-    "tr": "Türkçe",
-    "en": "English",
-    "fi": "Suomi",
-    "hr": "Hrvatski",
-    "is": "Íslenska",
-    "no": "Norsk",
-    "sr": "Srpski"
+    "easy": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "sl"],
+    "medium": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "sl", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no"],
+    "hard": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "sl", "bg", "ka", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no", "ja", "ko", "ar", "zh", "th", "hi"]
+  }
+
+languageInfo: |
+  {
+    "sk": {"flag": "🇸🇰", "name": "Slovak"},
+    "cs": {"flag": "🇨🇿", "name": "Czech"},
+    "en": {"flag": "🇬🇧", "name": "English"},
+    "pl": {"flag": "🇵🇱", "name": "Polish"},
+    "hu": {"flag": "🇭🇺", "name": "Hungarian"},
+    "de": {"flag": "🇩🇪", "name": "German"},
+    "es": {"flag": "🇪🇸", "name": "Spanish"},
+    "fi": {"flag": "🇫🇮", "name": "Finnish"},
+    "fr": {"flag": "🇫🇷", "name": "French"},
+    "hr": {"flag": "🇭🇷", "name": "Croatian"},
+    "is": {"flag": "🇮🇸", "name": "Icelandic"},
+    "no": {"flag": "🇳🇴", "name": "Norwegian"},
+    "sr": {"flag": "🇷🇸", "name": "Serbian"},
+    "sl": {"flag": "🇸🇮", "name": "Slovenian"},
+    "bg": {"flag": "🇧🇬", "name": "Bulgarian"},
+    "ka": {"flag": "🇬🇪", "name": "Georgian"},
+    "tr": {"flag": "🇹🇷", "name": "Turkish"},
+    "it": {"flag": "🇮🇹", "name": "Italian"},
+    "pt": {"flag": "🇵🇹", "name": "Portuguese"},
+    "nl": {"flag": "🇳🇱", "name": "Dutch"},
+    "sv": {"flag": "🇸🇪", "name": "Swedish"},
+    "ro": {"flag": "🇷🇴", "name": "Romanian"},
+    "uk": {"flag": "🇺🇦", "name": "Ukrainian"},
+    "ja": {"flag": "🇯🇵", "name": "Japanese"},
+    "ko": {"flag": "🇰🇷", "name": "Korean"},
+    "ar": {"flag": "🇸🇦", "name": "Arabic"},
+    "zh": {"flag": "🇨🇳", "name": "Chinese"},
+    "th": {"flag": "🇹🇭", "name": "Thai"},
+    "hi": {"flag": "🇮🇳", "name": "Hindi"}
   }
 
 dcgmExporterUrl: "http://nvidia-dcgm-exporter.nvidia-gpu-operator.svc:9400/metrics"
@@ -84,7 +103,7 @@ gpu:
 
 model:
   # Model weights pulled from Red Hat registry as OCI modelcar image (no S3 needed)
-  storageUri: "oci://registry.redhat.io/rhelai1/modelcar-whisper-large-v3-turbo-quantized-w4a16:1.5"
+  storageUri: "oci://registry.redhat.io/rhai/modelcar-openai-whisper-large-v3:3.0"
   resources:
     limits:
       cpu: "2"
@@ -97,5 +116,27 @@ model:
   nodeSelector:
     node-role.kubernetes.io/gpu-worker: "true"
 
+registration:
+  # full: nickname, full name and email; username: one field to join/resume.
+  mode: full
+
+tournament:
+  # false opens anonymous standalone play; existing tournament data is retained.
+  enabled: true
+  storage: "1Gi"
+  # Empty: reuse the installed Secret; generate independent credentials on first install.
+  # Explicit non-empty values intentionally rotate credentials on upgrade.
+  secret: ""
+  adminToken: ""
+  storageClass: ""  # Empty uses the cluster default; immutable after PVC creation.
+
 vllm:
-  image: "quay.io/modh/vllm:rhoai-2.25-cuda"
+  image: "registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.4"
+
+# Must be shorter than the Helm timeout. Installer sets this from --timeout.
+warmup:
+  deadlineSeconds: 1140
+
+# Initialize SQLite once in the master before Gunicorn forks workers.
+server:
+  gunicornArgs: "--preload"

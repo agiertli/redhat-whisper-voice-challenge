@@ -35,7 +35,7 @@
             background: linear-gradient(135deg, var(--ux-black) 0%, var(--gray-90) 100%);
             color: var(--white);
             height: 100vh;
-            padding: 8px;
+            padding: 6px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -43,7 +43,7 @@
 
         .header {
             text-align: center;
-            padding: 6px 20px;
+            padding: 4px 20px;
             background: var(--gray-90);
             border-left: 4px solid var(--red-hat-red);
             position: relative;
@@ -94,8 +94,8 @@
         .container {
             display: grid;
             grid-template-columns: 1fr;
-            grid-template-rows: 1fr auto;
-            gap: 8px;
+            grid-template-rows: 2fr 3fr;
+            gap: 6px;
             flex: 1;
             min-height: 0;
         }
@@ -103,7 +103,7 @@
         .panel {
             background: var(--gray-90);
             border-radius: 8px;
-            padding: 12px 16px;
+            padding: 8px 14px;
             border-left: 4px solid var(--red-hat-red);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             min-height: 0;
@@ -113,7 +113,7 @@
             font-family: 'Red Hat Display', sans-serif;
             font-weight: 700;
             font-size: 1.1rem;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             color: var(--red-hat-red);
         }
 
@@ -127,7 +127,7 @@
         .controls {
             display: flex;
             gap: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             flex-wrap: wrap;
             flex-shrink: 0;
         }
@@ -188,10 +188,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 12px;
+            padding: 4px 10px;
             background: var(--gray-80);
             border-radius: 4px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             flex-shrink: 0;
         }
 
@@ -254,13 +254,13 @@
 
         #transcription {
             background: var(--ux-black);
-            padding: 20px 24px;
+            padding: 12px 16px;
             border-radius: 4px;
             flex: 1;
             min-height: 0;
             overflow-y: auto;
             font-family: 'Red Hat Display', sans-serif;
-            font-size: 2.8rem;
+            font-size: 2rem;
             font-weight: 700;
             line-height: 1.3;
             color: var(--white);
@@ -332,22 +332,29 @@
         #challenge-panel {
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+
+        #challengeTab {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .challenge-card {
             background: linear-gradient(135deg, var(--red-hat-red), var(--red-hat-red-dark));
-            padding: 12px 16px;
+            padding: 6px 12px;
             border-radius: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             text-align: center;
         }
 
         .challenge-phrase {
             font-family: 'Red Hat Display', sans-serif;
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            margin: 6px 0 0 0;
-            padding: 10px;
+            margin: 2px 0 0 0;
+            padding: 6px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 4px;
         }
@@ -360,15 +367,15 @@
 
         .score-display {
             background: var(--gray-80);
-            padding: 8px 12px;
+            padding: 4px 10px;
             border-radius: 4px;
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .score-value {
             font-family: 'Red Hat Display', sans-serif;
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: 900;
             color: var(--success-green);
         }
@@ -376,15 +383,15 @@
         /* Horizontal progress tracker */
         .progress-tracker {
             display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 6px;
         }
 
         .progress-slot {
             flex: 1;
             background: var(--gray-80);
             border-radius: 6px;
-            padding: 8px 4px;
+            padding: 4px 4px;
             text-align: center;
             border: 2px solid var(--gray-70);
             transition: all 0.3s;
@@ -405,18 +412,13 @@
             background: rgba(240, 86, 29, 0.15);
         }
 
-        .progress-slot.skip {
-            border-color: var(--gray-40);
-            background: rgba(163, 163, 163, 0.1);
-        }
-
         .progress-slot .slot-num {
-            font-size: 2.2rem;
-            line-height: 1.2;
+            font-size: 1.6rem;
+            line-height: 1.1;
         }
 
         .progress-slot .slot-icon {
-            font-size: 1.4rem;
+            font-size: 1rem;
             line-height: 1;
         }
 
@@ -486,8 +488,9 @@
         .bottom-row {
             display: grid;
             grid-template-columns: 1fr 320px;
-            gap: 8px;
-            flex-shrink: 0;
+            gap: 6px;
+            min-height: 0;
+            overflow: hidden;
         }
 
         /* Congratulations Modal */
@@ -575,6 +578,300 @@
             background: rgba(255,255,255,0.3);
         }
 
+        /* Recording Countdown (shown in transcription box) */
+        @keyframes countFade {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        #transcription.countdown-active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .countdown-text {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 900;
+            font-size: 4rem;
+            color: var(--gray-40);
+            animation: countFade 0.7s ease-out;
+            line-height: 1;
+        }
+
+        .countdown-text.speak {
+            color: var(--red-hat-red);
+            font-size: 3rem;
+        }
+
+        /* Registration Panel */
+        #registrationPanel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .reg-form {
+            background: var(--gray-90);
+            padding: 30px 40px;
+            border-radius: 12px;
+            border-left: 4px solid var(--red-hat-red);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .reg-mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid var(--gray-70);
+        }
+
+        .reg-mode-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--gray-80);
+            border: none;
+            color: var(--gray-40);
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reg-mode-btn.active {
+            background: var(--red-hat-red);
+            color: var(--white);
+        }
+
+        .reg-mode-btn:hover:not(.active) {
+            background: var(--gray-70);
+            color: var(--white);
+        }
+
+        .reg-form h2 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 900;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: var(--red-hat-red);
+            text-align: center;
+        }
+
+        .reg-field {
+            margin-bottom: 14px;
+        }
+
+        .reg-field label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--gray-40);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .reg-field input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--gray-80);
+            border: 2px solid var(--gray-70);
+            color: var(--white);
+            border-radius: 4px;
+            font-family: 'Red Hat Text', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .reg-field input:focus {
+            outline: none;
+            border-color: var(--red-hat-red);
+        }
+
+        .reg-error {
+            color: var(--danger-orange);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            min-height: 1.2em;
+        }
+
+        .reg-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--red-hat-red);
+            border: none;
+            color: var(--white);
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reg-btn:hover {
+            background: var(--red-hat-red-dark);
+            transform: translateY(-2px);
+        }
+
+        .reg-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .username-help {
+            color: var(--gray-40);
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        /* Mini leaderboard on registration page */
+        .mini-leaderboard {
+            width: 100%;
+            max-width: 500px;
+            background: var(--gray-90);
+            padding: 16px 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--interaction-blue);
+        }
+
+        .mini-leaderboard h3 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 0.95rem;
+            color: var(--interaction-blue);
+            margin-bottom: 10px;
+        }
+
+        .lb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            margin-bottom: 4px;
+            background: var(--gray-80);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .lb-row.top-3 {
+            border-left: 3px solid var(--red-hat-red);
+        }
+
+        .lb-row .lb-rank {
+            font-weight: 700;
+            width: 30px;
+            color: var(--gray-40);
+        }
+
+        .lb-row .lb-nick {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .lb-row .lb-score {
+            font-family: 'Red Hat Mono', monospace;
+            font-weight: 700;
+            color: var(--success-green);
+        }
+
+        .lb-row .lb-diff {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 8px;
+            font-weight: 700;
+        }
+
+        .lb-diff-easy { background: var(--success-green); color: var(--white); }
+        .lb-diff-medium { background: var(--interaction-blue); color: var(--white); }
+        .lb-diff-hard { background: var(--red-hat-red); color: var(--white); }
+
+        .lb-row .lb-time {
+            font-size: 0.75rem;
+            color: var(--gray-40);
+            margin-left: 8px;
+            width: 50px;
+            text-align: right;
+        }
+
+        .lb-row.highlight {
+            background: rgba(238, 0, 0, 0.15);
+            border: 1px solid var(--red-hat-red);
+        }
+
+        .lb-empty {
+            color: var(--gray-40);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 12px;
+        }
+
+        /* Player badge */
+        .player-badge {
+            position: absolute;
+            top: 4px;
+            left: 12px;
+            font-size: 0.75rem;
+            color: var(--gray-40);
+        }
+
+        .player-badge strong {
+            color: var(--white);
+        }
+
+        .player-badge a {
+            color: var(--interaction-blue);
+            text-decoration: none;
+            margin-left: 6px;
+            font-size: 0.65rem;
+        }
+
+        .player-badge a:hover {
+            text-decoration: underline;
+        }
+
+        /* Leaderboard tab toggle */
+        .tab-toggle {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 6px 12px;
+            background: var(--gray-80);
+            border: 2px solid var(--gray-70);
+            color: var(--gray-40);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            border-color: var(--red-hat-red);
+            color: var(--white);
+            background: var(--gray-70);
+        }
+
+        /* Full leaderboard panel */
+        #leaderboardContent {
+            display: none;
+            overflow-y: auto;
+            flex: 1;
+        }
+
         @media (max-width: 900px) {
             .bottom-row {
                 grid-template-columns: 1fr;
@@ -584,6 +881,10 @@
 </head>
 <body>
     <div class="header">
+        <div class="player-badge" id="playerBadge" style="display: none;">
+            Playing as: <strong id="playerNickname"></strong>
+            <a href="#" onclick="changePlayer(); return false;">change</a>
+        </div>
         <a href="/architecture" target="_blank" class="architecture-link">Architecture</a>
         <img src="/logo.svg" alt="Red Hat Whisper" style="height: 44px; width: auto; flex-shrink: 0;">
         <div style="display: flex; flex-direction: column; align-items: center;">
@@ -593,7 +894,73 @@
         </div>
     </div>
 
+    <div id="persistenceError" role="alert" style="display:none; margin:12px 24px; padding:12px; border:1px solid #f0561d; border-radius:4px;">
+        <span id="persistenceMessage"></span>
+        <button id="retrySaveButton" onclick="retryPersistence()" style="margin-left:12px;">Retry save</button>
+    </div>
     <div class="container">
+        <!-- Registration Panel (shown before game) -->
+        <div id="registrationPanel" style="grid-column: 1 / -1; grid-row: 1 / -1;">
+            {% if tournament_enabled %}
+            <div class="reg-form">
+                {% if registration_mode == 'username' %}
+                <form id="regUsernameForm" onsubmit="joinByUsername(event)">
+                    <h2>Join the Voice Challenge</h2>
+                    <div class="reg-field">
+                        <label for="regUsername">Username (public, shown on leaderboard)</label>
+                        <input type="text" id="regUsername" name="username" placeholder="e.g. PolyglotPro"
+                               minlength="2" maxlength="20" pattern="[a-zA-Z0-9_-]+"
+                               autocomplete="username" autocapitalize="none" spellcheck="false" required
+                               aria-describedby="usernameHelp">
+                        <p id="usernameHelp" class="username-help">Use the same username to play again.</p>
+                    </div>
+                    <div class="reg-error" id="usernameError" role="alert"></div>
+                    <button class="reg-btn" id="usernameSubmitBtn" type="submit">Join Tournament</button>
+                </form>
+                {% else %}
+                <div class="reg-mode-toggle">
+                    <button class="reg-mode-btn active" id="modeNewBtn" onclick="switchRegMode('new')">New Player</button>
+                    <button class="reg-mode-btn" id="modeReturnBtn" onclick="switchRegMode('return')">Returning Player</button>
+                </div>
+
+                <!-- New Player Form -->
+                <div id="regNewForm">
+                    <h2>Join the Voice Challenge</h2>
+                    <div class="reg-field">
+                        <label>Nickname (public, shown on leaderboard)</label>
+                        <input type="text" id="regNickname" placeholder="e.g. PolyglotPro" maxlength="20">
+                    </div>
+                    <div class="reg-field">
+                        <label>Full name</label>
+                        <input type="text" id="regName" placeholder="Your full name">
+                    </div>
+                    <div class="reg-field">
+                        <label>Email</label>
+                        <input type="email" id="regEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="reg-error" id="regError"></div>
+                    <button class="reg-btn" id="regSubmitBtn" onclick="registerPlayer()">Join Tournament</button>
+                </div>
+
+                <!-- Returning Player Form -->
+                <div id="regReturnForm" style="display: none;">
+                    <h2>Welcome Back</h2>
+                    <div class="reg-field">
+                        <label>Nickname</label>
+                        <input type="text" id="loginNickname" placeholder="Your nickname" maxlength="20">
+                    </div>
+                    <div class="reg-error" id="loginError"></div>
+                    <button class="reg-btn" id="loginSubmitBtn" onclick="loginPlayer()">Log In</button>
+                </div>
+                {% endif %}
+            </div>
+            <div class="mini-leaderboard" id="regLeaderboard">
+                <h3>Leaderboard</h3>
+                <div id="regLeaderboardRows"><div class="lb-empty">No scores yet — be the first!</div></div>
+            </div>
+            {% endif %}
+        </div>
+
         <!-- TOP: Transcription (hero panel) -->
         <div class="panel" id="transcription-panel">
             <h2>Live Transcription</h2>
@@ -603,13 +970,7 @@
                     <option value="">Select Microphone</option>
                 </select>
 
-                <select id="language" style="display: none;">
-                    {% for code, name in languages.items() %}
-                    <option value="{{ code }}" {% if code == 'en' %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-
-                <button id="recordBtn">Start Recording</button>
+                <button id="recordBtn" disabled>Start Recording</button>
                 <button id="stopBtn" disabled>Stop</button>
             </div>
 
@@ -654,7 +1015,13 @@
         <!-- BOTTOM ROW: Challenge + Metrics side by side -->
         <div class="bottom-row">
         <div class="panel" id="challenge-panel">
-            <h2>🏆 Voice Challenge</h2>
+            <div class="tab-toggle">
+                <button class="tab-btn active" id="tabChallenge" onclick="showTab('challenge')">Challenge</button>
+                <button class="tab-btn" id="tabLeaderboard" {% if not tournament_enabled %}style="display:none"{% endif %} onclick="showTab('leaderboard')">Leaderboard</button>
+            </div>
+
+            <div id="challengeTab">
+            <h2>Voice Challenge</h2>
 
             <!-- Difficulty Selector (shown at start) -->
             <div id="difficultySelector">
@@ -682,7 +1049,7 @@
             <!-- Challenge Content (shown during game) -->
             <div id="challengeContent" style="display: none;">
                 <!-- Progress tracker: horizontal slots for all challenges -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <div id="winsCounter" style="font-size: 0.85rem; color: var(--gray-40);">Challenge 1/{{ challenge_count }} | Need: ≥80% avg</div>
                     <div style="font-size: 0.85rem;">Avg: <span id="averageAccuracy" style="font-weight: 700;">--</span></div>
                 </div>
@@ -696,26 +1063,32 @@
                     <div class="challenge-phrase" id="challengePhrase">OpenShift je skvelý produkt</div>
                 </div>
 
-                <!-- Score + Skip in one row -->
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                <!-- Score + Swap in one row -->
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
                     <div class="score-display" style="flex: 1; margin-bottom: 0;">
                         <div style="font-size: 0.7rem; color: var(--gray-40); letter-spacing: 1px;">Score</div>
                         <div class="score-value" id="accuracyScore">--</div>
                     </div>
                     <div id="challengeActions" style="flex: 1;">
-                        <button id="skipButton" onclick="skipAttempt()" style="width: 100%; background: var(--gray-70); padding: 14px 10px; font-size: 0.8rem;">
-                            ⏭️ Skip (1 free skip remaining)
+                        <button id="swapButton" onclick="swapChallenge()" style="width: 100%; background: var(--gray-70); padding: 14px 10px; font-size: 0.8rem; display: none;">
+                            🔀 Swap (1 left)
                         </button>
                     </div>
                 </div>
 
-                <div id="finalResults" style="display: none; background: var(--gray-80); padding: 15px; border-radius: 4px; margin-top: 10px; text-align: center;">
+                <div id="finalResults" style="display: none; background: var(--gray-80); padding: 8px; border-radius: 4px; margin-top: 4px; text-align: center;">
                     <!-- Filled by JavaScript -->
                 </div>
 
-                <button onclick="resetGame()" style="width: 100%; margin-top: 10px; background: var(--gray-70); padding: 10px;">
-                    🔄 Start New Game
+                <button onclick="resetGame()" style="width: 100%; margin-top: 4px; background: var(--gray-70); padding: 8px;">
+                    Start New Game
                 </button>
+            </div>
+            </div><!-- /challengeTab -->
+
+            <div id="leaderboardContent">
+                <h2 style="margin-bottom: 8px;">Leaderboard</h2>
+                <div id="fullLeaderboardRows"><div class="lb-empty">No scores yet</div></div>
             </div>
         </div>
 
@@ -777,6 +1150,8 @@
     </div>
 
     <script>
+        const TOURNAMENT_ENABLED = {{ tournament_enabled | tojson }};
+        const REGISTRATION_MODE = {{ registration_mode | tojson }};
         let audioContext;
         let mediaStream;
         let audioInput;
@@ -799,42 +1174,75 @@
         // Game Configuration
         const REQUIRED_LANGUAGE = '{{ required_language }}';
         const CHALLENGE_COUNT = {{ challenge_count }};
-        const WIN_THRESHOLD = {{ win_threshold }};
 
-        const DIFFICULTY_POOLS = {
-            easy: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr'],
-            medium: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk', 'fi', 'is', 'no'],
-            hard: ['sk', 'cs', 'en', 'pl', 'hu', 'de', 'es', 'fr', 'hr', 'sr', 'tr', 'it', 'pt', 'nl', 'sv', 'ro', 'uk', 'fi', 'is', 'no', 'ja', 'ko', 'ar', 'zh', 'th', 'hi']
-        };
+        const DIFFICULTY_POOLS = {{ difficulty_pools | tojson }};
+        let MAINSTAGE_MODE = {{ mainstage_mode | tojson }};
+        const MAINSTAGE_PHRASES = {{ mainstage_phrases | tojson }};
 
-        const LANGUAGE_INFO = {
-            'sk': {flag: '🇸🇰', name: 'Slovak'}, 'cs': {flag: '🇨🇿', name: 'Czech'}, 'en': {flag: '🇬🇧', name: 'English'},
-            'pl': {flag: '🇵🇱', name: 'Polish'}, 'hu': {flag: '🇭🇺', name: 'Hungarian'}, 'de': {flag: '🇩🇪', name: 'German'},
-            'es': {flag: '🇪🇸', name: 'Spanish'}, 'fi': {flag: '🇫🇮', name: 'Finnish'}, 'fr': {flag: '🇫🇷', name: 'French'},
-            'hr': {flag: '🇭🇷', name: 'Croatian'}, 'is': {flag: '🇮🇸', name: 'Icelandic'}, 'no': {flag: '🇳🇴', name: 'Norwegian'},
-            'sr': {flag: '🇷🇸', name: 'Serbian'}, 'tr': {flag: '🇹🇷', name: 'Turkish'},
-            'it': {flag: '🇮🇹', name: 'Italian'}, 'pt': {flag: '🇵🇹', name: 'Portuguese'}, 'nl': {flag: '🇳🇱', name: 'Dutch'},
-            'sv': {flag: '🇸🇪', name: 'Swedish'}, 'ro': {flag: '🇷🇴', name: 'Romanian'}, 'uk': {flag: '🇺🇦', name: 'Ukrainian'},
-            'ja': {flag: '🇯🇵', name: 'Japanese'}, 'ko': {flag: '🇰🇷', name: 'Korean'}, 'ar': {flag: '🇸🇦', name: 'Arabic'},
-            'zh': {flag: '🇨🇳', name: 'Chinese'}, 'th': {flag: '🇹🇭', name: 'Thai'}, 'hi': {flag: '🇮🇳', name: 'Hindi'}
-        };
+        const LANGUAGE_INFO = {{ language_info | tojson }};
 
         // Game State
         let gameState = {
             difficulty: null,
             attempts: [],
-            usedLanguages: [],  // Track languages to avoid duplicates
+            usedLanguages: [],
             currentAttemptIndex: 0,
-            totalWins: 0,
-            skipsUsed: 0,
+            swapsUsed: 0,
             gameStarted: false,
-            gameCompleted: false
+            gameCompleted: false,
+            gameId: null
         };
+
+        // Player session
+        let playerSession = {
+            token: null,
+            nickname: null,
+            playerId: null
+        };
+
+        let leaderboardInterval = null;
+        let pendingAttempt = null;
+        let pendingCompletion = false;
+        let saving = false;
+
+        function persistenceError(message) {
+            document.getElementById('persistenceMessage').textContent = message;
+            document.getElementById('persistenceError').style.display = 'block';
+        }
+
+        function clearPersistenceError() {
+            document.getElementById('persistenceError').style.display = 'none';
+        }
+
+        function updateSaveControls() {
+            document.getElementById('recordBtn').disabled = saving || !!pendingAttempt || pendingCompletion ||
+                gameState.gameCompleted || !gameState.gameStarted || !currentChallenge;
+            const swap = document.getElementById('swapButton');
+            swap.disabled = saving || !!pendingAttempt || pendingCompletion || !currentChallenge ||
+                gameState.gameCompleted || gameState.difficulty !== 'hard' || gameState.swapsUsed >= 1;
+            document.getElementById('retrySaveButton').disabled = saving;
+        }
+
+        async function retryPersistence() {
+            if (saving) return;
+            if (pendingAttempt) return savePendingAttempt();
+            if (pendingCompletion) return finishGame();
+            return restoreSession();
+        }
+
+
+        window.addEventListener('beforeunload', event => {
+            if (pendingAttempt || pendingCompletion) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        });
 
         // Initialize
         loadMicrophones();
-        checkGameStart();
+        restoreSession();
         startMetricsMonitoring();
+        startLeaderboardPolling();
 
         async function loadMicrophones() {
             try {
@@ -857,30 +1265,275 @@
             }
         }
 
-        function checkGameStart() {
-            // On page load, show difficulty selector
+        async function restoreSession() {
+            if (!TOURNAMENT_ENABLED) {
+                showGameUI();
+                return;
+            }
+            const token = sessionStorage.getItem('tournament_token');
+            if (!token) return showRegistration();
+            playerSession.token = token;
+            try {
+                const response = await fetch('/api/player/me', {headers: apiHeaders()});
+                if (response.status === 401 || response.status === 404) {
+                    changePlayer();
+                    return;
+                }
+                if (!response.ok) throw new Error('Session lookup failed');
+                const player = await response.json();
+                playerSession.nickname = player.nickname;
+                playerSession.playerId = player.player_id;
+                clearPersistenceError();
+                showGameUI();
+            } catch (error) {
+                persistenceError('Cannot verify your player session. Check the connection, then retry.');
+            }
+        }
+
+        function showRegistration() {
+            document.getElementById('registrationPanel').style.display = 'flex';
+            document.getElementById('transcription-panel').style.display = 'none';
+            document.querySelector('.bottom-row').style.display = 'none';
+            document.getElementById('playerBadge').style.display = 'none';
+            if (REGISTRATION_MODE === 'username') {
+                document.getElementById('regUsernameForm').reset();
+                document.getElementById('usernameError').textContent = '';
+                const button = document.getElementById('usernameSubmitBtn');
+                button.disabled = false;
+                button.textContent = 'Join Tournament';
+            } else {
+                const regBtn = document.getElementById('regSubmitBtn');
+                regBtn.disabled = false;
+                regBtn.textContent = 'Join Tournament';
+                const loginBtn = document.getElementById('loginSubmitBtn');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Log In';
+                document.getElementById('regNickname').value = '';
+                document.getElementById('regName').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('loginNickname').value = '';
+                document.getElementById('regError').textContent = '';
+                document.getElementById('loginError').textContent = '';
+            }
+            fetchLeaderboardPreview();
+        }
+
+        function showGameUI() {
+            document.getElementById('registrationPanel').style.display = 'none';
+            document.getElementById('transcription-panel').style.display = 'flex';
+            document.querySelector('.bottom-row').style.display = 'grid';
+            document.getElementById('playerBadge').style.display = TOURNAMENT_ENABLED ? 'block' : 'none';
+            document.getElementById('playerNickname').textContent = playerSession.nickname;
             document.getElementById('difficultySelector').style.display = 'block';
             document.getElementById('challengeContent').style.display = 'none';
         }
 
-        function startGame(difficulty) {
-            gameState = {
-                difficulty: difficulty,
-                attempts: [],
-                usedLanguages: [],
-                currentAttemptIndex: 0,
-                totalWins: 0,
-                skipsUsed: 0,
-                gameStarted: true,
-                gameCompleted: false
-            };
+        async function joinByUsername(event) {
+            event.preventDefault();
+            const username = document.getElementById('regUsername').value.trim();
+            const errorEl = document.getElementById('usernameError');
+            const button = document.getElementById('usernameSubmitBtn');
+            errorEl.textContent = '';
+            if (!/^[a-zA-Z0-9_-]{2,20}$/.test(username)) {
+                errorEl.textContent = 'Use 2–20 letters, numbers, underscores or hyphens';
+                return;
+            }
+            button.disabled = true;
+            button.textContent = 'Joining...';
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    errorEl.textContent = data.error || 'Could not join. Please try again.';
+                    return;
+                }
+                playerSession.token = data.token;
+                playerSession.nickname = data.nickname;
+                playerSession.playerId = data.player_id;
+                sessionStorage.setItem('tournament_token', data.token);
+                sessionStorage.setItem('tournament_nickname', data.nickname);
+                showGameUI();
+            } catch (error) {
+                errorEl.textContent = 'Network error, please try again';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Join Tournament';
+            }
+        }
 
-            document.getElementById('difficultySelector').style.display = 'none';
-            document.getElementById('challengeContent').style.display = 'block';
-            document.getElementById('finalResults').style.display = 'none';
+        async function registerPlayer() {
+            const nickname = document.getElementById('regNickname').value.trim();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const errorEl = document.getElementById('regError');
+            const btn = document.getElementById('regSubmitBtn');
 
-            initProgressTracker();
-            nextAttempt();
+            errorEl.textContent = '';
+
+            if (!nickname || nickname.length < 2) {
+                errorEl.textContent = 'Nickname must be at least 2 characters';
+                return;
+            }
+            if (!name || name.length < 2) {
+                errorEl.textContent = 'Please enter your full name';
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                errorEl.textContent = 'Please enter a valid email';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Joining...';
+
+            try {
+                const resp = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({nickname, name, email})
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    errorEl.textContent = data.error || 'Registration failed';
+                    btn.disabled = false;
+                    btn.textContent = 'Join Tournament';
+                    return;
+                }
+
+                playerSession.token = data.token;
+                playerSession.nickname = data.nickname;
+                playerSession.playerId = data.player_id;
+                sessionStorage.setItem('tournament_token', data.token);
+                sessionStorage.setItem('tournament_nickname', data.nickname);
+
+                showGameUI();
+            } catch (e) {
+                errorEl.textContent = 'Network error, please try again';
+                btn.disabled = false;
+                btn.textContent = 'Join Tournament';
+            }
+        }
+
+        function switchRegMode(mode) {
+            document.getElementById('modeNewBtn').classList.toggle('active', mode === 'new');
+            document.getElementById('modeReturnBtn').classList.toggle('active', mode === 'return');
+            document.getElementById('regNewForm').style.display = mode === 'new' ? 'block' : 'none';
+            document.getElementById('regReturnForm').style.display = mode === 'return' ? 'block' : 'none';
+            document.getElementById('regError').textContent = '';
+            document.getElementById('loginError').textContent = '';
+        }
+
+        async function loginPlayer() {
+            const nickname = document.getElementById('loginNickname').value.trim();
+            const errorEl = document.getElementById('loginError');
+            const btn = document.getElementById('loginSubmitBtn');
+
+            errorEl.textContent = '';
+
+            if (!nickname || nickname.length < 2) {
+                errorEl.textContent = 'Enter your nickname';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+
+            try {
+                const resp = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({nickname})
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    errorEl.textContent = data.error || 'Login failed';
+                    btn.disabled = false;
+                    btn.textContent = 'Log In';
+                    return;
+                }
+
+                playerSession.token = data.token;
+                playerSession.nickname = data.nickname;
+                playerSession.playerId = data.player_id;
+                sessionStorage.setItem('tournament_token', data.token);
+                sessionStorage.setItem('tournament_nickname', data.nickname);
+
+                showGameUI();
+            } catch (e) {
+                errorEl.textContent = 'Network error, please try again';
+                btn.disabled = false;
+                btn.textContent = 'Log In';
+            }
+        }
+
+        function changePlayer() {
+            if (saving || pendingAttempt || pendingCompletion || isRecording) {
+                persistenceError('Save this game before changing player. Keep this page open and retry.');
+                return;
+            }
+            sessionStorage.removeItem('tournament_token');
+            sessionStorage.removeItem('tournament_nickname');
+            playerSession = {token: null, nickname: null, playerId: null};
+            resetGame();
+            showRegistration();
+        }
+
+        function apiHeaders() {
+            const h = {'Content-Type': 'application/json'};
+            if (playerSession.token) h['Authorization'] = 'Bearer ' + playerSession.token;
+            return h;
+        }
+
+        async function startGame(difficulty) {
+            if (saving || pendingAttempt || pendingCompletion) return;
+            saving = true;
+            try {
+                let data = {};
+                if (TOURNAMENT_ENABLED) {
+                    const resp = await fetch('/api/game/start', {
+                        method: 'POST', headers: apiHeaders(), body: JSON.stringify({difficulty})
+                    });
+                    data = await resp.json();
+                    if (!resp.ok) {
+                        if (resp.status === 401) {
+                            saving = false;
+                            changePlayer();
+                        }
+                        alert(data.error || 'Failed to start game');
+                        return;
+                    }
+                }
+                clearPersistenceError();
+                gameState = {
+                    difficulty: difficulty,
+                    attempts: [],
+                    usedLanguages: [],
+                    currentAttemptIndex: 0,
+                    swapsUsed: 0,
+                    gameStarted: true,
+                    gameCompleted: false,
+                    gameId: data.game_id || null
+                };
+
+                document.getElementById('difficultySelector').style.display = 'none';
+                document.getElementById('challengeContent').style.display = 'block';
+                document.getElementById('finalResults').style.display = 'none';
+                document.getElementById('recordBtn').disabled = false;
+
+                initProgressTracker();
+                nextAttempt();
+            } catch (e) {
+                alert('Network error starting game');
+            } finally {
+                saving = false;
+                updateSaveControls();
+            }
         }
 
         function initProgressTracker() {
@@ -900,6 +1553,14 @@
             }
         }
 
+        const NON_LATIN_LANGS = new Set(['bg', 'ka', 'ja', 'ko', 'ar', 'zh', 'th', 'hi', 'uk']);
+        const MIN_NON_LATIN = 2;
+        const MAX_NON_LATIN = 3;
+
+        function countNonLatin(langs) {
+            return langs.filter(l => NON_LATIN_LANGS.has(l)).length;
+        }
+
         function nextAttempt() {
             if (gameState.currentAttemptIndex >= CHALLENGE_COUNT) {
                 finishGame();
@@ -908,26 +1569,47 @@
 
             let selectedLang;
 
+            if (gameState.currentAttemptIndex === 0 && MAINSTAGE_MODE && MAINSTAGE_PHRASES[REQUIRED_LANGUAGE]) {
+                currentChallenge = {
+                    lang: REQUIRED_LANGUAGE,
+                    phrase: MAINSTAGE_PHRASES[REQUIRED_LANGUAGE]
+                };
+                gameState.usedLanguages.push(REQUIRED_LANGUAGE);
+                updateChallengeUI();
+                return;
+            }
+
             if (gameState.currentAttemptIndex === 0) {
                 selectedLang = REQUIRED_LANGUAGE;
             } else {
-                // For HARD mode: ensure at least 2 of the 4 random attempts use truly hard languages
-                const hardLanguages = ['ja', 'ko', 'ar', 'zh', 'th', 'hi'];
-                const hardLangsUsed = gameState.usedLanguages.filter(l => hardLanguages.includes(l)).length;
+                const hardLanguages = DIFFICULTY_POOLS.hard.filter(l => !DIFFICULTY_POOLS.medium.includes(l));
+                const mediumLanguages = DIFFICULTY_POOLS.medium.filter(l => !DIFFICULTY_POOLS.easy.includes(l));
                 const attemptsRemaining = CHALLENGE_COUNT - gameState.currentAttemptIndex;
+
+                const hardLangsUsed = gameState.usedLanguages.filter(l => hardLanguages.includes(l)).length;
                 const needHardLang = gameState.difficulty === 'hard' && hardLangsUsed < 2 && attemptsRemaining <= 3;
 
+                const medLangsUsed = gameState.usedLanguages.filter(l => mediumLanguages.includes(l)).length;
+                const needMedLang = gameState.difficulty === 'medium' && medLangsUsed < 3 && attemptsRemaining <= (4 - medLangsUsed);
+
+                const nonLatinUsed = countNonLatin(gameState.usedLanguages);
+                const needNonLatin = gameState.difficulty === 'hard' && nonLatinUsed < MIN_NON_LATIN && (nonLatinUsed + attemptsRemaining) <= MIN_NON_LATIN;
+                const maxedNonLatin = gameState.difficulty === 'hard' && nonLatinUsed >= MAX_NON_LATIN;
+
                 let pool;
-                if (needHardLang) {
-                    // Force selection from truly hard languages
+                if (needNonLatin) {
+                    pool = DIFFICULTY_POOLS.hard.filter(l => NON_LATIN_LANGS.has(l) && !gameState.usedLanguages.includes(l));
+                } else if (needHardLang) {
                     pool = hardLanguages.filter(l => !gameState.usedLanguages.includes(l));
+                    if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
+                } else if (needMedLang) {
+                    pool = mediumLanguages.filter(l => !gameState.usedLanguages.includes(l));
                 } else {
-                    // Normal selection from difficulty pool
                     pool = DIFFICULTY_POOLS[gameState.difficulty].filter(l => !gameState.usedLanguages.includes(l));
+                    if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
                 }
 
                 if (pool.length === 0) {
-                    // Fallback: if all languages used, allow reuse
                     selectedLang = DIFFICULTY_POOLS[gameState.difficulty][Math.floor(Math.random() * DIFFICULTY_POOLS[gameState.difficulty].length)];
                 } else {
                     selectedLang = pool[Math.floor(Math.random() * pool.length)];
@@ -951,16 +1633,11 @@
 
             updateChallengeUI();
 
-            // Sync language dropdown if the language exists in it
-            const langDropdown = document.getElementById('language');
-            const langOptions = Array.from(langDropdown.options).map(opt => opt.value);
-            if (langOptions.includes(selectedLang)) {
-                langDropdown.value = selectedLang;
-            }
         }
 
         function updateChallengeUI() {
-            document.getElementById('winsCounter').textContent = `Challenge ${gameState.currentAttemptIndex + 1}/${CHALLENGE_COUNT} | Need: ≥80% avg`;
+            const displayIndex = Math.min(gameState.currentAttemptIndex + 1, CHALLENGE_COUNT);
+            document.getElementById('winsCounter').textContent = `Challenge ${displayIndex}/${CHALLENGE_COUNT} | Need: ≥80% avg`;
             updateProgressTracker();
             updateAverageAccuracy();
 
@@ -975,70 +1652,122 @@
             document.getElementById('accuracyScore').textContent = '--';
             document.getElementById('accuracyScore').style.color = 'var(--white)';
 
-            // Update skip button
-            const skipBtn = document.getElementById('skipButton');
-            if (skipBtn) {
-                if (gameState.skipsUsed >= 1) {
-                    skipBtn.disabled = true;
-                    skipBtn.textContent = '⏭️ Skip (0 left)';
-                    skipBtn.style.opacity = '0.5';
+            const swapBtn = document.getElementById('swapButton');
+            if (swapBtn) {
+                if (gameState.difficulty === 'hard') {
+                    swapBtn.style.display = 'block';
+                    if (gameState.swapsUsed >= 1) {
+                        swapBtn.disabled = true;
+                        swapBtn.textContent = '🔀 Swap (0 left)';
+                        swapBtn.style.opacity = '0.5';
+                    } else {
+                        swapBtn.disabled = false;
+                        swapBtn.textContent = '🔀 Swap (1 left)';
+                        swapBtn.style.opacity = '1';
+                    }
                 } else {
-                    skipBtn.disabled = false;
-                    skipBtn.textContent = '⏭️ Skip (1 left)';
-                    skipBtn.style.opacity = '1';
+                    swapBtn.style.display = 'none';
                 }
             }
         }
 
-        function recordAttempt(transcription, score) {
-            const status = score >= 80 ? 'win' : 'fail';
-
-            gameState.attempts.push({
-                lang: currentChallenge.lang,
-                phrase: currentChallenge.phrase,
-                transcription: transcription,
-                score: score,
-                status: status
-            });
-
-            if (status === 'win') {
-                gameState.totalWins++;
-            }
-
-            gameState.currentAttemptIndex++;
-            currentChallenge = null;
-            updateChallengeUI();
-
-            setTimeout(() => {
-                if (gameState.currentAttemptIndex < CHALLENGE_COUNT) {
-                    nextAttempt();
-                } else {
-                    finishGame();
-                }
-            }, 2000);
+        async function recordAttempt(transcription, score) {
+            if (pendingAttempt || saving || pendingCompletion || !currentChallenge || gameState.gameCompleted) return;
+            pendingAttempt = {
+                gameId: gameState.gameId, score,
+                payload: {attempt_index: gameState.currentAttemptIndex, language: currentChallenge.lang,
+                          phrase: currentChallenge.phrase, transcription, status: 'completed'}
+            };
+            return savePendingAttempt();
         }
 
-        function skipAttempt() {
-            if (gameState.skipsUsed >= 1) {
-                return; // Should not happen if button is disabled, but safety check
+        async function savePendingAttempt() {
+            if (saving || !pendingAttempt) return;
+            saving = true;
+            updateSaveControls();
+            const attempt = pendingAttempt;
+            let accuracy = attempt.score;
+            let status = accuracy >= 80 ? 'win' : 'fail';
+            try {
+                if (TOURNAMENT_ENABLED) {
+                    const response = await fetch(`/api/game/${attempt.gameId}/attempt`, {
+                        method: 'POST', headers: apiHeaders(), body: JSON.stringify(attempt.payload)
+                    });
+                    if (!response.ok) throw new Error('Attempt save failed');
+                    const result = await response.json();
+                    accuracy = result.accuracy * 100;
+                    status = result.status;
+                }
+                gameState.attempts.push({lang: attempt.payload.language, phrase: attempt.payload.phrase,
+                    transcription: attempt.payload.transcription, score: accuracy, status});
+                gameState.currentAttemptIndex++;
+                pendingAttempt = null;
+                currentChallenge = null;
+                clearPersistenceError();
+                document.getElementById('accuracyScore').textContent = Math.round(accuracy) + '%';
+                updateChallengeUI();
+                const savedGame = gameState;
+                setTimeout(() => {
+                    if (gameState !== savedGame || !gameState.gameStarted) return;
+                    if (gameState.currentAttemptIndex < CHALLENGE_COUNT) nextAttempt();
+                    else finishGame();
+                    updateSaveControls();
+                }, 2000);
+            } catch (error) {
+                persistenceError('This round has not been confirmed saved. Keep this page open, check the connection and retry.');
+            } finally {
+                saving = false;
+                updateSaveControls();
             }
+        }
 
-            gameState.attempts.push({
-                lang: currentChallenge.lang,
-                phrase: currentChallenge.phrase,
-                transcription: '(skipped)',
-                score: 0,
-                status: 'skip'
-            });
+        function swapChallenge() {
+            if (saving || pendingAttempt || pendingCompletion || isRecording ||
+                !currentChallenge || !gameState.gameStarted || gameState.gameCompleted ||
+                gameState.swapsUsed >= 1 || gameState.difficulty !== 'hard') return;
 
-            gameState.skipsUsed++;
-            gameState.currentAttemptIndex++;
+            const oldLang = currentChallenge.lang;
+            const hardOnlyLangs = DIFFICULTY_POOLS.hard.filter(l => !DIFFICULTY_POOLS.medium.includes(l));
+            const oldIsHardOnly = hardOnlyLangs.includes(oldLang);
 
-            if (gameState.currentAttemptIndex < CHALLENGE_COUNT) {
-                nextAttempt();
+            const otherUsed = gameState.usedLanguages.filter(l => l !== oldLang);
+            const hardOnlyUsedAfterSwap = otherUsed.filter(l => hardOnlyLangs.includes(l)).length;
+            const attemptsRemaining = CHALLENGE_COUNT - gameState.currentAttemptIndex - 1;
+            const needHardOnly = hardOnlyUsedAfterSwap < 2 && (hardOnlyUsedAfterSwap + attemptsRemaining) < 2;
+
+            const nonLatinAfterSwap = countNonLatin(otherUsed);
+            const needNonLatin = nonLatinAfterSwap < MIN_NON_LATIN && (nonLatinAfterSwap + attemptsRemaining) < MIN_NON_LATIN;
+            const maxedNonLatin = nonLatinAfterSwap >= MAX_NON_LATIN;
+
+            let pool;
+            if (needNonLatin) {
+                pool = DIFFICULTY_POOLS.hard.filter(l => NON_LATIN_LANGS.has(l) && l !== oldLang && !otherUsed.includes(l));
+            } else if (oldIsHardOnly && needHardOnly) {
+                pool = hardOnlyLangs.filter(l => l !== oldLang && !otherUsed.includes(l));
+                if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
             } else {
-                finishGame();
+                pool = DIFFICULTY_POOLS.hard.filter(l => l !== oldLang && !otherUsed.includes(l));
+                if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
             }
+            if (pool.length === 0) {
+                pool = DIFFICULTY_POOLS.hard.filter(l => l !== oldLang);
+            }
+            if (pool.length === 0) return;
+
+            const newLang = pool[Math.floor(Math.random() * pool.length)];
+            const phrasesForLang = challenges[newLang];
+            if (!phrasesForLang || phrasesForLang.length === 0) return;
+
+            const newPhrase = phrasesForLang[Math.floor(Math.random() * phrasesForLang.length)];
+
+            const oldLangIdx = gameState.usedLanguages.indexOf(oldLang);
+            if (oldLangIdx !== -1) gameState.usedLanguages.splice(oldLangIdx, 1);
+            gameState.usedLanguages.push(newLang);
+
+            currentChallenge = { lang: newLang, phrase: newPhrase };
+            gameState.swapsUsed++;
+
+            updateChallengeUI();
         }
 
         function updateProgressTracker() {
@@ -1051,9 +1780,9 @@
                 if (i < gameState.attempts.length) {
                     const attempt = gameState.attempts[i];
                     const langInfo = LANGUAGE_INFO[attempt.lang];
-                    const icon = attempt.status === 'win' ? '✅' : attempt.status === 'fail' ? '❌' : '⏭️';
-                    const scoreText = attempt.status === 'skip' ? '—' : `${attempt.score}%`;
-                    const scoreColor = attempt.status === 'win' ? 'var(--success-green)' : attempt.status === 'fail' ? 'var(--danger-orange)' : 'var(--gray-40)';
+                    const icon = attempt.status === 'win' ? '✅' : '❌';
+                    const scoreText = `${Math.round(attempt.score)}%`;
+                    const scoreColor = attempt.status === 'win' ? 'var(--success-green)' : 'var(--danger-orange)';
 
                     slot.classList.add(attempt.status);
                     slot.innerHTML = `
@@ -1080,58 +1809,110 @@
         }
 
         function updateAverageAccuracy() {
-            const scoredAttempts = gameState.attempts.filter(a => a.status !== 'skip');
-            if (scoredAttempts.length === 0) {
+            if (gameState.attempts.length === 0) {
                 document.getElementById('averageAccuracy').textContent = '--';
                 return;
             }
 
-            const avg = scoredAttempts.reduce((sum, a) => sum + a.score, 0) / scoredAttempts.length;
+            const avg = gameState.attempts.reduce((sum, a) => sum + a.score, 0) / gameState.attempts.length;
             document.getElementById('averageAccuracy').textContent = avg.toFixed(1) + '%';
         }
 
-        function finishGame() {
-            gameState.gameCompleted = true;
+        async function finishGame() {
+            if (saving || pendingAttempt || gameState.gameCompleted) return;
+            pendingCompletion = true;
+            saving = true;
+            updateSaveControls();
 
-            const scoredAttempts = gameState.attempts.filter(a => a.status !== 'skip');
-            const avgScore = scoredAttempts.length > 0
-                ? scoredAttempts.reduce((sum, a) => sum + a.score, 0) / scoredAttempts.length
+            let tournamentScore = null;
+            let rank = null;
+            let totalPlayers = null;
+
+            // Call server to finalize and get composite score
+            let isNewBest = false;
+            let bestScore = null;
+
+            let serverResult = null;
+            try {
+                if (TOURNAMENT_ENABLED) {
+                    const resp = await fetch(`/api/game/${gameState.gameId}/complete`, {
+                        method: 'POST', headers: apiHeaders()
+                    });
+                    if (!resp.ok) throw new Error('Completion save failed');
+                    serverResult = await resp.json();
+                    tournamentScore = serverResult.total_score;
+                    rank = serverResult.rank;
+                    isNewBest = serverResult.is_new_best;
+                    bestScore = serverResult.best_score;
+                    fetchLeaderboard();
+                }
+                gameState.gameCompleted = true;
+                pendingCompletion = false;
+                clearPersistenceError();
+            } catch (error) {
+                persistenceError('Your final result has not been confirmed saved. Keep this page open and retry before starting another game.');
+                return;
+            } finally {
+                saving = false;
+                updateSaveControls();
+            }
+
+            const avgScore = gameState.attempts.length > 0
+                ? gameState.attempts.reduce((sum, a) => sum + a.score, 0) / gameState.attempts.length
                 : 0;
-            const won = avgScore >= 80;
+            const won = serverResult ? serverResult.won : avgScore >= 80;
             const finalResultsEl = document.getElementById('finalResults');
-            const prizeTiers = {easy: 'BRONZE', medium: 'SILVER', hard: 'GOLD'};
-            const prizeTrophies = {easy: '🥉', medium: '🥈', hard: '🥇'};
+
+            const scoreLine = tournamentScore !== null
+                ? `<p style="font-size: 1.2rem; margin: 4px 0; color: var(--white);">Tournament score: <strong>${tournamentScore}</strong></p>`
+                : '';
+            const bestLine = isNewBest
+                ? `<p style="font-size: 0.95rem; color: var(--success-green); font-weight: 700;">⭐ New Personal Best!</p>`
+                : bestScore !== null
+                    ? `<p style="font-size: 0.85rem; color: var(--gray-40);">Your best: <strong>${bestScore}</strong></p>`
+                    : '';
+            const rankLine = rank !== null
+                ? `<p style="font-size: 0.9rem; color: var(--interaction-blue);">Leaderboard rank: <strong>#${rank}</strong></p>`
+                : '';
+
+            const bestText = isNewBest
+                ? '⭐ New Personal Best!'
+                : bestScore !== null ? `Your best: ${bestScore}` : '';
+            const rankText = rank !== null ? `Leaderboard rank: #${rank}` : '';
 
             if (won) {
-                document.getElementById('congratsTrophy').textContent = prizeTrophies[gameState.difficulty];
-                document.getElementById('congratsMessage').innerHTML = `You won the <strong>${prizeTiers[gameState.difficulty]}</strong> prize!`;
-                document.getElementById('congratsScore').textContent = `Average accuracy: ${avgScore.toFixed(1)}%`;
+                document.getElementById('congratsTrophy').textContent = '🏆';
+                document.getElementById('congratsMessage').innerHTML = tournamentScore !== null
+                    ? `Tournament score: <strong>${tournamentScore}</strong>`
+                    : `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('congratsBest').textContent = bestText;
+                document.getElementById('congratsBest').style.color = isNewBest ? 'var(--success-green)' : 'var(--gray-40)';
+                document.getElementById('congratsRank').textContent = rankText;
                 document.getElementById('congratsOverlay').style.display = 'flex';
-
-                finalResultsEl.innerHTML = `
-                    <h3 style="color: var(--success-green);">🎉 Congratulations!</h3>
-                    <p style="font-size: 1.2rem; margin: 15px 0;">
-                        Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>
-                    </p>
-                    <p style="font-size: 1rem;">Difficulty: <strong>${gameState.difficulty.toUpperCase()}</strong></p>
-                    <p style="margin-top: 15px;">Visit the Red Hat booth to claim your <strong>${prizeTiers[gameState.difficulty]}</strong> prize! 🏆</p>
-                `;
             } else {
-                const lossTitle = avgScore >= 60 ? '😅 So close! 😅' : avgScore >= 30 ? '🫣 Not quite! 🫣' : '😬 Tough one! 😬';
+                const lossTitle = avgScore >= 60 ? 'So close!' : avgScore >= 30 ? 'Not quite!' : 'Tough one!';
                 document.getElementById('lossTitle').textContent = lossTitle;
-                document.getElementById('lossScore').innerHTML = `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('lossScore').innerHTML = tournamentScore !== null
+                    ? `Tournament score: <strong>${tournamentScore}</strong>`
+                    : `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('lossBest').textContent = bestText;
+                document.getElementById('lossBest').style.color = isNewBest ? '#63993d' : '#a3a3a3';
+                document.getElementById('lossRank').textContent = rankText;
                 document.getElementById('lossOverlay').style.display = 'flex';
-
-                finalResultsEl.innerHTML = `
-                    <h3 style="color: var(--danger-orange);">Almost there!</h3>
-                    <p style="font-size: 1.2rem; margin: 15px 0;">Average accuracy: <strong>${avgScore.toFixed(1)}%</strong></p>
-                    <p style="font-size: 1rem;">Needed: <strong>80%</strong> average to win</p>
-                    <p style="margin-top: 15px;">Try again for another shot at the prize!</p>
-                `;
             }
+
+            finalResultsEl.innerHTML = `
+                <h3 style="color: ${won ? 'var(--success-green)' : 'var(--danger-orange)'};">${won ? 'Congratulations!' : 'Almost there!'}</h3>
+                ${scoreLine}
+                ${bestLine}
+                <p style="font-size: 1rem;">Accuracy: <strong>${avgScore.toFixed(1)}%</strong> | Difficulty: <strong>${gameState.difficulty.toUpperCase()}</strong></p>
+                ${rankLine}
+            `;
 
             finalResultsEl.style.display = 'block';
             document.getElementById('challengeActions').style.display = 'none';
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('transcription').textContent = '';
         }
 
         function closeCongratsModal() {
@@ -1143,15 +1924,21 @@
         }
 
         function resetGame() {
+            if (saving || pendingAttempt || pendingCompletion || isRecording) {
+                persistenceError('Finish saving this game before starting another. Keep this page open and retry.');
+                return;
+            }
+            clearPersistenceError();
+            currentChallenge = null;
             gameState = {
                 difficulty: null,
                 attempts: [],
                 usedLanguages: [],
                 currentAttemptIndex: 0,
-                totalWins: 0,
-                skipsUsed: 0,
+                swapsUsed: 0,
                 gameStarted: false,
-                gameCompleted: false
+                gameCompleted: false,
+                gameId: null
             };
 
             document.getElementById('difficultySelector').style.display = 'block';
@@ -1160,6 +1947,8 @@
             document.getElementById('progressTracker').innerHTML = '';
             document.getElementById('averageAccuracy').textContent = '--';
             document.getElementById('challengeActions').style.display = 'block';
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('transcription').textContent = '';
         }
 
         // Recording controls (same as before)
@@ -1172,9 +1961,47 @@
         recordBtn.addEventListener('click', startRecording);
         stopBtn.addEventListener('click', stopRecording);
 
+        function showCountdown() {
+            return new Promise(resolve => {
+                const box = document.getElementById('transcription');
+                box.classList.add('countdown-active');
+                const steps = ['3', '2', '1'];
+                let i = 0;
+
+                function nextStep() {
+                    if (i >= steps.length) {
+                        box.classList.remove('countdown-active');
+                        box.textContent = '';
+                        resolve();
+                        return;
+                    }
+                    box.innerHTML = `<div class="countdown-text">${steps[i]}</div>`;
+                    i++;
+                    setTimeout(nextStep, 800);
+                }
+                nextStep();
+            });
+        }
+
+        function showSpeakFlash() {
+            const box = document.getElementById('transcription');
+            box.classList.add('countdown-active');
+            box.innerHTML = '<div class="countdown-text speak">🎤 SPEAK!</div>';
+            setTimeout(() => {
+                box.classList.remove('countdown-active');
+                box.textContent = '';
+            }, 500);
+        }
+
         async function startRecording() {
+            if (saving || pendingAttempt || pendingCompletion || !gameState.gameStarted || !currentChallenge || gameState.gameCompleted) return;
             transcription.textContent = '';
             document.getElementById('accuracyScore').textContent = '--';
+
+            recordBtn.disabled = true;
+            recordBtn.classList.add('recording');
+            stopBtn.disabled = false;
+            vadStatus.textContent = 'Starting mic...';
 
             try {
                 const deviceId = document.getElementById('microphone').value;
@@ -1183,23 +2010,29 @@
                 };
 
                 mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                // 3, 2, 1 countdown — no recording yet
+                await showCountdown();
+
+                // Start recorder BEFORE showing SPEAK! — captures audio immediately
                 audioContext = new AudioContext({ sampleRate: 48000 });
                 audioInput = audioContext.createMediaStreamSource(mediaStream);
-
                 recorder = new VADRecorder(audioContext, audioInput);
                 recorder.start();
-
                 isRecording = true;
-                recordBtn.disabled = true;
-                recordBtn.classList.add('recording');
-                stopBtn.disabled = false;
                 vadIndicator.classList.add('active');
                 vadStatus.textContent = 'Listening...';
-
                 startTimer();
+
+                // Flash SPEAK! — recording is already on, this is just the visual cue
+                showSpeakFlash();
                 document.getElementById('streamingIndicator').style.display = 'block';
             } catch (error) {
                 console.error('Error starting recording:', error);
+                recordBtn.disabled = false;
+                recordBtn.classList.remove('recording');
+                stopBtn.disabled = true;
+                vadStatus.textContent = 'Ready';
                 alert('Error accessing microphone: ' + error.message);
             }
         }
@@ -1370,11 +2203,67 @@
 
                 document.getElementById('vllmTTFT').textContent = vllmTTFT !== null ? vllmTTFT : '--';
                 document.getElementById('vllmE2E').textContent = vllmE2E !== null ? vllmE2E : '--';
-                document.getElementById('vllmSuccessRate').textContent = vllmSuccessRate + '%';
+                document.getElementById('vllmSuccessRate').textContent = vllmSuccessRate;
 
             } catch (error) {
                 console.error('Error fetching metrics:', error);
             }
+        }
+
+        function startLeaderboardPolling() {
+            if (!TOURNAMENT_ENABLED) return;
+            fetchLeaderboard();
+            leaderboardInterval = setInterval(fetchLeaderboard, 15000);
+        }
+
+        async function fetchLeaderboard() {
+            try {
+                const resp = await fetch('/api/leaderboard?limit=20');
+                const data = await resp.json();
+                renderLeaderboard(data.leaderboard, 'fullLeaderboardRows');
+            } catch (e) {
+                console.error('Leaderboard fetch error:', e);
+            }
+        }
+
+        async function fetchLeaderboardPreview() {
+            try {
+                const resp = await fetch('/api/leaderboard?limit=5');
+                const data = await resp.json();
+                renderLeaderboard(data.leaderboard, 'regLeaderboardRows');
+            } catch (e) {
+                console.error('Leaderboard preview error:', e);
+            }
+        }
+
+        function renderLeaderboard(entries, containerId) {
+            const container = document.getElementById(containerId);
+            if (!entries || entries.length === 0) {
+                container.innerHTML = '<div class="lb-empty">No scores yet — be the first!</div>';
+                return;
+            }
+
+            container.innerHTML = entries.map(e => {
+                const isMe = playerSession.nickname && e.nickname === playerSession.nickname;
+                const mins = Math.floor(e.duration_seconds / 60);
+                const secs = Math.round(e.duration_seconds % 60);
+                const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+                return `<div class="lb-row ${e.rank <= 3 ? 'top-3' : ''} ${isMe ? 'highlight' : ''}">
+                    <span class="lb-rank">${e.rank <= 3 ? ['🥇','🥈','🥉'][e.rank-1] : '#' + e.rank}</span>
+                    <span class="lb-nick">${e.nickname}${isMe ? ' (you)' : ''}</span>
+                    <span class="lb-score">${e.score}</span>
+                    <span class="lb-diff lb-diff-${e.difficulty}">${e.difficulty}</span>
+                    <span class="lb-time">${timeStr}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function showTab(tab) {
+            document.getElementById('tabChallenge').classList.toggle('active', tab === 'challenge');
+            document.getElementById('tabLeaderboard').classList.toggle('active', tab === 'leaderboard');
+            document.getElementById('challengeTab').style.display = tab === 'challenge' ? 'block' : 'none';
+            document.getElementById('leaderboardContent').style.display = tab === 'leaderboard' ? 'block' : 'none';
+            if (tab === 'leaderboard') fetchLeaderboard();
         }
 
         // VAD Recorder (same as streaming version)
@@ -1490,7 +2379,7 @@
 
             const formData = new FormData();
             formData.append('audio', wavBlob, 'chunk.wav');
-            formData.append('language', currentChallenge ? currentChallenge.lang : document.getElementById('language').value);
+            formData.append('language', currentChallenge ? currentChallenge.lang : REQUIRED_LANGUAGE);
             formData.append('mode', 'transcriptions');
 
             try {
@@ -1594,8 +2483,9 @@
             <h2>🎉 Congratulations! 🎉</h2>
             <div class="trophy" id="congratsTrophy">🏆</div>
             <p id="congratsMessage">You won the <strong>Gold</strong> prize!</p>
-            <p id="congratsScore" style="font-size: 1.2rem; margin-top: 20px;"></p>
-            <p style="font-size: 1rem; margin-top: 30px; opacity: 0.9;">Visit the Red Hat booth to claim your prize!</p>
+            <p id="congratsBest" style="font-size: 1.1rem; margin-top: 10px; font-weight: 700;"></p>
+            <p id="congratsRank" style="font-size: 1.2rem; margin-top: 10px; color: var(--interaction-blue);"></p>
+            <p style="font-size: 1rem; margin-top: 20px; opacity: 0.9;">{% if tournament_enabled %}Keep playing to climb the leaderboard!{% else %}Play again and try another difficulty!{% endif %}</p>
         </div>
     </div>
 
@@ -1606,8 +2496,9 @@
             <h2 id="lossTitle">😅 So close! 😅</h2>
             <div class="trophy" style="font-size: 6rem; margin: 20px 0;">💪</div>
             <p id="lossScore" style="font-size: 1.5rem; margin: 15px 0; color: var(--white);"></p>
-            <p style="font-size: 1.2rem; color: var(--white);">Needed: <strong>80%</strong> average to win</p>
-            <p style="font-size: 1rem; margin-top: 30px; opacity: 0.9; color: var(--white);">Give it another shot! You've got this! 💪</p>
+            <p id="lossBest" style="font-size: 1.1rem; font-weight: 700;"></p>
+            <p id="lossRank" style="font-size: 1.1rem; margin: 8px 0; color: var(--interaction-blue);"></p>
+            <p style="font-size: 1rem; margin-top: 20px; opacity: 0.9; color: var(--white);">Give it another shot! You've got this! 💪</p>
         </div>
     </div>
 

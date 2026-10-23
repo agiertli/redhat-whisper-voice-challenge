@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard | {{ conference_name }}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Red Hat Text', sans-serif;
+            background: linear-gradient(135deg, #151515 0%, #1f1f1f 100%);
+            color: #ffffff;
+            height: 100vh;
+            padding: 30px 40px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tv-header {
+            text-align: center;
+            margin-bottom: 30px;
+            flex-shrink: 0;
+        }
+        .tv-header h1 {
+            font-family: 'Red Hat Display', sans-serif;
+            font-weight: 900;
+            font-size: 2.5rem;
+            color: #ee0000;
+        }
+        .tv-header .tv-subtitle {
+            font-size: 1.1rem;
+            color: #a3a3a3;
+            margin-top: 4px;
+        }
+        .tv-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 24px;
+            flex-shrink: 0;
+        }
+        .tv-stat {
+            text-align: center;
+        }
+        .tv-stat .val {
+            font-family: 'Red Hat Display', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+        }
+        .tv-stat .lbl {
+            font-size: 0.85rem;
+            color: #a3a3a3;
+        }
+        .tv-table {
+            flex: 1;
+            overflow: hidden;
+        }
+        .tv-row {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            margin-bottom: 6px;
+            background: #292929;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            transition: all 0.3s;
+        }
+        .tv-row.rank-1 { background: linear-gradient(90deg, rgba(238,0,0,0.25), #292929); border-left: 5px solid #ee0000; font-size: 1.6rem; }
+        .tv-row.rank-2 { background: linear-gradient(90deg, rgba(0,102,204,0.2), #292929); border-left: 5px solid #0066cc; font-size: 1.45rem; }
+        .tv-row.rank-3 { background: linear-gradient(90deg, rgba(99,153,61,0.2), #292929); border-left: 5px solid #63993d; font-size: 1.35rem; }
+        .tv-rank {
+            width: 60px;
+            font-weight: 900;
+            font-family: 'Red Hat Display', sans-serif;
+        }
+        .tv-nick {
+            flex: 1;
+            font-weight: 700;
+        }
+        .tv-score {
+            font-family: 'Red Hat Mono', monospace;
+            font-weight: 700;
+            color: #63993d;
+            width: 100px;
+            text-align: right;
+        }
+        .tv-diff {
+            font-size: 0.75em;
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin-left: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .diff-easy { background: #63993d; }
+        .diff-medium { background: #0066cc; }
+        .diff-hard { background: #ee0000; }
+        .tv-time {
+            width: 80px;
+            text-align: right;
+            color: #a3a3a3;
+            font-size: 0.85em;
+            margin-left: 16px;
+        }
+        .tv-accuracy {
+            width: 70px;
+            text-align: right;
+            color: #a3a3a3;
+            font-size: 0.85em;
+            margin-left: 16px;
+        }
+        .tv-empty {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #a3a3a3;
+            margin-top: 80px;
+        }
+        .tv-footer {
+            text-align: center;
+            padding: 12px;
+            color: #383838;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="tv-header">
+        <h1>{{ conference_name }}</h1>
+        <div class="tv-subtitle">Voice Challenge Leaderboard</div>
+    </div>
+    <div class="tv-stats">
+        <div class="tv-stat"><div class="val" id="tvPlayers">0</div><div class="lbl">Players</div></div>
+        <div class="tv-stat"><div class="val" id="tvTopScore">--</div><div class="lbl">Top score</div></div>
+    </div>
+    <div class="tv-table" id="tvTable">
+        <div class="tv-empty">Waiting for the first challenger...</div>
+    </div>
+    <div class="tv-footer">Auto-refreshing every 10 seconds</div>
+
+    <script>
+        async function refresh() {
+            try {
+                const resp = await fetch('/api/leaderboard?limit=15');
+                const data = await resp.json();
+                const el = document.getElementById('tvTable');
+                document.getElementById('tvPlayers').textContent = data.total_players;
+
+                if (!data.leaderboard || data.leaderboard.length === 0) {
+                    el.innerHTML = '<div class="tv-empty">Waiting for the first challenger...</div>';
+                    document.getElementById('tvTopScore').textContent = '--';
+                    return;
+                }
+
+                document.getElementById('tvTopScore').textContent = data.leaderboard[0].score;
+
+                el.innerHTML = data.leaderboard.map(e => {
+                    const mins = Math.floor(e.duration_seconds / 60);
+                    const secs = Math.round(e.duration_seconds % 60);
+                    const rankClass = e.rank <= 3 ? `rank-${e.rank}` : '';
+                    const medal = e.rank <= 3 ? ['🥇','🥈','🥉'][e.rank-1] : `#${e.rank}`;
+                    return `<div class="tv-row ${rankClass}">
+                        <span class="tv-rank">${medal}</span>
+                        <span class="tv-nick">${e.nickname}</span>
+                        <span class="tv-score">${e.score}</span>
+                        <span class="tv-diff diff-${e.difficulty}">${e.difficulty}</span>
+                        <span class="tv-accuracy">${e.avg_accuracy}%</span>
+                        <span class="tv-time">${mins}:${secs.toString().padStart(2,'0')}</span>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                console.error('TV refresh error:', e);
+            }
+        }
+
+        refresh();
+        setInterval(refresh, 10000);
+    </script>
+</body>
+</html>

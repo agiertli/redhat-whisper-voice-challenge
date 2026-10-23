@@ -7,12 +7,28 @@ build/
 
 .env
 .env.*
+now.env
 
 venv/
 env/
 .venv/
-wav-tests/env-output/
+tests/audio/env-output/
 
 .DS_Store
 
 .claude/settings.local.json
+
+konferencie/
+
+# Generated artifacts
+*.pptx
+*.mov
+tournament-stats.html
+tournament-slides.html
+slides-*.html
+backups/
+tts/
+
+# Local deployment credentials (venue configuration itself may be versioned)
+admin-token
+admin-token.*
