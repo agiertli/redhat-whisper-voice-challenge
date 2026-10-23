@@ -74,14 +74,14 @@ cd redhat-whisper-voice-challenge
 oc whoami
 oc whoami --show-server
 
-cp examples/venue-values.yaml venue.yaml
-# Edit venue.yaml: choose conference.name and game.requiredLanguage.
+cp examples/venue-values.yaml values-conference.yaml
+# Edit values-conference.yaml: choose conference.name and game.requiredLanguage.
 
 # Read-only: no node labels, model scaling, Helm upgrade or data writes.
-./deploy.sh --values venue.yaml --free-rhdp-gpu --preflight
+./deploy.sh --values values-conference.yaml --free-rhdp-gpu --preflight
 
 # Same configuration; now release demo Llama and install.
-./deploy.sh --values venue.yaml --free-rhdp-gpu
+./deploy.sh --values values-conference.yaml --free-rhdp-gpu
 ```
 
 For a quick English installation without a venue file:
@@ -115,6 +115,32 @@ The chart sets `GUNICORN_CMD_ARGS=--preload` so SQLite initialization/migrations
 once before the four workers fork. Live testing caught a first-boot database lock
 race without this setting. Keep preloading enabled for this SQLite deployment.
 
+## Choose the admin password
+
+`tournament.adminToken` is the admin dashboard password. Leave it unset to generate
+one on first installation, or choose a memorable value such as `whisper@r3dh4t!`.
+There is no shared default. Create a private file without a trailing newline:
+
+```bash
+umask 077
+read -r -s -p 'Choose admin password: ' ADMIN_PASSWORD; printf '\n'
+printf '%s' "$ADMIN_PASSWORD" > admin-token
+unset ADMIN_PASSWORD
+```
+
+For the automated installer, add `--admin-password-file ./admin-token` to the
+preflight and installation commands. For direct Helm, add
+`--set-file tournament.adminToken=./admin-token` to the Helm command. This file is
+ignored by Git; keep the password out of the versioned venue YAML. Omit the
+password override on ordinary upgrades to retain the installed password. Supplying
+a different value intentionally changes the password and requires updating the
+backup laptop's credential file. It does not change the player signing key.
+
+After successful verification, the installer prints the game URL, admin URL and
+actual installed admin password. The direct Helm procedure calls the same summary
+helper. This output intentionally contains the admin password: use a private
+terminal and do not publish its transcript or put it in CI logs.
+
 ## Credentials and tournament storage
 
 On first installation, Helm generates independent signing/admin credentials.
@@ -144,7 +170,7 @@ guard against accidental removal; still never use uninstall as recovery. The cha
 storage class cannot be changed in place. Backup files contain attendee PII and
 must be protected and retained according to the event's policy.
 
-## Required monitoring
+## Enable OpenShift user workload monitoring
 
 Monitoring is always enabled as a standard installation step. The wrapper invokes
 `scripts/enable-monitoring.sh` before deploying and waits for readiness before
@@ -208,7 +234,7 @@ effect. Do not upgrade an active booth without planning the brief interruption.
 
 ```bash
 git pull --ff-only
-./deploy.sh --values venue.yaml --free-rhdp-gpu
+./deploy.sh --values values-conference.yaml --free-rhdp-gpu
 ```
 
 Before changing an existing installation, the installer downloads and validates a
@@ -221,7 +247,7 @@ underlying issue first. Recovery may explicitly use an already saved snapshot:
 
 ```bash
 ./scripts/backup.sh --validate /safe/path/tournament-snapshot.db
-./deploy.sh --values venue.yaml --backup-file /safe/path/tournament-snapshot.db
+./deploy.sh --values values-conference.yaml --backup-file /safe/path/tournament-snapshot.db
 ```
 
 `--backup-file` is an owner assertion that this is the correct, sufficiently recent
@@ -293,7 +319,7 @@ with `--build`, targeting linux/amd64 even on Apple Silicon.
 
 ```bash
 IMAGE_REGISTRY=quay.io/YOUR-ORG VERSION=v2.11.0-rc.1 \
-  ./deploy.sh --build --values venue.yaml --free-rhdp-gpu
+  ./deploy.sh --build --values values-conference.yaml --free-rhdp-gpu
 
 python3 -m pip install -r requirements-dev.txt
 python3 -m unittest discover -s tests -v

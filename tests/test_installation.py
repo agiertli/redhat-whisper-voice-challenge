@@ -400,6 +400,8 @@ elif args[:2] == ['get', 'deployment'] and scenario.startswith('upgrade'):
     print('whisper')
 elif args[:2] == ['get', 'secret'] and scenario == 'upgrade-backup-failure':
     sys.exit(24)
+elif args[:2] == ['get', 'secret']:
+    print('mock-admin-password')
 elif args[:2] == ['get', 'pods'] and scenario in ('wait-failure', 'pods-remain'):
     print('pod/llama-still-running')
 elif args[:2] == ['get', 'statefulset']:
@@ -478,6 +480,19 @@ class InstallerTests(unittest.TestCase):
         self.run_script('deploy.sh', '--language', 'en,namespace=other', success=False)
         self.assertEqual(self.calls(), '')
 
+    def test_access_summary_fails_without_disclosing_partial_details(self):
+        result = self.run_script('scripts/show-access.sh', scenario='upgrade-backup-failure', success=False)
+        self.assertNotIn('Admin password:', result.stdout)
+        self.assertNotIn('Game URL:', result.stdout)
+
+    def test_password_file_is_passed_without_password_in_arguments(self):
+        password = self.directory / 'admin-token'
+        password.write_text('test@password!')
+        result = self.run_script('deploy.sh', '--language', 'de', '--admin-password-file', str(password))
+        self.assertIn('tournament.adminToken=' + str(password), self.calls())
+        self.assertNotIn('test@password!', self.calls())
+        self.assertIn('Admin password: mock-admin-password', result.stdout)
+
     def test_help_needs_no_cluster(self):
         self.run_script('deploy.sh', '--help')
         self.assertEqual(self.calls(), '')
@@ -522,6 +537,8 @@ class InstallerTests(unittest.TestCase):
 
     def test_default_no_build_deploy_uses_requested_language(self):
         result = self.run_script('deploy.sh', '--language', 'cs', '--namespace', 'venue')
+        self.assertIn('Admin URL: https://whisper.fake.test/admin', result.stdout)
+        self.assertIn('Admin password: mock-admin-password', result.stdout)
         self.assertIn('language=cs', result.stdout)
         self.assertIn('"--kube-context", "mock-context"', self.calls())
         self.assertIn('HELM-UPGRADE', self.calls())

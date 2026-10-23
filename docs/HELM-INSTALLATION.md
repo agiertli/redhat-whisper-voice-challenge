@@ -41,7 +41,7 @@ German; change `de` to `cs`, `sk`, `en`, etc. before running it. Later rounds re
 multilingual. Keep this non-secret file and reuse it on every upgrade:
 
 ```bash
-cat > venue.yaml <<'VALUES'
+cat > values-conference.yaml <<'VALUES'
 conference:
   name: "Our Conference"
 game:
@@ -75,7 +75,7 @@ oc label nodes -l nvidia.com/gpu.present=true \
   node-role.kubernetes.io/gpu-worker=true --overwrite
 ```
 
-## Required monitoring
+## Enable OpenShift user workload monitoring
 
 Monitoring is mandatory for every game installation. GPU gauges come from DCGM;
 persistent request/token counters also require OpenShift user workload monitoring.
@@ -84,6 +84,10 @@ Enable it as a standard prerequisite, without a separate owner-permission step:
 ```bash
 ./scripts/enable-monitoring.sh
 ```
+
+Run the command above; there is no separate monitoring chart to install or
+configure. The automated `deploy.sh` path runs it automatically; this direct Helm
+path currently requires this command explicitly.
 
 This helper needs only Bash, oc and Helm (already required here). It uses Helm's
 YAML parser to set `enableUserWorkload: true`, retaining all other monitoring
@@ -103,14 +107,20 @@ KServe creates the `whisper-metrics` ServiceMonitor. Allow a scrape cycle after
 real requests before judging persistent counters. Verify GPU gauges and AI
 counters in the main screen before opening the booth.
 
+Choose the admin password before installation using the [private password file
+procedure](INSTALLATION.md#choose-the-admin-password). Add
+`--set-file tournament.adminToken=./admin-token` to the Helm command below if you
+choose your own password; otherwise one is generated. Omit the override on normal
+upgrades to preserve the existing password.
+
 ## 3. Validate and install directly with Helm
 
 ```bash
-helm lint helm/whisper -f venue.yaml
+helm lint helm/whisper -f values-conference.yaml
 
 helm upgrade --install whisper helm/whisper \
   --namespace whisper --create-namespace \
-  --values venue.yaml \
+  --values values-conference.yaml \
   --wait --timeout 20m
 ```
 
@@ -135,19 +145,21 @@ oc wait --for=condition=Ready inferenceservice/whisper -n whisper --timeout=600s
 oc rollout status deployment/whisper-ui -n whisper --timeout=300s
 ./scripts/enable-monitoring.sh --wait
 ./scripts/verify-install.sh whisper de
-oc get route whisper-ui -n whisper -o jsonpath='{.spec.host}'
+./scripts/show-access.sh whisper
 ```
 
 The verification helper is Bash/oc and runs Python **inside the deployed UI image**;
 no Python installation is needed on this workstation. It checks the configured
 first language, pages, leaderboard/database and real-audio UI-to-vLLM transcription.
-Pass the same language chosen in `venue.yaml`.
+Pass the same language chosen in `values-conference.yaml`.
 
 Open `https://HOST/` with trusted TLS, grant browser microphone permission and
 complete a real game. Check `/register`, `/tv`, `/admin` and scores. API/audio-file
 checks do not prove that the laptop microphone/browser capture path works.
 
-Retrieve the admin token into a private file, not terminal/chat output:
+The success summary above prints the game URL, admin URL and installed admin
+password. Keep that output private. For the backup laptop, also save the installed
+password into a protected file:
 
 ```bash
 umask 077
@@ -188,7 +200,7 @@ the token out of command arguments:
 umask 077
 oc get secret whisper-tournament-secret -n whisper \
   -o 'go-template={{index .data "ADMIN_TOKEN" | base64decode}}' > admin-token
-GAME_HOST=$(oc get route whisper-ui -n whisper -o jsonpath='{.spec.host}')
+GAME_HOST=$(./scripts/show-access.sh whisper)
 WHISPER_URL="https://$GAME_HOST" ADMIN_TOKEN_FILE=./admin-token \
   BACKUP_DIR=./pre-upgrade-backups ./scripts/backup.sh
 
@@ -196,10 +208,11 @@ WHISPER_URL="https://$GAME_HOST" ADMIN_TOKEN_FILE=./admin-token \
 ./scripts/enable-monitoring.sh
 helm upgrade --install whisper helm/whisper \
   --namespace whisper --create-namespace \
-  --values venue.yaml --wait --timeout 20m
+  --values values-conference.yaml --wait --timeout 20m
 
 ./scripts/enable-monitoring.sh --wait
 ./scripts/verify-install.sh whisper de
+./scripts/show-access.sh whisper
 ```
 
 When putting these commands in your own Bash script, use `set -euo pipefail` so a

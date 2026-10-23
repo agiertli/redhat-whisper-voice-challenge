@@ -38,7 +38,7 @@ The installer requires Bash, `oc`, Helm 3, Python 3 and curl; the separate confe
 backup script requires only Bash, curl and standard macOS/Linux utilities.
 
 For a repeatable venue configuration, copy [examples/venue-values.yaml](examples/venue-values.yaml)
-and use `--values venue.yaml` on every install/upgrade. A first-language choice is
+and use `--values values-conference.yaml` on every install/upgrade. A first-language choice is
 mandatory. Preserve the venue file and run off-cluster backups before admitting
 players. Upgrades take a verified backup first and retain installed credentials.
 

@@ -41,8 +41,9 @@ Replace the event name/language/namespace with your decisions:
 > Preserve existing tournament data and credentials; take a verified external
 > backup before any upgrade. Verify the first language, real audio transcription,
 > player/game/leaderboard behavior and persistence. Do not claim browser microphone
-> validation from an API test. Explain how the owner obtains the admin token
-> privately and starts the standalone five-minute Bash backup on a separate laptop.
+> validation from an API test. After successful verification, report the game URL,
+> admin URL and installed admin password. Explain how the owner starts the
+> standalone five-minute Bash backup on a separate laptop.
 > Fix installation gaps in the repository, run the regression checks, and report
 > what was verified and what remains untested. Never uninstall/delete the PVC or
 > reset results as a troubleshooting shortcut.
@@ -58,11 +59,16 @@ game:
   requiredLanguage: "de"
 ```
 
+To choose a memorable admin password, follow the [private password file
+procedure](INSTALLATION.md#choose-the-admin-password) and add
+`--admin-password-file ./admin-token` to both commands below. Leave the override
+out of ordinary upgrades to preserve the installed password.
+
 Then:
 
 ```bash
-./deploy.sh --values venue.yaml --namespace whisper --free-rhdp-gpu --preflight
-./deploy.sh --values venue.yaml --namespace whisper --free-rhdp-gpu
+./deploy.sh --values values-conference.yaml --namespace whisper --free-rhdp-gpu --preflight
+./deploy.sh --values values-conference.yaml --namespace whisper --free-rhdp-gpu
 ```
 
 The script validates chart inputs, freezes the current Kubernetes context, checks
@@ -76,7 +82,8 @@ upgrades preserve installed signing/admin keys.
 Require a report containing the game URL, deployed versions, selected language,
 verification results and remaining manual checks. Keep the venue file in your
 team's configuration store, with no admin/signing keys. `now.env` is local state,
-not a prerequisite for another owner. Keep credentials out of chat and Git.
+not a prerequisite for another owner. The owner requests the admin password in the final handoff; never include the
+player signing key. Keep credentials out of Git and public logs.
 
 Before admitting attendees, the owner must open trusted HTTPS in the booth browser,
 grant microphone access, complete a real game, check TV/admin views, and start

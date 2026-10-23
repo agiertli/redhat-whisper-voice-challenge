@@ -32,6 +32,12 @@ a third deployment procedure. Work on the `tournament-mode` branch.
 - Reuse the same venue values file and explicit language on every upgrade.
 - Do not claim completion based only on Ready pods: internal real-audio smoke
   checks must pass; browser TLS, microphone and a complete game need verification.
+- After successful verification, report the game URL, admin URL and installed admin
+  password from `scripts/show-access.sh`. The owner explicitly requests this
+  credential in the installation handoff. Never print the signing key.
+- An owner can choose the admin password using `--admin-password-file FILE`;
+  direct Helm uses `--set-file tournament.adminToken=FILE`. Omit on ordinary
+  upgrades to preserve the existing password; never impose a shared default.
 - Start the standalone backup loop on an external laptop before admitting players.
   Verify the first snapshot and rehearse restore on a disposable installation.
 - Record actual versions and test evidence; distinguish local tests from cluster
@@ -51,4 +57,5 @@ and semantic image tags (never `latest`). SQLite uses one UI replica and a PVC;
 do not scale replicas as an HA solution. Config changes must roll the UI. Existing
 Secret values must survive ordinary upgrades. Keep secrets, backups and local
 `now.env` out of Git and image build contexts. If maintaining `now.env`, use the
-current cluster's information and do not print credentials in logs/chat.
+current cluster's information. Only the requested admin password handoff may
+include a credential in terminal/chat output; keep other diagnostics secret-free.

@@ -12,6 +12,7 @@ Usage: ./deploy.sh [options]
   --language CODE        Required first language (or set game.requiredLanguage in --values)
   --namespace NAME       Target namespace (default: NAMESPACE or whisper)
   --values FILE          Additional Helm values (or HELM_VALUES environment variable)
+  --admin-password-file FILE  Choose admin password from a private file (no trailing newline)
   --preflight            Read-only cluster/configuration checks; do not deploy
   --backup-file FILE     Recovery only: validate an existing snapshot instead of
                          downloading a fresh pre-upgrade backup
@@ -23,7 +24,7 @@ Usage: ./deploy.sh [options]
 Requires Bash, oc, Helm 3, Python 3, curl. OpenShift AI/GPU operators and storage must
 already be configured. Optional build uses podman, or docker when unavailable.
 IMAGE_REGISTRY / IMAGE_NAME / VERSION override chart image settings when set.
-No credentials are printed. Retrieve the admin token using the runbook.
+After successful verification, the game/admin URLs and installed admin password are printed.
 HELP
 }
 fail() { echo "ERROR: $*" >&2; exit 1; }
@@ -35,6 +36,7 @@ BUILD=false
 FREE_GPU=false
 PREFLIGHT=false
 BACKUP_FILE=""
+ADMIN_PASSWORD_FILE=""
 while (($#)); do
     case "$1" in
         -h|--help) usage; exit 0 ;;
@@ -42,7 +44,7 @@ while (($#)); do
         --build) BUILD=true; shift ;;
         --skip-build) BUILD=false; shift ;;
         --preflight) PREFLIGHT=true; shift ;;
-        --language|--namespace|--values|--timeout|--backup-file)
+        --language|--namespace|--values|--timeout|--backup-file|--admin-password-file)
             if (($# < 2)) || [[ -z "${2:-}" || "${2:-}" == --* ]]; then
                 fail "$1 requires a value"
             fi
@@ -52,6 +54,7 @@ while (($#)); do
                 --values) VALUES=$2 ;;
                 --timeout) TIMEOUT=$2 ;;
                 --backup-file) BACKUP_FILE=$2 ;;
+                --admin-password-file) ADMIN_PASSWORD_FILE=$2 ;;
             esac
             shift 2 ;;
         *) fail "Unknown option: $1 (see --help)" ;;
@@ -63,6 +66,10 @@ if ((TIMEOUT < 300 || TIMEOUT > 7200)); then fail "Timeout must be 300-7200 seco
 [[ "$NAMESPACE" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ && ${#NAMESPACE} -le 63 ]] || fail "Invalid namespace"
 if [[ -n "$VALUES" && "$VALUES" != /* ]]; then VALUES="$CALLER_DIR/$VALUES"; fi
 if [[ -n "$BACKUP_FILE" && "$BACKUP_FILE" != /* ]]; then BACKUP_FILE="$CALLER_DIR/$BACKUP_FILE"; fi
+if [[ -n "$ADMIN_PASSWORD_FILE" ]]; then
+    [[ "$ADMIN_PASSWORD_FILE" == /* ]] || ADMIN_PASSWORD_FILE="$CALLER_DIR/$ADMIN_PASSWORD_FILE"
+    [[ -r "$ADMIN_PASSWORD_FILE" && -s "$ADMIN_PASSWORD_FILE" ]] || fail "Admin password file must be readable and non-empty"
+fi
 [[ -z "$LANGUAGE" || "$LANGUAGE" =~ ^[a-z]{2}$ ]] || fail "Language must be a two-letter code (cs/sk/en/de)"
 if [[ -n ${IMAGE_REGISTRY:-} ]]; then
     [[ "${IMAGE_REGISTRY}/${IMAGE_NAME:-whisper-ui}" =~ ^[a-z0-9][a-z0-9./:_-]*$ ]] || fail "Invalid image repository"
@@ -86,6 +93,7 @@ trap cleanup EXIT
 # This file contains a generated signing key on first install. Never print it.
 ARGS=(--namespace "$NAMESPACE")
 [[ -z "$VALUES" ]] || ARGS+=(-f "$VALUES")
+[[ -z "$ADMIN_PASSWORD_FILE" ]] || ARGS+=(--set-file "tournament.adminToken=$ADMIN_PASSWORD_FILE")
 ARGS+=(--set-string "namespace=$NAMESPACE" --set "warmup.deadlineSeconds=$((TIMEOUT - 60))")
 [[ -z "$LANGUAGE" ]] || ARGS+=(--set-string "game.requiredLanguage=$LANGUAGE")
 [[ -z ${IMAGE_REGISTRY:-} ]] || ARGS+=(--set-string "image.repository=${IMAGE_REGISTRY}/${IMAGE_NAME:-whisper-ui}")
@@ -173,7 +181,7 @@ oc wait --for=condition=Ready "inferenceservice/$MODEL" -n "$NAMESPACE" --timeou
 oc rollout status deployment/whisper-ui -n "$NAMESPACE" --timeout="${TIMEOUT}s"
 "$ROOT/scripts/enable-monitoring.sh" --wait
 "$ROOT/scripts/verify-install.sh" "$NAMESPACE" "$LANGUAGE"
-HOST=$(oc get route whisper-ui -n "$NAMESPACE" -o jsonpath='{.spec.host}')
-echo "Deployment and internal smoke checks passed: https://$HOST/"
+echo "Deployment and internal smoke checks passed."
+"$ROOT/scripts/show-access.sh" "$NAMESPACE"
 echo "Next: verify browser TLS, microphone, registration, a complete game, /tv and /admin."
-echo "Admin credential retrieval and backup instructions: docs/INSTALLATION.md"
+echo "Backup instructions: docs/INSTALLATION.md"
