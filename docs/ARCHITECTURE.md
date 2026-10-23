@@ -1,5 +1,9 @@
 # Architecture
 
+This is a background diagram, not the installation specification. Some labels
+reflect earlier deployments. Use [INSTALLATION.md](INSTALLATION.md) and the current
+chart for deployment configuration and the tournament persistence constraints.
+
 The Red Hat Whisper Voice Challenge is a Flask web application that captures audio in the browser, sends it to a Whisper speech-to-text model running on OpenShift AI via vLLM, and displays real-time metrics from Prometheus and NVIDIA DCGM.
 
 ## System Architecture Diagram

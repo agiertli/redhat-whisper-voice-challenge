@@ -1,4 +1,5 @@
-namespace: whisper
+# Normally inherited from --namespace; retained as an optional legacy override.
+namespace: ""
 
 image:
   repository: quay.io/agiertli/whisper-ui
@@ -40,19 +41,16 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
-# REQUIRED: Set to your cluster's apps domain
-# Find it with: oc get ingresses.config cluster -o jsonpath='{.spec.domain}'
-clusterDomain: "apps.ocp.6rklz.sandbox744.opentlc.com"
-
 whisperApi:
   modelName: "whisper"
-  displayName: "RedHatAI/whisper-large-v3-FP8-dynamic"
+  displayName: "Whisper large-v3 (Red Hat modelcar)"
 
 conference:
   name: "Red Hat Whisper Voice Challenge"
 
 game:
-  requiredLanguage: "sk"
+  # REQUIRED owner decision: e.g. cs for Czechia, sk for Slovakia, en for English.
+  requiredLanguage: ""
   challengeCount: "5"
   winThreshold: "4"
 
@@ -121,8 +119,15 @@ model:
 
 tournament:
   storage: "1Gi"
-  secret: "45evZXBDANhH6C7svSfxCc25DZbunqrv"
-  adminToken: "ndN1de5DeN5w1gcMNg3GxND4rNQxEYSE"
+  # Empty: reuse the installed Secret; generate independent credentials on first install.
+  # Explicit non-empty values intentionally rotate credentials on upgrade.
+  secret: ""
+  adminToken: ""
+  storageClass: ""  # Empty uses the cluster default; immutable after PVC creation.
 
 vllm:
   image: "registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.4"
+
+# Must be shorter than the Helm timeout. Installer sets this from --timeout.
+warmup:
+  deadlineSeconds: 1140

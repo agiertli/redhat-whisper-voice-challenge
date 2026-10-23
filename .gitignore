@@ -28,3 +28,7 @@ tournament-slides.html
 slides-*.html
 backups/
 tts/
+
+# Local deployment credentials (venue configuration itself may be versioned)
+admin-token
+admin-token.*

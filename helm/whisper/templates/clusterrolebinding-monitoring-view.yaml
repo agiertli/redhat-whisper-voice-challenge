@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "whisper-ui.fullname" . }}-monitoring-view
+  name: {{ include "whisper-ui.fullname" . }}-{{ include "whisper-ui.namespace" . }}-monitoring-view
   labels:
     {{- include "whisper-ui.labels" . | nindent 4 }}
 roleRef:

@@ -3,9 +3,14 @@ kind: PersistentVolumeClaim
 metadata:
   name: whisper-tournament-db
   namespace: {{ include "whisper-ui.namespace" . }}
+  annotations:
+    "helm.sh/resource-policy": keep
   labels:
     {{- include "whisper-ui.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.tournament.storageClass }}
+  storageClassName: {{ .Values.tournament.storageClass | quote }}
+  {{- end }}
   accessModes:
     - ReadWriteOnce
   resources:

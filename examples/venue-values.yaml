@@ -1,0 +1,8 @@
+# Copy to your own venue file and use the SAME file on every install/upgrade.
+# No credentials belong in this file. Empty chart keys reuse the installed Secret.
+conference:
+  name: "Your Conference"
+game:
+  # REQUIRED owner decision. cs=Czech, sk=Slovak, de=German, en=English.
+  # This is the FIRST challenge, not a restriction on all later challenges.
+  requiredLanguage: "cs"

@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "replicaCount": {
+      "type": "integer",
+      "enum": [
+        1
+      ],
+      "description": "SQLite deployment supports one UI replica."
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+      "maxLength": 63
+    },
+    "image": {
+      "type": "object",
+      "required": [
+        "repository",
+        "tag"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tag": {
+          "type": "string",
+          "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9.-]+)?$"
+        }
+      }
+    },
+    "game": {
+      "type": "object",
+      "properties": {
+        "requiredLanguage": {
+          "type": "string",
+          "pattern": "^[a-z]{2}$",
+          "description": "Owner must explicitly choose first language."
+        },
+        "challengeCount": {
+          "type": [
+            "string",
+            "integer"
+          ],
+          "pattern": "^[1-9][0-9]*$",
+          "minimum": 1
+        },
+        "winThreshold": {
+          "type": [
+            "string",
+            "integer"
+          ],
+          "pattern": "^[1-9][0-9]*$",
+          "minimum": 1
+        }
+      }
+    },
+    "whisperApi": {
+      "type": "object",
+      "properties": {
+        "modelName": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+          "maxLength": 50
+        }
+      }
+    },
+    "gpu": {
+      "type": "object",
+      "properties": {
+        "memoryUtilization": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "pattern": "^(0\\.[5-9][0-9]*|1(\\.0+)?)$",
+          "minimum": 0.5,
+          "maximum": 1
+        }
+      }
+    },
+    "warmup": {
+      "type": "object",
+      "properties": {
+        "deadlineSeconds": {
+          "type": "integer",
+          "minimum": 240,
+          "maximum": 7140
+        }
+      }
+    },
+    "route": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "enum": [
+            true
+          ]
+        }
+      }
+    },
+    "tournament": {
+      "type": "object",
+      "properties": {
+        "secret": {
+          "type": "string",
+          "pattern": "^$|^.{32,}$"
+        },
+        "adminToken": {
+          "type": "string",
+          "pattern": "^$|^.{12,}$"
+        },
+        "storageClass": {
+          "type": "string"
+        }
+      }
+    },
+    "difficultyPools": {
+      "type": "string"
+    },
+    "languageInfo": {
+      "type": "string"
+    }
+  }
+}
