@@ -3,7 +3,7 @@ namespace: ""
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: "v2.11.1"
+  tag: "v2.11.2"
   pullPolicy: Always
 
 replicaCount: 1
@@ -52,7 +52,6 @@ game:
   # REQUIRED owner decision: e.g. cs for Czechia, sk for Slovakia, en for English.
   requiredLanguage: ""
   challengeCount: "5"
-  winThreshold: "4"
 
 difficultyPools: |
   {

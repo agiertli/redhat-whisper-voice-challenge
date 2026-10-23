@@ -46,14 +46,6 @@
           ],
           "pattern": "^[1-9][0-9]*$",
           "minimum": 1
-        },
-        "winThreshold": {
-          "type": [
-            "string",
-            "integer"
-          ],
-          "pattern": "^[1-9][0-9]*$",
-          "minimum": 1
         }
       }
     },

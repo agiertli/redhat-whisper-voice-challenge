@@ -66,5 +66,4 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if not (get $languages $language) -}}{{ fail (printf "No languageInfo for: %s" $language) }}{{- end -}}
 {{- end -}}
 {{- end -}}
-{{- if gt (int .Values.game.winThreshold) (int .Values.game.challengeCount) -}}{{ fail "winThreshold cannot exceed challengeCount" }}{{- end -}}
 {{- end -}}

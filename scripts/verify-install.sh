@@ -8,4 +8,4 @@ ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 NS=${1:-whisper}
 LANGUAGE=${2:-en}
 REGISTRATION_MODE=${3:-}
-oc exec -i deployment/whisper-ui -n "$NS" -- python3 -c "$(cat "$ROOT/scripts/smoke-test.py")" "$LANGUAGE" "$REGISTRATION_MODE" < "$ROOT/wav-tests/test-en.wav"
+oc exec -i deployment/whisper-ui -n "$NS" -- python3 -c "$(cat "$ROOT/scripts/smoke-test.py")" "$LANGUAGE" "$REGISTRATION_MODE" < "$ROOT/tests/audio/test-en.wav"

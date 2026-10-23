@@ -412,11 +412,6 @@
             background: rgba(240, 86, 29, 0.15);
         }
 
-        .progress-slot.swap {
-            border-color: var(--interaction-blue);
-            background: rgba(0, 102, 204, 0.1);
-        }
-
         .progress-slot .slot-num {
             font-size: 1.6rem;
             line-height: 1.1;
@@ -1172,7 +1167,6 @@
         // Game Configuration
         const REQUIRED_LANGUAGE = '{{ required_language }}';
         const CHALLENGE_COUNT = {{ challenge_count }};
-        const WIN_THRESHOLD = {{ win_threshold }};
 
         const DIFFICULTY_POOLS = {{ difficulty_pools | tojson }};
         let MAINSTAGE_MODE = {{ mainstage_mode | tojson }};
@@ -1186,7 +1180,6 @@
             attempts: [],
             usedLanguages: [],
             currentAttemptIndex: 0,
-            totalWins: 0,
             swapsUsed: 0,
             gameStarted: false,
             gameCompleted: false,
@@ -1455,7 +1448,6 @@
                     attempts: [],
                     usedLanguages: [],
                     currentAttemptIndex: 0,
-                    totalWins: 0,
                     swapsUsed: 0,
                     gameStarted: true,
                     gameCompleted: false,
@@ -1646,10 +1638,6 @@
                 status: serverStatus
             });
 
-            if (serverStatus === 'win') {
-                gameState.totalWins++;
-            }
-
             gameState.currentAttemptIndex++;
             currentChallenge = null;
             updateChallengeUI();
@@ -1664,7 +1652,8 @@
         }
 
         function swapChallenge() {
-            if (gameState.swapsUsed >= 1 || gameState.difficulty !== 'hard') return;
+            if (!currentChallenge || !gameState.gameStarted || gameState.gameCompleted ||
+                gameState.swapsUsed >= 1 || gameState.difficulty !== 'hard') return;
 
             const oldLang = currentChallenge.lang;
             const hardOnlyLangs = DIFFICULTY_POOLS.hard.filter(l => !DIFFICULTY_POOLS.medium.includes(l));
@@ -1860,7 +1849,6 @@
                 attempts: [],
                 usedLanguages: [],
                 currentAttemptIndex: 0,
-                totalWins: 0,
                 swapsUsed: 0,
                 gameStarted: false,
                 gameCompleted: false,

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Generates stats HTML page from live tournament data
-# Usage: ./generate_stats.sh [output_file]
+# Usage: ./scripts/reporting/generate_stats.sh [output_file]
 # Requires: oc logged into the primary cluster, whisper namespace
 
 OUTPUT="${1:-tournament-stats.html}"

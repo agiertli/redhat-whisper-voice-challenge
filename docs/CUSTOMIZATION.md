@@ -12,7 +12,7 @@ The registration feature requires UI `v2.11.0` or newer.
 - [Configure difficulty groups](customization/difficulty-groups.md): exact default
   Easy/Medium/Hard pools, selection behavior and a complete override example.
 - [Understand tournament scoring](customization/tournament-scoring.md): accuracy,
-  multipliers, elapsed-time bonus, worked examples, skips and best-score ranking.
+  multipliers, elapsed-time bonus, worked examples, Hard-only Swap and best-score ranking.
 - [Choose/change the admin password](customization/admin-password.md): literal agent
   prompt or private file, password preservation/rotation and access summary.
 - [Run backups and rehearse recovery](customization/backups-and-restore.md): the

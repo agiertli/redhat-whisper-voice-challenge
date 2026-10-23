@@ -42,8 +42,8 @@ within the selected language. Default five-round games are the tested baseline;
 these target counts do not scale automatically with `game.challengeCount`.
 
 Hard also offers one **Swap**: it replaces the current challenge without recording
-an attempt and tries to retain the same language-mix targets. This is separate
-from the API's limit of one skipped attempt per game.
+an attempt and tries to retain the same language-mix targets. Easy and Medium
+have no Swap, and there is no Skip action.
 
 ## Override the groups
 

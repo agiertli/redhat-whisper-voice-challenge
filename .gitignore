@@ -12,7 +12,7 @@ now.env
 venv/
 env/
 .venv/
-wav-tests/env-output/
+tests/audio/env-output/
 
 .DS_Store
 

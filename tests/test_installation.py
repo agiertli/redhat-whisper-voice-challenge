@@ -60,6 +60,11 @@ class ChartTests(unittest.TestCase):
         self.assertEqual(self.render('--set', 'registration.mode=username')['ConfigMap']['data']['REGISTRATION_MODE'], 'username')
         self.render('--set', 'registration.mode=anonymous', success=False)
 
+    def test_unused_win_count_setting_is_not_deployed(self):
+        config = self.render('--set', 'game.winThreshold=999')['ConfigMap']['data']
+        self.assertNotIn('WIN_THRESHOLD', config)
+        self.assertEqual(config['CHALLENGE_COUNT'], '5')
+
     def test_owner_must_choose_language(self):
         self.render('--set', 'game.requiredLanguage=', success=False)
 

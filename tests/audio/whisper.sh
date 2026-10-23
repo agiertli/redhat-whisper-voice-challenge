@@ -15,10 +15,12 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -l|--language)
+            [[ $# -ge 2 ]] || { echo "Missing language code" >&2; exit 1; }
             LANGUAGE="$2"
             shift 2
             ;;
         -T|--to-language)
+            [[ $# -ge 2 ]] || { echo "Missing target language code" >&2; exit 1; }
             TO_LANGUAGE="$2"
             shift 2
             ;;
@@ -62,24 +64,12 @@ if [ ! -f "$AUDIO_FILE" ]; then
     exit 1
 fi
 
-# Build curl command
-CURL_CMD="curl -X POST \"${BASE_URL}/${MODE}\" \
-    -H \"Content-Type: multipart/form-data\" \
-    -F \"file=@${AUDIO_FILE}\" \
-    -F \"model=${MODEL}\" \
-    -F \"response_format=json\" \
-    -k"
-
-# Add language parameters based on mode
-if [ "$MODE" = "transcriptions" ]; then
-    # Transcription: only source language matters
-    CURL_CMD="${CURL_CMD} -F \"language=${LANGUAGE}\""
-elif [ "$MODE" = "translations" ]; then
-    # Translation: source language and optionally target language
-    CURL_CMD="${CURL_CMD} -F \"language=${LANGUAGE}\""
-    if [ -n "$TO_LANGUAGE" ]; then
-        CURL_CMD="${CURL_CMD} -F \"to_language=${TO_LANGUAGE}\""
-    fi
+# Use an argument array: filenames and values are data, never shell code.
+# Set CURL_CA_BUNDLE for a private CA rather than bypassing TLS verification.
+CURL_ARGS=(--fail --show-error -X POST "${BASE_URL}/${MODE}"
+    -F "file=@${AUDIO_FILE}" --form-string "model=${MODEL}"
+    --form-string "response_format=json" --form-string "language=${LANGUAGE}")
+if [[ "$MODE" == translations && -n "$TO_LANGUAGE" ]]; then
+    CURL_ARGS+=(--form-string "to_language=${TO_LANGUAGE}")
 fi
-
-eval $CURL_CMD
+curl "${CURL_ARGS[@]}"

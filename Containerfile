@@ -10,9 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source
 COPY src/ .
 
-# Copy documentation (architecture diagram)
-COPY docs/ ./docs/
-
 # Expose port
 EXPOSE 8080
 

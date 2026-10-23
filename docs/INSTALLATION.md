@@ -19,11 +19,12 @@ and multiple simultaneous game installations in one namespace are outside this
 installer's current scope. Operator installation and cloud GPU provisioning are
 prerequisites, not work performed by the installer.
 
-Current chart candidate: `2.0.0-rc.4`, using UI `v2.11.1` with the architecture
-walkthrough layout fix and configurable registration. See the
+Current chart candidate: `2.0.0-rc.5`, using UI `v2.11.2` with repository cleanup,
+Hard-only Swap and configurable registration. See the
+[cleanup verification](validation/CLEANUP-2026-10-23.md) and the
 [architecture fix verification](validation/ARCHITECTURE-2026-10-23.md).
 The [username-mode acceptance report](validation/USERNAME-2026-10-23.md) records
-this version; the earlier report below records the `v2.10.0` live baseline.
+the earlier `v2.11.0` version; the report below records the `v2.10.0` live baseline.
 The installation changes require explicit language selection. Live results and
 remaining checks are recorded in [the RHDP validation report](validation/RHDP-2026-10-23.md).
 Choose a published image matching the feature: username-only registration requires
@@ -33,10 +34,12 @@ acceptance must separately verify image pulls, KServe behavior, model quality,
 route TLS, storage permissions, upgrades, and backup/restore. Do not equate passing
 local tests with verified cluster compatibility.
 
-Local verification on 2026-10-23: **66 offline regression tests passed**, Helm lint
+Local verification on 2026-10-23: **70 offline regression tests passed**, Helm lint
 passed, and ShellCheck 0.10.0 passed for the installer and all shell helpers.
-Test host: macOS, Bash 3.2.57, Helm 3.15.4, Python 3.14.2. The GitHub workflow also
-runs the suite on Linux and macOS. The live acceptance checklist below is supplemented by the dated validation report.
+Test host: macOS, Bash 3.2.57, Helm 3.15.4, Python 3.14.2. See
+[local test instructions](../tests/README.md). No GitHub Actions workflow is
+required. The live acceptance checklist below is supplemented by dated validation
+reports.
 
 ## Owner decisions and prerequisites
 
@@ -84,7 +87,7 @@ cd redhat-whisper-voice-challenge
 oc whoami
 oc whoami --show-server
 
-cp examples/venue-values.yaml values-conference.yaml
+cp docs/examples/values-conference.yaml values-conference.yaml
 # Edit values-conference.yaml: choose game.requiredLanguage.
 
 # Read-only: no node labels, model scaling, Helm upgrade or data writes.
@@ -358,7 +361,7 @@ with `--build`, targeting linux/amd64 even on Apple Silicon.
 IMAGE_REGISTRY=quay.io/YOUR-ORG VERSION=v2.11.0-rc.1 \
   ./deploy.sh --build --values values-conference.yaml --free-rhdp-gpu
 
-python3 -m pip install -r requirements-dev.txt
+python3 -m pip install -r tests/requirements.txt
 python3 -m unittest discover -s tests -v
 helm lint helm/whisper --set game.requiredLanguage=en
 bash -n deploy.sh scripts/*.sh

@@ -25,7 +25,7 @@ fail. A failed attempt still contributes its actual accuracy to the average.
 ## Final score
 
 ```text
-average_accuracy = mean(stored accuracies of all non-skipped attempts)
+average_accuracy = mean(stored accuracies of all scored attempts)
 speed_bonus      = max(0.8, 1.2 - elapsed_seconds / 600)
 score            = round(difficulty_multiplier * average_accuracy * 100
                          * speed_bonus, 1)
@@ -35,7 +35,7 @@ score            = round(difficulty_multiplier * average_accuracy * 100
 - Medium multiplier: **1.5**.
 - Hard multiplier: **2.0**.
 - Elapsed time is measured by the server from game creation to completion. It
-  includes pauses, challenge transitions, swaps and skips, not just microphone time.
+  includes pauses, challenge transitions and swaps, not just microphone time.
 - Speed bonus starts near 1.2, equals 1.0 at 120 seconds, reaches 0.8 at 240 seconds,
   and stays at 0.8 for longer games. The theoretical zero-time maxima for perfect
   accuracy are 120 (Easy), 180 (Medium), 240 (Hard).
@@ -49,25 +49,33 @@ score       = 1.5 * 0.90 * 100 * 1.1 = 148.5
 ```
 
 With the same accuracy at 120 seconds the score is 135.0; at 240 seconds or longer
-it is 108.0. The accuracy average weights each non-skipped attempt equally,
+it is 108.0. The accuracy average weights each scored attempt equally,
 regardless of phrase length.
 
-## Skips, swaps and winning
+## Hard-only Swap and winning
 
-The server allows at most one skipped attempt per game. A skip is stored with
-accuracy zero but **excluded from the scoring average**; it still consumes time.
-No scored attempts means average accuracy zero. The browser's one Hard **Swap**
-replaces a challenge before submission; it is not a skipped/scored attempt.
+There is no Skip action. Easy and Medium have no Swap; Hard offers **one Swap per
+game**. Swap replaces the current challenge before submission without consuming a
+round or recording an attempt. The game clock keeps running. The default UI runs
+five scored rounds, including failed transcriptions in the accuracy average.
 
 A completed game's `won` field is true when average accuracy >= 80%. Winning is
 separate from the numeric leaderboard score: Hard and Medium apply larger score
-multipliers, and a non-winning game still has a score.
+multipliers, and a non-winning game still has a score. With no scored attempts,
+average accuracy is zero.
 
-The default UI runs five rounds. `game.winThreshold` is a legacy value still
-passed into the page; it does **not** set the active 80% winning threshold or mean
-"win four out of five". Thresholds and multipliers are currently fixed in code,
-not owner-configurable Helm settings. Change language membership through
-[difficulty groups](difficulty-groups.md), not by editing score arithmetic.
+Thresholds and multipliers are fixed in application code. The unused legacy
+`game.winThreshold` setting has been removed; it never controlled the active 80%
+threshold or meant "win four out of five". Remove it from older owner values files.
+Change language membership through [difficulty groups](difficulty-groups.md),
+not by editing score arithmetic.
+
+### Historical database compatibility
+
+Older versions could persist skipped attempts. Those records remain valid in
+existing databases and backups and remain excluded from their scoring average.
+Their elapsed time still counts. The API no longer accepts new skip submissions;
+it does not rewrite old results or require a database reset/migration.
 
 ## Leaderboard
 

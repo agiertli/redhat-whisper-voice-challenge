@@ -51,7 +51,6 @@ VLLM_METRICS_URL = f"{_parsed_url.scheme}://{_parsed_url.netloc}/metrics"
 # Voice Challenge Game Settings
 REQUIRED_CHALLENGE_LANGUAGE = os.getenv('REQUIRED_CHALLENGE_LANGUAGE', 'sk')
 CHALLENGE_COUNT = int(os.getenv('CHALLENGE_COUNT', '5'))
-WIN_THRESHOLD = int(os.getenv('WIN_THRESHOLD', '4'))
 
 
 DIFFICULTY_POOLS = json.loads(os.getenv('DIFFICULTY_POOLS',
@@ -149,6 +148,7 @@ def init_db():
             phrase TEXT NOT NULL,
             transcription TEXT,
             accuracy REAL,
+            -- Retain skip for historical databases/backups; new API attempts are win/fail.
             status TEXT NOT NULL CHECK(status IN ('win','fail','skip'))
         );
         CREATE INDEX IF NOT EXISTS idx_games_player ON games(player_id);
@@ -496,7 +496,6 @@ def index():
                          registration_mode=REGISTRATION_MODE,
                          required_language=REQUIRED_CHALLENGE_LANGUAGE,
                          challenge_count=CHALLENGE_COUNT,
-                         win_threshold=WIN_THRESHOLD,
                          challenge_phrases=CHALLENGE_PHRASES,
                          difficulty_pools=DIFFICULTY_POOLS,
                          mainstage_mode=is_mainstage_enabled(),
@@ -511,24 +510,15 @@ def register_page():
 
 @app.route('/logo.svg')
 def logo():
-    from flask import send_file
-    import os
-    logo_path = os.path.join(os.path.dirname(__file__), 'docs', 'navbar.svg')
-    return send_file(logo_path, mimetype='image/svg+xml')
+    return app.send_static_file('navbar.svg')
 
 @app.route('/favicon.svg')
 def favicon():
-    from flask import send_file
-    import os
-    favicon_path = os.path.join(os.path.dirname(__file__), 'docs', 'favicon.svg')
-    return send_file(favicon_path, mimetype='image/svg+xml')
+    return app.send_static_file('favicon.svg')
 
 @app.route('/architecture')
 def architecture():
-    from flask import send_file
-    import os
-    diagram_path = os.path.join(os.path.dirname(__file__), 'docs', 'architecture-diagram.html')
-    return send_file(diagram_path)
+    return app.send_static_file('architecture-diagram.html')
 
 @app.route('/transcribe-stream', methods=['POST'])
 def transcribe_stream():
@@ -1018,7 +1008,8 @@ def api_game_attempt(game_id):
         language = data.get('language', '')
         phrase = data.get('phrase', '')
         transcription = data.get('transcription', '')
-        status = data.get('status', 'completed')
+        if data.get('status', 'completed') != 'completed':
+            return jsonify({'error': 'Only completed attempts can be submitted; skipping is not supported'}), 400
 
         if attempt_index is None or not isinstance(attempt_index, int) or attempt_index < 0:
             return jsonify({'error': 'Invalid attempt_index'}), 400
@@ -1030,20 +1021,11 @@ def api_game_attempt(game_id):
 
         lang_phrases = CHALLENGE_PHRASES.get(language, [])
         mainstage_phrase = MAINSTAGE_PHRASES.get(language, '')
-        if phrase not in lang_phrases and phrase != mainstage_phrase and status != 'skip':
+        if phrase not in lang_phrases and phrase != mainstage_phrase:
             return jsonify({'error': 'Invalid phrase for language'}), 400
 
-        if status == 'skip':
-            skip_count = db.execute(
-                "SELECT COUNT(*) as cnt FROM attempts WHERE game_id = ? AND status = 'skip'",
-                (game_id,)).fetchone()['cnt']
-            if skip_count >= 1:
-                return jsonify({'error': 'Maximum 1 skip per game'}), 400
-            accuracy = 0.0
-            result_status = 'skip'
-        else:
-            accuracy = levenshtein_similarity(transcription, phrase)
-            result_status = 'win' if accuracy >= 0.80 else 'fail'
+        accuracy = levenshtein_similarity(transcription, phrase)
+        result_status = 'win' if accuracy >= 0.80 else 'fail'
 
         db.execute(
             'INSERT INTO attempts (game_id, attempt_index, language, phrase, transcription, accuracy, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -1073,6 +1055,7 @@ def api_game_complete(game_id):
         duration_seconds = (completed_dt - started_dt).total_seconds()
 
         attempts = db.execute('SELECT * FROM attempts WHERE game_id = ?', (game_id,)).fetchall()
+        # Preserve historical scoring when finishing/restoring a game from an older version.
         scored = [a for a in attempts if a['status'] != 'skip']
         avg_accuracy = sum(a['accuracy'] for a in scored) / len(scored) if scored else 0.0
         won = 1 if avg_accuracy >= 0.80 else 0

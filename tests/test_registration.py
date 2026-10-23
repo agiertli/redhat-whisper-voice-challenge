@@ -1,6 +1,7 @@
 """Exercise both registration modes against real Flask routes and isolated SQLite."""
 import concurrent.futures
 import importlib.util
+import io
 import os
 from pathlib import Path
 import sqlite3
@@ -128,20 +129,67 @@ class RegistrationTests(unittest.TestCase):
         self.assertEqual(self.module.levenshtein_similarity('  HELLO,   world! ', 'hello world'), 1.0)
         self.assertLess(self.module.levenshtein_similarity('cafe', 'café'), 1.0)
 
-    def test_skip_is_excluded_from_average_and_second_skip_is_rejected(self):
-        player = self.join(username='SkipPlayer').json
+    def test_skip_submissions_are_rejected_without_consuming_an_attempt(self):
+        player = self.join(username='NoSkips').json
         auth = {'Authorization': 'Bearer ' + player['token']}
+        phrase = self.module.CHALLENGE_PHRASES['en'][0]
+        for difficulty in ('easy', 'medium', 'hard'):
+            with self.subTest(difficulty=difficulty):
+                game = self.client.post('/api/game/start', json={'difficulty': difficulty}, headers=auth).json
+                path = '/api/game/' + str(game['game_id']) + '/attempt'
+                attempt = {'attempt_index': 0, 'language': 'en', 'phrase': phrase, 'transcription': phrase}
+                for status in ('skip', 'swap', 'win', 'fail'):
+                    rejected = self.client.post(path, json=dict(attempt, status=status), headers=auth)
+                    self.assertEqual(rejected.status_code, 400)
+                with sqlite3.connect(self.module.DB_PATH) as db:
+                    self.assertEqual(db.execute('SELECT COUNT(*) FROM attempts WHERE game_id=?', (game['game_id'],)).fetchone()[0], 0)
+                submitted = self.client.post(path, json=attempt, headers=auth)
+                self.assertEqual(submitted.status_code, 200)
+                self.assertEqual(submitted.json['accuracy'], 1.0)
+                self.assertEqual(submitted.json['status'], 'win')
+
+    def test_historical_skip_survives_backup_restore_and_keeps_its_scoring(self):
+        player = self.join(username='Historical').json
+        auth = {'Authorization': 'Bearer ' + player['token']}
+        admin = {'Authorization': 'Bearer ' + self.module.ADMIN_TOKEN}
         game = self.client.post('/api/game/start', json={'difficulty': 'easy'}, headers=auth).json
         path = '/api/game/' + str(game['game_id'])
         phrase = self.module.CHALLENGE_PHRASES['en'][0]
         attempt = {'attempt_index': 0, 'language': 'en', 'phrase': phrase, 'transcription': phrase}
-        self.assertEqual(self.client.post(path + '/attempt', json=attempt, headers=auth).json['accuracy'], 1.0)
-        self.assertEqual(self.client.post(path + '/attempt', json={'attempt_index': 1, 'status': 'skip'}, headers=auth).status_code, 200)
-        self.assertEqual(self.client.post(path + '/attempt', json={'attempt_index': 2, 'status': 'skip'}, headers=auth).status_code, 400)
+        self.assertEqual(self.client.post(path + '/attempt', json=attempt, headers=auth).status_code, 200)
+        # Simulate an old persisted record, not a new skip API submission.
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            db.execute("INSERT INTO attempts (game_id,attempt_index,language,phrase,accuracy,status) VALUES (?,1,'en',?,0,'skip')", (game['game_id'], phrase))
+        response = self.client.get('/api/admin/backup', headers=admin)
+        snapshot = response.data
+        response.close()
+        self.module.DB_PATH = str(Path(self.tmp.name) / 'restored.db')
+        self.module.init_db()
+        restored = self.client.post('/api/admin/restore', headers=admin,
+                                    data={'file': (io.BytesIO(snapshot), 'historical.db')})
+        self.assertEqual(restored.status_code, 200)
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM attempts WHERE status='skip'").fetchone()[0], 1)
         result = self.client.post(path + '/complete', headers=auth)
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.json['avg_accuracy'], 1.0)
         self.assertTrue(result.json['won'])
+
+    def test_empty_transcription_is_a_scored_failure_not_a_skip(self):
+        player = self.join(username='EmptySpeech').json
+        auth = {'Authorization': 'Bearer ' + player['token']}
+        game = self.client.post('/api/game/start', json={'difficulty': 'easy'}, headers=auth).json
+        attempt = {'attempt_index': 0, 'language': 'en', 'phrase': self.module.CHALLENGE_PHRASES['en'][0], 'transcription': ''}
+        result = self.client.post('/api/game/' + str(game['game_id']) + '/attempt', json=attempt, headers=auth)
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.json, {'accuracy': 0.0, 'status': 'fail'})
+
+    def test_runtime_assets_are_served_from_the_application(self):
+        for path in ('/logo.svg', '/favicon.svg', '/architecture'):
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 200, path)
+            self.assertTrue(response.data)
+            response.close()
 
     def test_username_player_can_play_export_and_backup(self):
         player = self.join(username='PlayerOnly').json

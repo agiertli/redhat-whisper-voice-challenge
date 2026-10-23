@@ -37,7 +37,7 @@ Monitoring is a required step and is enabled while preserving existing settings.
 The installer requires Bash, `oc`, Helm 3, Python 3 and curl; the separate conference
 backup script requires only Bash, curl and standard macOS/Linux utilities.
 
-For a repeatable venue configuration, copy [examples/venue-values.yaml](examples/venue-values.yaml)
+For a repeatable venue configuration, copy [docs/examples/values-conference.yaml](docs/examples/values-conference.yaml)
 and use `--values values-conference.yaml` on every install/upgrade. A first-language choice is
 mandatory. Preserve the venue file and run off-cluster backups before admitting
 players. Upgrades take a verified backup first and retain installed credentials.
@@ -53,7 +53,7 @@ Edit those five lines and copy the full prompt into your agent.
 For third-party conferences, choose `registration.mode: username` in the values
 file: one username field registers or resumes a player, with no name/email
 collection. The default `full` mode keeps the existing registration flow. Both
-modes use the same versioned image (`v2.11.0`) and persistence.
+modes use the same versioned image (`v2.11.0` or newer) and persistence.
 
 ## Booth operation
 
@@ -68,13 +68,30 @@ conference. Copying that script does not require installing Python, oc or SQLite
 Follow the runbook for protected token transfer, TLS, monitoring backup success,
 retention and a restore drill. The PVC is persistence, not a substitute for backups.
 
-## Customize and develop
+## What is essential in this repository?
 
-- [Customization](docs/CUSTOMIZATION.md): phrases, first language, difficulty pools.
-- [Architecture](docs/ARCHITECTURE.md): background architecture documentation.
-- `src/app_streaming.py` and `src/templates/`: application and pages.
-- `helm/whisper/`: deployable chart, values, runtime/modelcar and phrase JSON.
-- `tests/`: local regression checks; see runbook for commands and live acceptance.
+**To install a published image:** use `deploy.sh`, `helm/` and `scripts/`, following
+[the installation runbook](docs/INSTALLATION.md). Start a reusable owner values
+file from [the example](docs/examples/values-conference.yaml). `AGENTS.md` is the
+agent entry point; `CLAUDE.md` points to it. You do not need a Python development
+environment, container build or reporting tools to install.
+
+**To change or build the application:** all runtime code and assets are in `src/`:
+`app_streaming.py`, `templates/` and `static/`. The root `Containerfile` and
+`requirements.txt` define its image build. Documentation is not copied into the
+application image.
+
+**To verify or operate it:** `tests/` contains optional local regression checks and
+`tests/audio/` contains smoke-test audio and the older manual audio client.
+The installer uses `tests/audio/test-en.wav` for its real-audio smoke check, so
+keep that fixture in a deployment checkout. See [tests/README.md](tests/README.md).
+`scripts/backup.sh` is the standalone conference backup tool;
+`scripts/reporting/` holds optional statistics reporting. These are not application
+runtime modules. Dated `docs/validation/` reports record evidence and limitations.
+There is no repository-managed GitHub Actions workflow.
+
+For owner changes, use the [customization guides](docs/CUSTOMIZATION.md); for
+background, see [architecture](docs/ARCHITECTURE.md).
 
 The deployment runbook/chart take precedence over older background diagrams.
 This custom demo is not itself a claim of Red Hat product supportability.

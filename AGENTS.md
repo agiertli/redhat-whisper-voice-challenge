@@ -56,10 +56,13 @@ a third deployment procedure. Work on the `tournament-mode` branch.
 
 - `src/app_streaming.py`: Flask application, streaming proxy, tournament API/SQLite.
 - `src/templates/`: game, registration, TV and admin pages.
+- `src/static/`: runtime logos and the interactive architecture page.
 - `helm/whisper/`: chart, runtime, modelcar, RBAC, PVC and env configuration.
 - `helm/whisper/challenges.json`: phrases; `values.yaml`: language pools/metadata.
 - `scripts/backup.sh`: standalone Bash conference backup; no Python/oc dependency.
-- `tests/`: offline regression checks. Run `python3 -m unittest discover -s tests -v`.
+- `tests/`: offline regression checks; development requirements and commands in `tests/README.md`.
+- `tests/audio/test-en.wav`: real-audio installer smoke fixture; keep it in deployment checkouts.
+- `scripts/reporting/`: optional statistics utilities, not application runtime.
 
 Keep configuration in env vars/Helm, logs on stdout, explicit pinned dependencies,
 and semantic image tags (never `latest`). SQLite uses one UI replica and a PVC;
