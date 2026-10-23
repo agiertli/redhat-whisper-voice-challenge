@@ -93,6 +93,9 @@ There is no repository-managed GitHub Actions workflow.
 For owner changes, use the [customization guides](docs/CUSTOMIZATION.md); for
 background, see [architecture](docs/ARCHITECTURE.md).
 
+The proposed [consolidation onto main](docs/BRANCH-CONSOLIDATION-PLAN.md) is a
+future stability plan; current installation remains on `tournament-mode`.
+
 The deployment runbook/chart take precedence over older background diagrams.
 This custom demo is not itself a claim of Red Hat product supportability.
 
