@@ -19,7 +19,7 @@ and multiple simultaneous game installations in one namespace are outside this
 installer's current scope. Operator installation and cloud GPU provisioning are
 prerequisites, not work performed by the installer.
 
-Current integration candidate: `2.0.0-rc.6`, using UI `v2.12.0-rc.2` with a
+Current integration candidate: `2.0.0-rc.6`, using UI `v2.12.0-rc.3` with a
 default-enabled tournament toggle, anonymous standalone play and reliable save retries.
 This candidate is on `codex/consolidate-modes`; it is not yet the accepted main release. See the
 [cleanup verification](validation/CLEANUP-2026-10-23.md) and the

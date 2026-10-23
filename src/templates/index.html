@@ -1216,7 +1216,7 @@
 
         function updateSaveControls() {
             document.getElementById('recordBtn').disabled = saving || !!pendingAttempt || pendingCompletion ||
-                gameState.gameCompleted || !currentChallenge;
+                gameState.gameCompleted || !gameState.gameStarted || !currentChallenge;
             const swap = document.getElementById('swapButton');
             swap.disabled = saving || !!pendingAttempt || pendingCompletion || !currentChallenge ||
                 gameState.gameCompleted || gameState.difficulty !== 'hard' || gameState.swapsUsed >= 1;
@@ -1501,7 +1501,10 @@
                     });
                     data = await resp.json();
                     if (!resp.ok) {
-                        if (resp.status === 401) changePlayer();
+                        if (resp.status === 401) {
+                            saving = false;
+                            changePlayer();
+                        }
                         alert(data.error || 'Failed to start game');
                         return;
                     }
@@ -1703,7 +1706,9 @@
                 clearPersistenceError();
                 document.getElementById('accuracyScore').textContent = Math.round(accuracy) + '%';
                 updateChallengeUI();
+                const savedGame = gameState;
                 setTimeout(() => {
+                    if (gameState !== savedGame || !gameState.gameStarted) return;
                     if (gameState.currentAttemptIndex < CHALLENGE_COUNT) nextAttempt();
                     else finishGame();
                     updateSaveControls();
@@ -1924,6 +1929,7 @@
                 return;
             }
             clearPersistenceError();
+            currentChallenge = null;
             gameState = {
                 difficulty: null,
                 attempts: [],
@@ -1988,7 +1994,7 @@
         }
 
         async function startRecording() {
-            if (saving || pendingAttempt || pendingCompletion || !currentChallenge || gameState.gameCompleted) return;
+            if (saving || pendingAttempt || pendingCompletion || !gameState.gameStarted || !currentChallenge || gameState.gameCompleted) return;
             transcription.textContent = '';
             document.getElementById('accuracyScore').textContent = '--';
 

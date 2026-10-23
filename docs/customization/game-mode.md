@@ -1,6 +1,6 @@
 # Tournament or anonymous standalone play
 
-Available in the **v2.12.0-rc.2 integration candidate** on
+Available in the **v2.12.0-rc.3 integration candidate** on
 `codex/consolidate-modes`. The accepted `tournament-mode` release v2.11.2 does not
 have this toggle. Main consolidation remains subject to the
 [acceptance plan](../BRANCH-CONSOLIDATION-PLAN.md).

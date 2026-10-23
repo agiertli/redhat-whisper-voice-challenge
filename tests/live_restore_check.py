@@ -35,6 +35,16 @@ with tempfile.TemporaryDirectory(prefix='whisper-restore-check-') as directory:
                                headers={'Authorization': 'Bearer ' + os.environ['ADMIN_TOKEN']})
         assert response.status_code == 200, response.status_code
         response.close()
+        invalid = Path(directory) / 'incompatible.db'
+        with closing(sqlite3.connect(invalid)) as database:
+            for table in ('players', 'games', 'attempts'):
+                database.execute('CREATE TABLE ' + table + ' (id INTEGER PRIMARY KEY)')
+            database.commit()
+        response = client.post('/api/admin/restore',
+                               data={'file': (io.BytesIO(invalid.read_bytes()), 'incompatible.db')},
+                               headers={'Authorization': 'Bearer ' + os.environ['ADMIN_TOKEN']})
+        assert response.status_code == 400, response.status_code
+        response.close()
         response = client.get('/api/leaderboard')
         assert response.status_code == 200
         response.close()
@@ -44,4 +54,4 @@ with tempfile.TemporaryDirectory(prefix='whisper-restore-check-') as directory:
                   for table in expected}
         assert actual == expected, (actual, expected)
         assert database.execute('SELECT total_score FROM games WHERE completed_at IS NOT NULL ORDER BY id').fetchall() == scores
-    print('PASS: published restore endpoint restored an isolated temporary database; integrity, counts and scores match:', actual)
+    print('PASS: published restore endpoint restored an isolated temporary database; integrity, counts and scores match; incompatible restore rejected without changing data:', actual)

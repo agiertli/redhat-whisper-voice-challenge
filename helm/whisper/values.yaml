@@ -3,7 +3,7 @@ namespace: ""
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: "v2.12.0-rc.2"
+  tag: "v2.12.0-rc.3"
   pullPolicy: Always
 
 replicaCount: 1

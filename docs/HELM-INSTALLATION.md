@@ -152,7 +152,7 @@ the venue file; it is retained only for legacy configurations.
 oc wait --for=condition=Ready inferenceservice/whisper -n whisper --timeout=600s
 oc rollout status deployment/whisper-ui -n whisper --timeout=300s
 ./scripts/enable-monitoring.sh --wait
-./scripts/verify-install.sh whisper de username true
+./scripts/verify-install.sh whisper de username true  # last argument: false for standalone
 ./scripts/show-access.sh whisper
 ```
 
@@ -209,7 +209,7 @@ the token out of command arguments:
 umask 077
 oc get secret whisper-tournament-secret -n whisper \
   -o 'go-template={{index .data "ADMIN_TOKEN" | base64decode}}' > admin-token
-GAME_HOST=$(./scripts/show-access.sh whisper)
+GAME_HOST=$(oc get route whisper-ui -n whisper -o jsonpath='{.spec.host}')
 WHISPER_URL="https://$GAME_HOST" ADMIN_TOKEN_FILE=./admin-token \
   BACKUP_DIR=./pre-upgrade-backups ./scripts/backup.sh
 
@@ -220,7 +220,7 @@ helm upgrade --install whisper helm/whisper \
   --values values-conference.yaml --wait --timeout 20m
 
 ./scripts/enable-monitoring.sh --wait
-./scripts/verify-install.sh whisper de username true
+./scripts/verify-install.sh whisper de username true  # last argument: false for standalone
 ./scripts/show-access.sh whisper
 ```
 

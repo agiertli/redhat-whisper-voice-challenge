@@ -47,6 +47,12 @@ function fixture(enabled) {
     assert.equal(f.node('persistenceError').style.display,'none');
     // No transition/recording before the saved round's display delay ends.
     assert.equal(f.node('recordBtn').disabled,true);
+    // A delayed transition from a previous game must not change a newly started one.
+    f.run('resetGame()');
+    f.context.fetch=async()=>({ok:true,json:async()=>({game_id:43})});
+    await f.run('startGame("hard")');
+    f.timers.shift()();
+    assert.equal(f.run('gameState.usedLanguages.length'),1);
     f.run('gameState.currentAttemptIndex=5; gameState.attempts=Array(5).fill({score:100});currentChallenge=null;');
     f.context.fetch=async()=>({ok:false,status:503});
     await f.run('finishGame()');
@@ -72,5 +78,12 @@ function fixture(enabled) {
     await standalone.run('finishGame()');
     assert.equal(standalone.requests.length,0);
     assert.equal(standalone.run('gameState.gameCompleted'),true);
+    const expired=fixture(true);
+    expired.run('playerSession={token:"deleted",nickname:"Deleted",playerId:9};');
+    expired.context.fetch=async()=>({ok:false,status:401,json:async()=>({error:'Player no longer exists'})});
+    await expired.run('startGame("easy")');
+    assert.equal(expired.run('playerSession.token'),null);
+    assert.equal(expired.node('registrationPanel').style.display,'flex');
+    assert.equal(expired.node('recordBtn').disabled,true);
     console.log('PASS: failed saves retain state, identical retries advance once, completion requires server confirmation, standalone makes no tournament requests');
 })().catch(error=>{console.error(error);process.exitCode=1});
