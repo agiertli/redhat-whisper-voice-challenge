@@ -4,9 +4,11 @@
 `codex/consolidate-modes`. After the checks recorded below, the owner explicitly
 authorized merging [PR #2](https://github.com/agiertli/redhat-whisper-voice-challenge/pull/2)
 and removing that temporary branch. Installation now uses `main`; the tested
-release-candidate image/chart version labels are retained. `tournament-mode` and
-both recovery tags remain available for external-team handover. The wider browser
-matrix and independent-owner walkthrough remain follow-up/retirement checks;
+release-candidate image/chart version labels are retained. The temporary and
+tournament remote branches are retired; main contains their history. Both recovery
+tags remain, and the tournament tip was independently restored from a complete
+offline Git bundle. External teams must switch branch references to main. The wider browser
+matrix and independent-owner walkthrough remain follow-up checks;
 they are not represented as completed.
 
 ## Scope and recoverability
@@ -189,9 +191,12 @@ matched. No backup was restored over the owner's running data.
 3. Have an independent technical owner follow the documentation without this
    chat, check their intended language/registration choice and rehearse recovery.
 4. Promotion updates installation references to `main` and verifies the merged
-   source from a fresh clone. Keep recovery tags/images and `tournament-mode`
-   through external-team acceptance; do not delete it with the temporary branch.
+   source from a fresh clone. The fresh clone passed installer help, Helm lint,
+   audio-fixture presence and rendering both mode configurations using only
+   standard-library Python. Keep recovery tags/images and the verified local
+   bundle through external-team acceptance.
 
 No finite test suite establishes zero risk. Promotion is the owner's acceptance
-of the recorded scope and limitations; retirement of `tournament-mode` remains a
-separate decision after handover.
+of the recorded scope and limitations. The retired tournament branch can be
+recreated at its exact original tip; that does not remove the need to update
+external branch references or complete the outstanding handover checks.

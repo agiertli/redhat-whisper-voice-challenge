@@ -91,5 +91,26 @@ recoverable until the intended configuration is verified for your setup.
 Check warmup, inference, monitoring, the owner language/mode and a complete spoken
 browser game. Check historical scores/tokens and backup/restore where applicable.
 Schedule upgrades and mode switches between games. A version/tag or Ready pod is
-not sufficient evidence. The older tournament branch remains in place while
+not sufficient evidence. Recovery tags and old images remain available while
 independent-owner handover and remaining acceptance checks are completed.
+
+## Retired branch and source recovery
+
+`main` is the only active remote branch. Update old clone commands and any
+branch-based automation from `tournament-mode` to `main`. Removing the branch
+pointer does not modify cluster resources; automation that still references it
+will need updating.
+
+The old tip `8e0292432afdb85398ee4fe9a03978171950d67d` is contained in main and
+preserved by the remote tag `archive/tournament-before-consolidation-20261023`.
+A complete offline Git bundle was also created and cloned successfully to verify
+exact recovery. To intentionally recreate the remote branch from another machine:
+
+```bash
+git fetch origin tag archive/tournament-before-consolidation-20261023
+git branch tournament-mode-restored archive/tournament-before-consolidation-20261023
+git push origin tournament-mode-restored:refs/heads/tournament-mode
+```
+
+These commands recover a source reference, not application/database state.
+Application rollback still requires the documented values, images and backups.

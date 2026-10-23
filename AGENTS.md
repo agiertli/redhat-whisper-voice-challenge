@@ -7,8 +7,8 @@ It is the shared operations runbook. Agents normally execute `./deploy.sh` using
 an explicit request to use Helm directly. Both use the same chart. Do not invent
 a third deployment procedure. Install and develop on `main`. Tournament is
 enabled by default; `tournament.enabled: false` selects anonymous standalone play.
-The older `tournament-mode` branch is retained for external-team handover; do not
-delete it until the documented retirement checks are accepted.
+The former `tournament-mode` remote branch is retired. Its recovery tag is
+`archive/tournament-before-consolidation-20261023`; use `main` for both modes.
 
 ## Installation contract
 

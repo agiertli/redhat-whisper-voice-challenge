@@ -15,8 +15,9 @@ Choose the [agent installation](docs/AGENT-INSTALLATION.md) or
 same chart. The command below is the automated wrapper used by the agent.
 
 Install from **`main`**. Tournament is enabled by default; set
-`tournament.enabled: false` for anonymous standalone play. The older
-`tournament-mode` branch is retained temporarily for external-team handover. Start with the
+`tournament.enabled: false` for anonymous standalone play. The former tournament
+branch is archived as `archive/tournament-before-consolidation-20261023`; all new
+clones should use `main`. Start with the
 [installation and operations runbook](docs/INSTALLATION.md), including prerequisites,
 credentials, backups, upgrades, troubleshooting and acceptance checks.
 

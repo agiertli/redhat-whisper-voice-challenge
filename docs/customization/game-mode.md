@@ -1,8 +1,8 @@
 # Tournament or anonymous standalone play
 
 Available on **`main`**, using the tested **v2.12.0-rc.4** image. The older
-`tournament-mode` release v2.11.2 does not have this toggle. That branch remains
-temporarily available for external-team handover; see the
+`tournament-mode` release v2.11.2 does not have this toggle. Its source remains
+available through `archive/tournament-before-consolidation-20261023`; see the
 [acceptance and retirement plan](../BRANCH-CONSOLIDATION-PLAN.md).
 
 The same image and Helm chart support both modes. Tournament is the default:
