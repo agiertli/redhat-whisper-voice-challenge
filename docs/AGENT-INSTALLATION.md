@@ -21,26 +21,27 @@ oc whoami
 oc whoami --show-server
 ```
 
-Tell the agent the namespace, required **first** language, and
+Tell the agent the registration mode, namespace, required **first** language, and
 whether it may stop the bundled RHDP Llama. The language is an owner decision;
 German is `de`, Czech `cs`, Slovak `sk`, English `en`. Later rounds remain multilingual.
 
 ## Copyable prompt
 
-**Edit the four lines under OWNER SETTINGS, then copy the entire block into your
+**Edit the five lines under OWNER SETTINGS, then copy the entire block into your
 agent.** Replace every `<...>` placeholder. Language examples: `de` = German,
 `cs` = Czech, `sk` = Slovak, `en` = English. Later rounds remain multilingual.
 
-For a chosen admin password, create the private file described in
-[Choose the admin password](INSTALLATION.md#choose-the-admin-password) first.
-Put its path in the prompt; there is no need to paste the password itself.
+For a chosen admin password, either use a private file as described in
+[Choose the admin password](customization/admin-password.md), or enter it directly (for example `Admin password: whisper@r3dh4t!`)
+or provide the private file path. A directly entered password remains in chat history.
 
 ```text
-OWNER SETTINGS — EDIT THESE FOUR LINES
-First required language: <language code, e.g. de>
+OWNER SETTINGS — EDIT THESE FIVE LINES
+First required language: <language name or code, e.g. German or de>
+Registration mode: <full or username>
 Namespace: whisper
 May stop bundled RHDP Llama to free the GPU: <yes or no>
-Admin password: <private file path, or "generate on first install; preserve on upgrade">
+Admin password: <chosen password, private file path, or "generate on first install; preserve on upgrade">
 
 INSTALLATION INSTRUCTIONS — KEEP THESE
 Read AGENTS.md and docs/INSTALLATION.md on the tournament-mode branch.
@@ -48,9 +49,18 @@ You are logged into the intended RHDP OpenShift AI 3 SNO cluster as cluster-admi
 Install the Whisper tournament game using the OWNER SETTINGS above.
 
 - Use the published image and repository installer without rebuilding.
+- Normalize language names and obvious spelling mistakes (e.g. Germand -> de)
+  to a supported language code; confirm only if the intended language is ambiguous.
+- Read docs/CUSTOMIZATION.md for task-specific guides when an owner requests
+  custom difficulty groups, phrases, scoring details or other configuration.
 - Save non-secret owner choices in values-conference.yaml and reuse that file.
-- If a private admin-password file is specified, use --admin-password-file.
-  Otherwise generate on first install and preserve the password on upgrades.
+  Set registration.mode to the selected full or username value. Full collects
+  nickname, name and email; username presents one field to join or resume.
+- If a literal admin password is supplied, write it to a private temporary file
+  with mode 600, use --admin-password-file, and remove the temporary file afterwards.
+  Keep it out of shell tracing, command arguments and the versioned values file.
+- If an existing private admin-password file is specified, pass it directly with
+  --admin-password-file. For the generate/preserve choice, omit that override.
 - Stop my-first-model/llama-32-3b-instruct only if the setting above says yes.
   If no GPU is available and stopping Llama is not authorized, report the blocker.
 - Always enable monitoring, preserving existing settings. Do not ask whether
@@ -70,9 +80,12 @@ Install the Whisper tournament game using the OWNER SETTINGS above.
 
 ## What the agent should execute
 
-The values file only needs the chosen first language. Example:
+Save the first language and registration mode together. Example for third-party
+conferences (one username field, no name/email collection):
 
 ```yaml
+registration:
+  mode: "username"
 game:
   requiredLanguage: "de"
 ```
@@ -111,3 +124,9 @@ A successful install is not proof of a recoverable backup: rehearse restore on a
 isolated database before the event. See the shared [operations runbook](INSTALLATION.md).
 
 For installation without an agent, use [direct Helm installation](HELM-INSTALLATION.md).
+
+## Common customization tasks
+
+See the [customization index](CUSTOMIZATION.md) for dedicated guides to registration,
+languages/phrases, default and custom difficulty groups, scoring, admin passwords
+and conference backup/recovery.

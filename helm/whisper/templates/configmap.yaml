@@ -11,6 +11,7 @@ data:
   WHISPER_API_URL: "http://{{ .Values.whisperApi.modelName }}-metrics.{{ include "whisper-ui.namespace" . }}.svc.cluster.local:8080/v1/audio/transcriptions"
   WHISPER_MODEL_NAME: {{ .Values.whisperApi.modelName | quote }}
   MODEL_DISPLAY_NAME: {{ .Values.whisperApi.displayName | quote }}
+  REGISTRATION_MODE: {{ .Values.registration.mode | quote }}
   CONFERENCE_NAME: {{ .Values.conference.name | quote }}
   WHISPER_NAMESPACE: {{ include "whisper-ui.namespace" . | quote }}
   REQUIRED_CHALLENGE_LANGUAGE: {{ .Values.game.requiredLanguage | quote }}

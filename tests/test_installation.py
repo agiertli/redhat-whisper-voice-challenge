@@ -55,6 +55,11 @@ class ChartTests(unittest.TestCase):
     def test_sqlite_initializes_before_workers_fork(self):
         self.assertIn('--preload', self.render()['ConfigMap']['data']['GUNICORN_CMD_ARGS'])
 
+    def test_registration_mode_is_explicit_and_validated(self):
+        self.assertEqual(self.render()['ConfigMap']['data']['REGISTRATION_MODE'], 'full')
+        self.assertEqual(self.render('--set', 'registration.mode=username')['ConfigMap']['data']['REGISTRATION_MODE'], 'username')
+        self.render('--set', 'registration.mode=anonymous', success=False)
+
     def test_owner_must_choose_language(self):
         self.render('--set', 'game.requiredLanguage=', success=False)
 
@@ -169,7 +174,7 @@ class InferenceChecksTests(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     exec(compile(code, '<manual-warmup>', 'exec'), {})
 
-    def smoke(self, stream, expected='cs', metrics=None):
+    def smoke(self, stream, expected='cs', metrics=None, mode=None, page=None):
         class Response(io.BytesIO):
             status = 200
         def urlopen(request, timeout):
@@ -180,9 +185,9 @@ class InferenceChecksTests(unittest.TestCase):
                 return Response(b'{"leaderboard": []}')
             if url.endswith('/transcribe-stream'):
                 return Response(stream)
-            return Response(b"const REQUIRED_LANGUAGE = 'cs';")
+            return Response(page if page is not None else b"const REQUIRED_LANGUAGE = 'cs';")
         with patch('urllib.request.urlopen', side_effect=urlopen):
-            with patch('sys.argv', ['smoke', expected]), patch('sys.stdin', SimpleNamespace(buffer=io.BytesIO(b'RIFFtest'))):
+            with patch('sys.argv', ['smoke', expected] + ([mode] if mode else [])), patch('sys.stdin', SimpleNamespace(buffer=io.BytesIO(b'RIFFtest'))):
                 with contextlib.redirect_stdout(io.StringIO()):
                     exec(compile((ROOT / 'scripts/smoke-test.py').read_text(), '<smoke>', 'exec'), {})
 
@@ -203,6 +208,15 @@ class InferenceChecksTests(unittest.TestCase):
         with patch('time.monotonic', side_effect=[0, 121]):
             with self.assertRaises(SystemExit):
                 self.smoke(b'data: {"text":"hello"}\n\ndata: {"done":true}\n\n', metrics={})
+
+    def test_smoke_checks_actual_registration_mode_and_form(self):
+        stream = b'data: {"text":"hello"}\n\ndata: {"done":true}\n\n'
+        page = b'const REQUIRED_LANGUAGE = \'cs\'; const REGISTRATION_MODE = "username"; <input id="regUsername">'
+        self.smoke(stream, mode='username', page=page)
+        with self.assertRaisesRegex(SystemExit, 'wrong registration mode'):
+            self.smoke(stream, mode='full', page=page)
+        with self.assertRaisesRegex(SystemExit, 'form does not match'):
+            self.smoke(stream, mode='username', page=page + b'<input id="regEmail">')
 
     def test_smoke_rejects_stale_language(self):
         with self.assertRaises(SystemExit):

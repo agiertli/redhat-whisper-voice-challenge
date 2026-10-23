@@ -131,6 +131,18 @@
           "minLength": 1
         }
       }
+    },
+    "registration": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "full",
+            "username"
+          ]
+        }
+      }
     }
   }
 }

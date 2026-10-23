@@ -37,11 +37,16 @@ cd redhat-whisper-voice-challenge
 ```
 
 The owner **must decide the first challenge language**. The example below uses
-German; change `de` to `cs`, `sk`, `en`, etc. before running it. Later rounds remain
+German; change `de` to `cs`, `sk`, `en`, etc. before running it. Also choose
+`registration.mode`: `full` (default, nickname/name/email and two tabs), or
+`username` (one form with one username field, automatically registers/resumes).
+The example selects username-only for third-party conferences. Later rounds remain
 multilingual. Keep this non-secret file and reuse it on every upgrade:
 
 ```bash
 cat > values-conference.yaml <<'VALUES'
+registration:
+  mode: "username"
 game:
   requiredLanguage: "de"
 VALUES
@@ -142,14 +147,15 @@ the venue file; it is retained only for legacy configurations.
 oc wait --for=condition=Ready inferenceservice/whisper -n whisper --timeout=600s
 oc rollout status deployment/whisper-ui -n whisper --timeout=300s
 ./scripts/enable-monitoring.sh --wait
-./scripts/verify-install.sh whisper de
+./scripts/verify-install.sh whisper de username
 ./scripts/show-access.sh whisper
 ```
 
 The verification helper is Bash/oc and runs Python **inside the deployed UI image**;
 no Python installation is needed on this workstation. It checks the configured
 first language, pages, leaderboard/database and real-audio UI-to-vLLM transcription.
-Pass the same language chosen in `values-conference.yaml`.
+Pass the same language and registration mode chosen in `values-conference.yaml`
+(use `full` as the third argument for full registration).
 
 Open `https://HOST/` with trusted TLS, grant browser microphone permission and
 complete a real game. Check `/register`, `/tv`, `/admin` and scores. API/audio-file
@@ -209,7 +215,7 @@ helm upgrade --install whisper helm/whisper \
   --values values-conference.yaml --wait --timeout 20m
 
 ./scripts/enable-monitoring.sh --wait
-./scripts/verify-install.sh whisper de
+./scripts/verify-install.sh whisper de username
 ./scripts/show-access.sh whisper
 ```
 
@@ -224,3 +230,9 @@ changes roll the UI so env settings take effect. Keep first-language selection i
 the same venue file: never replace it with a minimal values file that omits the
 owner's choices. Verify existing player login, score persistence and the first
 language, then resume the backup loop and reopen the booth.
+
+## Common customization tasks
+
+See the [customization index](CUSTOMIZATION.md) for dedicated guides to registration,
+languages/phrases, default and custom difficulty groups, scoring, admin passwords
+and conference backup/recovery.

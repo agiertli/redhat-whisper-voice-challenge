@@ -1,41 +1,42 @@
-# Venue customization
+# Customize the game
 
-Use [INSTALLATION.md](INSTALLATION.md) for installation, backup and upgrade safety.
-Keep non-secret venue settings in a values file and pass the same file on every
-upgrade. Do not edit baked application defaults to configure an event.
+Start with the task you need. Keep your non-secret settings together in
+`values-conference.yaml` and reuse that file on every upgrade. Both installation
+paths use the same chart; changes to Helm configuration need no image rebuild.
+The registration feature requires UI `v2.11.0` or newer.
 
-```yaml
-conference:
-  name: "Your Conference"
-game:
-  requiredLanguage: "cs"  # Required owner choice; FIRST challenge only.
-  challengeCount: "5"
-  winThreshold: "4"
-```
+- [Choose registration mode](customization/registration.md): full registration or
+  one username-only form, returning players, switching modes and existing data.
+- [Choose languages and edit phrases](customization/languages-and-phrases.md): the
+  first required language, adding a language, changing text and testing speech.
+- [Configure difficulty groups](customization/difficulty-groups.md): exact default
+  Easy/Medium/Hard pools, selection behavior and a complete override example.
+- [Understand tournament scoring](customization/tournament-scoring.md): accuracy,
+  multipliers, elapsed-time bonus, worked examples, skips and best-score ranking.
+- [Choose/change the admin password](customization/admin-password.md): literal agent
+  prompt or private file, password preservation/rotation and access summary.
+- [Run backups and rehearse recovery](customization/backups-and-restore.md): the
+  standalone five-minute laptop loop, retention, restore drills and upgrade handoff.
 
-The owner chooses the first language explicitly. Later rounds draw from
-`difficultyPools` in `values.yaml`. Add languages to those JSON pools and
-`languageInfo` only when corresponding non-empty phrase arrays exist in
-`helm/whisper/challenges.json`. The chart rejects unknown/missing languages and
-malformed JSON. Each round selects a phrase from its selected language; the number
-of phrases in one language need not equal the total number of game rounds.
+For prerequisites, backup-protected upgrades and incident handling, use
+[the operations runbook](INSTALLATION.md). For direct Helm commands, use
+[Helm installation](HELM-INSTALLATION.md); for the copyable owner prompt, use
+[agent installation](AGENT-INSTALLATION.md).
 
-Edit `challenges.json`, then upgrade with the venue file: a changed ConfigMap
-rolls the UI automatically. No UI rebuild is needed for configuration changes.
-Changing branding in `src/templates/` does require a new UI image/tag.
+## Runtime, routes and storage
 
-Keep the runtime/modelcar combination in the chart unless a replacement has been
-tested on the target operator/GPU. `model.resources.memory` is **system RAM**, not
-GPU VRAM. `gpu.memoryUtilization` controls the vLLM allocation fraction; old examples
-using 0.2–0.3 are not valid for the current baseline and are rejected by the chart.
-Do not change model-length arguments based on older documentation; verify the
-specific model/runtime in a live transcription test.
+Keep the tested runtime/modelcar combination unless a replacement has been tested
+on the target operator/GPU. `model.resources.memory` controls system RAM;
+`gpu.memoryUtilization` controls the vLLM GPU allocation. The current baseline uses
+0.9; old examples using 0.2–0.3 are invalid and rejected. Verify changes with a real
+transcription test rather than copying model-length flags from old documentation.
 
 `route.host` is optional: OpenShift assigns a host when empty. `clusterDomain` and
-`supportedLanguages` are obsolete and are not installation inputs.
-`tournament.storageClass` can select an existing StorageClass on first installation.
-Do not change it on an existing PVC or scale the SQLite UI above one replica.
+`supportedLanguages` are obsolete installation inputs. Choose
+`tournament.storageClass` only on first installation; it cannot change an existing
+PVC. The SQLite UI uses one replica and Recreate updates, not HA.
 
-Credential rotation is explicit and is described in the runbook. Do not put
-signing/admin keys in committed venue files. The display name is a UI label;
-inspect the modelcar/runtime to verify the actual loaded model and quantization.
+`conference.name` remains optional branding for the main/TV headings; it is not a
+required setup choice. Editing templates/branding assets requires a new image.
+The model display name is only a UI label: inspect the runtime/modelcar to identify
+the actual model and quantization. Keep credentials out of committed values files.

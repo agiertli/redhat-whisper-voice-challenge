@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context, g, send_file
+from flask import Flask, redirect, render_template, request, jsonify, Response, stream_with_context, g, send_file
 import requests
 import os
 import tempfile
@@ -37,6 +37,9 @@ WHISPER_API_URL = os.getenv('WHISPER_API_URL', 'http://whisper-model.whisper.svc
 WHISPER_MODEL_NAME = os.getenv('WHISPER_MODEL_NAME', 'whisper-turbo')
 MODEL_DISPLAY_NAME = os.getenv('MODEL_DISPLAY_NAME', 'Whisper Turbo')
 CONFERENCE_NAME = os.getenv('CONFERENCE_NAME', 'Red Hat Whisper Voice Challenge')
+REGISTRATION_MODE = os.getenv('REGISTRATION_MODE', 'full')
+if REGISTRATION_MODE not in ('full', 'username'):
+    raise ValueError('REGISTRATION_MODE must be full or username')
 DCGM_EXPORTER_URL = os.getenv('DCGM_EXPORTER_URL', 'http://nvidia-dcgm-exporter.nvidia-gpu-operator.svc:9400/metrics')
 WHISPER_NAMESPACE = os.getenv('WHISPER_NAMESPACE', 'whisper')
 THANOS_QUERIER_URL = os.getenv('THANOS_QUERIER_URL', 'https://thanos-querier.openshift-monitoring.svc.cluster.local:9091')
@@ -490,6 +493,7 @@ def index():
     return render_template('index.html',
                          model_display_name=MODEL_DISPLAY_NAME,
                          conference_name=CONFERENCE_NAME,
+                         registration_mode=REGISTRATION_MODE,
                          required_language=REQUIRED_CHALLENGE_LANGUAGE,
                          challenge_count=CHALLENGE_COUNT,
                          win_threshold=WIN_THRESHOLD,
@@ -501,6 +505,8 @@ def index():
 
 @app.route('/register')
 def register_page():
+    if REGISTRATION_MODE == 'username':
+        return redirect('/')
     return render_template('register.html', conference_name=CONFERENCE_NAME)
 
 @app.route('/logo.svg')
@@ -862,18 +868,43 @@ def get_metrics():
 
 @app.route('/api/register', methods=['POST'])
 def api_register():
-    data = request.get_json()
-    if not data:
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not data:
         return jsonify({'error': 'JSON body required'}), 400
 
-    nickname = (data.get('nickname') or '').strip()
-    name = (data.get('name') or '').strip()
-    email = (data.get('email') or '').strip()
+    # Keep nickname as the persisted/public identifier for existing games/exports.
+    # Username-only clients may also use the legacy nickname API field.
+    field = 'username' if REGISTRATION_MODE == 'username' and 'username' in data else 'nickname'
+    nickname = data.get(field)
+    label = 'Username' if REGISTRATION_MODE == 'username' else 'Nickname'
+    if not isinstance(nickname, str):
+        return jsonify({'error': f'{label} must be 2-20 characters'}), 400
+    nickname = nickname.strip()
+    if not 2 <= len(nickname) <= 20:
+        return jsonify({'error': f'{label} must be 2-20 characters'}), 400
+    if not re.fullmatch(r'[a-zA-Z0-9_-]+', nickname):
+        return jsonify({'error': f'{label}: letters, numbers, underscores, hyphens only'}), 400
 
-    if not nickname or len(nickname) < 2 or len(nickname) > 20:
-        return jsonify({'error': 'Nickname must be 2-20 characters'}), 400
-    if not re.match(r'^[a-zA-Z0-9_-]+$', nickname):
-        return jsonify({'error': 'Nickname: letters, numbers, underscores, hyphens only'}), 400
+    if REGISTRATION_MODE == 'username':
+        db = get_db()
+        try:
+            # One atomic insert makes simultaneous joins resolve to one player.
+            # Ignore personal fields even if an old/malicious client sends them.
+            inserted = db.execute(
+                "INSERT INTO players (nickname, name, email) VALUES (?, '', '') "
+                "ON CONFLICT(nickname) DO NOTHING", (nickname,)).rowcount == 1
+            db.commit()
+            player = db.execute('SELECT id, nickname FROM players WHERE nickname = ?',
+                                (nickname,)).fetchone()
+            return jsonify({'player_id': player['id'], 'nickname': player['nickname'],
+                            'token': create_token(player['id'])}), 201 if inserted else 200
+        finally:
+            db.close()
+
+    name = data.get('name')
+    email = data.get('email')
+    name = name.strip() if isinstance(name, str) else ''
+    email = email.strip() if isinstance(email, str) else ''
     if not name or len(name) < 2:
         return jsonify({'error': 'Name is required (min 2 characters)'}), 400
     if not email or '@' not in email:

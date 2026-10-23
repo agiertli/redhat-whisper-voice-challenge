@@ -5,7 +5,8 @@ history, Anton's workstation, registry push permission, or `now.env` is needed f
 the published-image installation. Agent instructions live in `AGENTS.md`;
 `CLAUDE.md` points to the same instructions. Choose the [agent procedure](AGENT-INSTALLATION.md), which uses the installer,
 or the [traditional Helm procedure](HELM-INSTALLATION.md), which invokes the same
-chart directly. This page covers their shared configuration and operations.
+chart directly. This page covers their shared configuration and operations. Common owner tasks
+have dedicated guides in the [customization index](CUSTOMIZATION.md).
 
 ## Target environment and validation status
 
@@ -18,16 +19,19 @@ and multiple simultaneous game installations in one namespace are outside this
 installer's current scope. Operator installation and cloud GPU provisioning are
 prerequisites, not work performed by the installer.
 
-Current chart candidate: `2.0.0-rc.2`, using the existing published UI `v2.10.0`.
+Current chart candidate: `2.0.0-rc.3`, using UI `v2.11.0` for configurable registration.
+The [username-mode acceptance report](validation/USERNAME-2026-10-23.md) records
+this version; the earlier report below records the `v2.10.0` live baseline.
 The installation changes require explicit language selection. Live results and
 remaining checks are recorded in [the RHDP validation report](validation/RHDP-2026-10-23.md).
-The published `v2.10.0` app matches this branch source exactly; no rebuild is needed.
+Choose a published image matching the feature: username-only registration requires
+`v2.11.0` or newer. Configuration changes after that require no rebuild.
 Offline regression tests validate rendering and error handling. Live RHDP
 acceptance must separately verify image pulls, KServe behavior, model quality,
 route TLS, storage permissions, upgrades, and backup/restore. Do not equate passing
 local tests with verified cluster compatibility.
 
-Local verification on 2026-10-23: **52 offline regression tests passed**, Helm lint
+Local verification on 2026-10-23: **66 offline regression tests passed**, Helm lint
 passed, and ShellCheck 0.10.0 passed for the installer and all shell helpers.
 Test host: macOS, Bash 3.2.57, Helm 3.15.4, Python 3.14.2. The GitHub workflow also
 runs the suite on Linux and macOS. The live acceptance checklist below is supplemented by the dated validation report.
@@ -44,6 +48,7 @@ Before deployment, decide:
    the only GPU. The opt-in flag affects only
    `my-first-model/llama-32-3b-instruct`, never arbitrary GPU workloads.
 4. Who operates the off-cluster backup laptop and holds the admin credential.
+5. Registration mode: `full` (default) or `username`. See below.
 
 No conference name is required. Keep the default application branding;
 `conference.name` remains an optional customization for the game and TV headings.
@@ -117,6 +122,33 @@ the final availability check.
 The chart sets `GUNICORN_CMD_ARGS=--preload` so SQLite initialization/migrations run
 once before the four workers fork. Live testing caught a first-boot database lock
 race without this setting. Keep preloading enabled for this SQLite deployment.
+
+## Registration mode
+
+Choose `registration.mode` in `values-conference.yaml` and reuse it on upgrades:
+
+```yaml
+registration:
+  mode: "username"  # full is the default
+```
+
+- `full` retains the existing New Player / Returning Player tabs. New players
+  provide a nickname, full name and email.
+- `username` uses one form with one public username field. The same action creates
+  a new player or resumes the exact existing username (case-sensitive). Names and
+  emails are not requested, and submitted personal fields are ignored server-side.
+  Use this for third-party conferences where those details are not collected.
+
+Usernames use 2–20 ASCII letters, numbers, underscores or hyphens. Returning by
+username is the accepted game behavior; it is not identity verification. Username
+mode applies to both `/` and the legacy `/register` entry point.
+
+Both modes share player IDs, scoring, leaderboards, exports, backups and SQLite
+storage. New username-only players have empty name/email columns. Switching modes
+preserves existing players, scores and signing credentials; it does not delete
+previously collected personal data. Start with a fresh event database if a venue
+requires that no historical personal data be present. Never clear an active
+conference's database as part of switching a setting.
 
 ## Choose the admin password
 

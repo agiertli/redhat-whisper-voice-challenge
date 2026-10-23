@@ -4,3 +4,7 @@ game:
   # REQUIRED owner decision. cs=Czech, sk=Slovak, de=German, en=English.
   # This is the FIRST challenge, not a restriction on all later challenges.
   requiredLanguage: "cs"
+
+registration:
+  # full collects nickname/name/email. username uses one field to join/resume.
+  mode: "full"

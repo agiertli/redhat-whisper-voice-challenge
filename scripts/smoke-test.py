@@ -11,6 +11,12 @@ with urllib.request.urlopen(base + '/', timeout=15) as response:
     page = response.read().decode()
 if "const REQUIRED_LANGUAGE = '" + required + "';" not in page:
     sys.exit('ERROR: Running UI has the wrong required language; check rollout/configuration.')
+if len(sys.argv) > 2 and sys.argv[2]:
+    mode = sys.argv[2]
+    if 'const REGISTRATION_MODE = ' + json.dumps(mode) + ';' not in page:
+        sys.exit('ERROR: Running UI has the wrong registration mode; check image/configuration.')
+    if mode == 'username' and ('id="regUsername"' not in page or 'id="regEmail"' in page):
+        sys.exit('ERROR: Username-only registration form does not match configuration.')
 for path in ('/register', '/tv', '/admin'):
     with urllib.request.urlopen(base + path, timeout=15) as response:
         if response.status != 200:

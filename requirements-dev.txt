@@ -1,2 +1,5 @@
 # Local/CI regression tests only; installer requires no pip packages.
 PyYAML==6.0.3
+
+# Exercise the actual Flask registration API and templates.
+-r requirements.txt

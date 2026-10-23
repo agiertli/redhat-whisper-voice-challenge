@@ -16,6 +16,15 @@ a third deployment procedure. Work on the `tournament-mode` branch.
   gives a country but no language, confirm the language choice. Never infer it
   from laptop locale or silently fall back to Slovak/English. Examples: `cs` for
   Czech, `sk` for Slovak, `de` for German, `en` for English.
+- Registration is configurable via `registration.mode`: `full` (default) or
+  `username` (one form/field to register or resume, no name/email collection).
+  Preserve the owner's mode in the values file across upgrades. This is one
+  feature flag on tournament-mode, not a separate branch/image variant.
+- Accept an admin password directly in the owner prompt or from a private file.
+  For a literal value, create a mode-600 temporary file, use --admin-password-file,
+  then remove that file. Never put it in command arguments or versioned values.
+- Normalize language names and obvious typos to supported codes (German/Germand
+  -> de); clarify ambiguous input. The script/Helm still require the language code.
 - Ask for missing owner choices early; continue read-only discovery meanwhile.
 - On the usual RHDP SNO, use `--free-rhdp-gpu` only when stopping the bundled
   `my-first-model/llama-32-3b-instruct` is authorized. Never stop unrelated models.

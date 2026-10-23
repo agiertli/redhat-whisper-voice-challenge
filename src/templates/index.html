@@ -733,6 +733,12 @@
             transform: none;
         }
 
+        .username-help {
+            color: var(--gray-40);
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
         /* Mini leaderboard on registration page */
         .mini-leaderboard {
             width: 100%;
@@ -897,6 +903,21 @@
         <!-- Registration Panel (shown before game) -->
         <div id="registrationPanel" style="grid-column: 1 / -1; grid-row: 1 / -1;">
             <div class="reg-form">
+                {% if registration_mode == 'username' %}
+                <form id="regUsernameForm" onsubmit="joinByUsername(event)">
+                    <h2>Join the Voice Challenge</h2>
+                    <div class="reg-field">
+                        <label for="regUsername">Username (public, shown on leaderboard)</label>
+                        <input type="text" id="regUsername" name="username" placeholder="e.g. PolyglotPro"
+                               minlength="2" maxlength="20" pattern="[a-zA-Z0-9_-]+"
+                               autocomplete="username" autocapitalize="none" spellcheck="false" required
+                               aria-describedby="usernameHelp">
+                        <p id="usernameHelp" class="username-help">Use the same username to play again.</p>
+                    </div>
+                    <div class="reg-error" id="usernameError" role="alert"></div>
+                    <button class="reg-btn" id="usernameSubmitBtn" type="submit">Join Tournament</button>
+                </form>
+                {% else %}
                 <div class="reg-mode-toggle">
                     <button class="reg-mode-btn active" id="modeNewBtn" onclick="switchRegMode('new')">New Player</button>
                     <button class="reg-mode-btn" id="modeReturnBtn" onclick="switchRegMode('return')">Returning Player</button>
@@ -931,6 +952,7 @@
                     <div class="reg-error" id="loginError"></div>
                     <button class="reg-btn" id="loginSubmitBtn" onclick="loginPlayer()">Log In</button>
                 </div>
+                {% endif %}
             </div>
             <div class="mini-leaderboard" id="regLeaderboard">
                 <h3>Leaderboard</h3>
@@ -1127,6 +1149,7 @@
     </div>
 
     <script>
+        const REGISTRATION_MODE = {{ registration_mode | tojson }};
         let audioContext;
         let mediaStream;
         let audioInput;
@@ -1223,18 +1246,26 @@
             document.getElementById('transcription-panel').style.display = 'none';
             document.querySelector('.bottom-row').style.display = 'none';
             document.getElementById('playerBadge').style.display = 'none';
-            const regBtn = document.getElementById('regSubmitBtn');
-            regBtn.disabled = false;
-            regBtn.textContent = 'Join Tournament';
-            const loginBtn = document.getElementById('loginSubmitBtn');
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Log In';
-            document.getElementById('regNickname').value = '';
-            document.getElementById('regName').value = '';
-            document.getElementById('regEmail').value = '';
-            document.getElementById('loginNickname').value = '';
-            document.getElementById('regError').textContent = '';
-            document.getElementById('loginError').textContent = '';
+            if (REGISTRATION_MODE === 'username') {
+                document.getElementById('regUsernameForm').reset();
+                document.getElementById('usernameError').textContent = '';
+                const button = document.getElementById('usernameSubmitBtn');
+                button.disabled = false;
+                button.textContent = 'Join Tournament';
+            } else {
+                const regBtn = document.getElementById('regSubmitBtn');
+                regBtn.disabled = false;
+                regBtn.textContent = 'Join Tournament';
+                const loginBtn = document.getElementById('loginSubmitBtn');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Log In';
+                document.getElementById('regNickname').value = '';
+                document.getElementById('regName').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('loginNickname').value = '';
+                document.getElementById('regError').textContent = '';
+                document.getElementById('loginError').textContent = '';
+            }
             fetchLeaderboardPreview();
         }
 
@@ -1246,6 +1277,43 @@
             document.getElementById('playerNickname').textContent = playerSession.nickname;
             document.getElementById('difficultySelector').style.display = 'block';
             document.getElementById('challengeContent').style.display = 'none';
+        }
+
+        async function joinByUsername(event) {
+            event.preventDefault();
+            const username = document.getElementById('regUsername').value.trim();
+            const errorEl = document.getElementById('usernameError');
+            const button = document.getElementById('usernameSubmitBtn');
+            errorEl.textContent = '';
+            if (!/^[a-zA-Z0-9_-]{2,20}$/.test(username)) {
+                errorEl.textContent = 'Use 2–20 letters, numbers, underscores or hyphens';
+                return;
+            }
+            button.disabled = true;
+            button.textContent = 'Joining...';
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    errorEl.textContent = data.error || 'Could not join. Please try again.';
+                    return;
+                }
+                playerSession.token = data.token;
+                playerSession.nickname = data.nickname;
+                playerSession.playerId = data.player_id;
+                sessionStorage.setItem('tournament_token', data.token);
+                sessionStorage.setItem('tournament_nickname', data.nickname);
+                showGameUI();
+            } catch (error) {
+                errorEl.textContent = 'Network error, please try again';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Join Tournament';
+            }
         }
 
         async function registerPlayer() {

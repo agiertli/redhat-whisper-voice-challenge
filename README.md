@@ -46,9 +46,14 @@ players. Upgrades take a verified backup first and retain installed credentials.
 
 [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) use the same runbook and script.
 Use the [copyable installation prompt](docs/AGENT-INSTALLATION.md#copyable-prompt).
-Its owner settings are grouped at the top: first required language, namespace,
-permission to stop the bundled Llama, and admin password choice.
-Edit those four lines and copy the full prompt into your agent.
+Its owner settings are grouped at the top: first required language, registration
+mode, namespace, permission to stop the bundled Llama, and admin password choice.
+Edit those five lines and copy the full prompt into your agent.
+
+For third-party conferences, choose `registration.mode: username` in the values
+file: one username field registers or resumes a player, with no name/email
+collection. The default `full` mode keeps the existing registration flow. Both
+modes use the same versioned image (`v2.11.0`) and persistence.
 
 ## Booth operation
 

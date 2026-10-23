@@ -3,7 +3,7 @@ namespace: ""
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: "v2.10.0"
+  tag: "v2.11.0"
   pullPolicy: Always
 
 replicaCount: 1
@@ -116,6 +116,10 @@ model:
       nvidia.com/gpu: "1"
   nodeSelector:
     node-role.kubernetes.io/gpu-worker: "true"
+
+registration:
+  # full: nickname, full name and email; username: one field to join/resume.
+  mode: full
 
 tournament:
   storage: "1Gi"

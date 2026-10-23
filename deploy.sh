@@ -101,6 +101,7 @@ ARGS+=(--set-string "namespace=$NAMESPACE" --set "warmup.deadlineSeconds=$((TIME
 helm lint helm/whisper "${ARGS[@]}" > "$WORK/lint.log" || { cat "$WORK/lint.log"; fail "Chart validation failed"; }
 helm template whisper helm/whisper "${ARGS[@]}" --show-only templates/configmap.yaml > "$WORK/config.yaml"
 MODEL=$(sed -n 's/^  WHISPER_MODEL_NAME: "\([^"]*\)"$/\1/p' "$WORK/config.yaml")
+REGISTRATION_MODE=$(sed -n 's/^  REGISTRATION_MODE: "\([^"]*\)"$/\1/p' "$WORK/config.yaml")
 LANGUAGE=$(sed -n 's/^  REQUIRED_CHALLENGE_LANGUAGE: "\([^"]*\)"$/\1/p' "$WORK/config.yaml")
 [[ -n "$MODEL" && -n "$LANGUAGE" ]] || fail "Could not resolve model/language from chart"
 helm template whisper helm/whisper "${ARGS[@]}" --show-only templates/deployment.yaml > "$WORK/deployment.yaml"
@@ -180,7 +181,7 @@ helm upgrade --install whisper helm/whisper "${ARGS[@]}" --create-namespace --wa
 oc wait --for=condition=Ready "inferenceservice/$MODEL" -n "$NAMESPACE" --timeout="${TIMEOUT}s"
 oc rollout status deployment/whisper-ui -n "$NAMESPACE" --timeout="${TIMEOUT}s"
 "$ROOT/scripts/enable-monitoring.sh" --wait
-"$ROOT/scripts/verify-install.sh" "$NAMESPACE" "$LANGUAGE"
+"$ROOT/scripts/verify-install.sh" "$NAMESPACE" "$LANGUAGE" "$REGISTRATION_MODE"
 echo "Deployment and internal smoke checks passed."
 "$ROOT/scripts/show-access.sh" "$NAMESPACE"
 echo "Next: verify browser TLS, microphone, registration, a complete game, /tv and /admin."
