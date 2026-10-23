@@ -455,9 +455,16 @@ elif args[:2] == ['get', 'deployment'] and '-o' in args and args[args.index('-o'
     if 'llama-32-3b-instruct-predictor' in args: print('deployment.apps/llama-32-3b-instruct-predictor')
     elif scenario.startswith('upgrade'): print('deployment.apps/whisper-ui')
 elif args[:2] == ['get', 'deployment'] and scenario.startswith('upgrade'):
-    print('whisper')
+    if '-o' in args and args[args.index('-o') + 1] == 'json':
+        deployment={'metadata':{'labels':{'helm.sh/chart':'whisper-ui-1.0.0'},'annotations':{'meta.helm.sh/release-name':'whisper'}},'spec':{'template':{'spec':{'containers':[{'image':'quay.io/agiertli/whisper-ui:v1.1.2'}]}}}}
+        if scenario == 'upgrade-missing-secret': deployment['metadata']['labels']['helm.sh/chart']='whisper-ui-2.0.0-rc.7'
+        if scenario == 'upgrade-legacy-volume': deployment['spec']['template']['spec']['volumes']=[{'name':'data','persistentVolumeClaim':{'claimName':'custom-data'}}]
+        print(json.dumps(deployment))
+    else: print('whisper')
 elif args[:2] == ['get', 'secret'] and scenario == 'upgrade-backup-failure':
     sys.exit(24)
+elif args[:2] == ['get', 'secret'] and '-o' in args and args[args.index('-o') + 1] == 'name' and scenario in ('upgrade-legacy','upgrade-missing-secret','upgrade-legacy-volume'):
+    pass
 elif args[:2] == ['get', 'secret']:
     print('mock-admin-password')
 elif args[:2] == ['get', 'pods'] and scenario in ('wait-failure', 'pods-remain'):
@@ -470,6 +477,8 @@ elif args[:2] == ['get', 'route']:
 MOCK_HELM = r'''#!/usr/bin/env python3
 import os, subprocess, sys, json
 args = sys.argv[1:]
+if args[0] == 'get' and os.environ.get('SCENARIO') == 'upgrade-legacy':
+    print('legacy-state: preserved');sys.exit(0)
 if args[0] == 'upgrade':
     with open(os.environ['CALL_LOG'], 'a') as f: f.write('HELM-UPGRADE ' + json.dumps(args) + '\n')
     sys.exit(23 if os.environ.get('SCENARIO') == 'helm-failure' else 0)
@@ -489,6 +498,7 @@ class InstallerTests(unittest.TestCase):
         self.log = self.directory / 'calls'
         self.env = dict(os.environ, PATH=str(self.directory) + os.pathsep + os.environ['PATH'],
                         CALL_LOG=str(self.log), REAL_HELM=HELM, FIXTURES=str(self.directory),
+                        BACKUP_DIR=str(self.directory / 'backups'),
                         KUBECONFIG=str(self.directory / 'nonexistent-kubeconfig'))
         for name in ('IMAGE_REGISTRY', 'VERSION', 'NAMESPACE', 'HELM_VALUES', 'KUBE_CONTEXT', 'HELM_KUBECONTEXT'):
             self.env.pop(name, None)
@@ -516,6 +526,31 @@ class InstallerTests(unittest.TestCase):
         self.assertNotIn('HELM-UPGRADE', self.calls())
         self.assertNotIn('"label"', self.calls())
         self.assertNotIn('"patch"', self.calls())
+
+    def test_known_stateless_main_migration_preserves_helm_state(self):
+        result=self.run_script('deploy.sh','--language','de',scenario='upgrade-legacy')
+        self.assertIn('no tournament database existed',result.stdout)
+        state=next((self.directory/'backups').glob('legacy-main.*'))
+        self.assertEqual(state.stat().st_mode & 0o777,0o700)
+        for name in ('values.yaml','manifest.yaml','deployment.json'):
+            self.assertTrue((state/name).read_text())
+            self.assertEqual((state/name).stat().st_mode & 0o777,0o600)
+        self.assertIn('HELM-UPGRADE',self.calls())
+
+    def test_legacy_preflight_is_read_only(self):
+        self.run_script('deploy.sh','--language','de','--preflight',scenario='upgrade-legacy')
+        self.assertFalse((self.directory/'backups').exists())
+        self.assertNotIn('HELM-UPGRADE',self.calls())
+        self.assertNotIn('"label"',self.calls())
+
+    def test_missing_secret_does_not_bypass_backup_for_unknown_or_stateful_release(self):
+        for scenario in ('upgrade-missing-secret','upgrade-legacy-volume'):
+            with self.subTest(scenario=scenario):
+                self.log.write_text('')
+                result=self.run_script('deploy.sh','--language','de',scenario=scenario,success=False)
+                self.assertIn('not the known stateless main release',result.stderr)
+                self.assertNotIn('HELM-UPGRADE',self.calls())
+                self.assertNotIn('"label"',self.calls())
 
     def test_recovery_requires_valid_owner_selected_backup(self):
         snapshot = self.directory / 'snapshot.db'

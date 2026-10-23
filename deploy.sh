@@ -140,6 +140,35 @@ python3 "$ROOT/scripts/check-cluster.py" "$WORK" "$NAMESPACE" "$MODEL" "$FREE_GP
 INSTALLED=$(oc get deployment whisper-ui -n "$NAMESPACE" --ignore-not-found -o name)
 OWNER=$(oc get deployment whisper-ui -n "$NAMESPACE" --ignore-not-found -o 'jsonpath={.metadata.annotations.meta\.helm\.sh/release-name}')
 [[ -z "$OWNER" || "$OWNER" == whisper ]] || fail "whisper-ui belongs to another Helm release: $OWNER"
+LEGACY_MAIN=false
+if [[ -n "$INSTALLED" ]]; then
+    SECRET_RESOURCE=$(oc get secret whisper-tournament-secret -n "$NAMESPACE" --ignore-not-found -o name)
+    if [[ -z "$SECRET_RESOURCE" ]]; then
+        oc get deployment whisper-ui -n "$NAMESPACE" -o json > "$WORK/installed-deployment.json"
+        # Only the known pre-tournament release has no database to back up. A
+        # missing Secret on any other release must never silently rotate keys.
+        python3 - "$WORK/installed-deployment.json" "$WORK/pvc.json" <<'PY'
+import json, sys
+deployment, pvc = (json.load(open(path)) for path in sys.argv[1:])
+metadata = deployment.get('metadata', {})
+pod = deployment.get('spec', {}).get('template', {}).get('spec', {})
+containers = pod.get('containers', [])
+known = (metadata.get('labels', {}).get('helm.sh/chart') == 'whisper-ui-1.0.0'
+         and metadata.get('annotations', {}).get('meta.helm.sh/release-name') == 'whisper'
+         and len(containers) == 1
+         and containers[0].get('image') == 'quay.io/agiertli/whisper-ui:v1.1.2'
+         and not pod.get('volumes') and not containers[0].get('volumeMounts')
+         and not any('secretRef' in ref for ref in containers[0].get('envFrom', []))
+         and not any(env.get('name') in ('DB_PATH', 'TOURNAMENT_SECRET', 'ADMIN_TOKEN')
+                     for env in containers[0].get('env', []))
+         and not pvc.get('metadata'))
+if not known:
+    sys.exit('ERROR: Existing installation has no tournament Secret and is not the known stateless main release; investigate missing credentials/storage before upgrading.')
+PY
+        LEGACY_MAIN=true
+        echo "Recognized stateless main v1.1.2/chart 1.0.0: no tournament database exists; Helm state will be saved before migration."
+    fi
+fi
 echo "Preflight passed: namespace=$NAMESPACE, model=$MODEL, language=$LANGUAGE, UI=$IMAGE"
 if $PREFLIGHT; then
     echo "Read-only checks complete. Registry pulls, scheduling, route TLS and inference still require a live deployment."
@@ -157,7 +186,17 @@ diagnostics() {
 }
 trap diagnostics ERR
 if [[ -n "$INSTALLED" ]]; then
-    if [[ -n "$BACKUP_FILE" ]]; then
+    if $LEGACY_MAIN; then
+        LEGACY_BACKUP_DIR=${BACKUP_DIR:-$ROOT/backups/$NAMESPACE}
+        mkdir -p "$LEGACY_BACKUP_DIR"
+        LEGACY_STATE=$(mktemp -d "$LEGACY_BACKUP_DIR/legacy-main.XXXXXXXX")
+        chmod 700 "$LEGACY_STATE"
+        helm get values whisper -n "$NAMESPACE" --kube-context "$KUBE_CONTEXT" --all -o yaml > "$LEGACY_STATE/values.yaml"
+        helm get manifest whisper -n "$NAMESPACE" --kube-context "$KUBE_CONTEXT" > "$LEGACY_STATE/manifest.yaml"
+        cp "$WORK/installed-deployment.json" "$LEGACY_STATE/deployment.json"
+        chmod 600 "$LEGACY_STATE/values.yaml" "$LEGACY_STATE/manifest.yaml" "$LEGACY_STATE/deployment.json"
+        echo "Saved private legacy Helm state: $LEGACY_STATE (no tournament database existed)."
+    elif [[ -n "$BACKUP_FILE" ]]; then
         "$ROOT/scripts/backup.sh" --validate "$BACKUP_FILE"
         echo "Using owner-selected recovery snapshot: $BACKUP_FILE"
     else

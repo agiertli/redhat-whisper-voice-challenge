@@ -2,8 +2,10 @@
 
 **Status: integration candidate, 2026-10-23.** Cleanup is complete in `4316d07`.
 The toggle and reliability fixes are implemented on `codex/consolidate-modes`,
-with 88 local regression checks passing. Live acceptance is in progress on a fresh
-RHDP environment. See [recorded checks and outstanding acceptance gates](validation/CONSOLIDATION-2026-10-23.md).
+with 91 local regression checks passing. Fresh RHDP acceptance includes both modes,
+rollback/upgrade, owner manual Chrome username-mode play and a live archived-main
+migration with compatible model/runtime settings. Independent-owner handover and
+the wider browser matrix remain open. See [recorded checks and outstanding acceptance gates](validation/CONSOLIDATION-2026-10-23.md).
 No merge to `main` has occurred and neither accepted branch has
 been deleted. The gates below remain the acceptance criteria, not a claim that
 every check has passed.

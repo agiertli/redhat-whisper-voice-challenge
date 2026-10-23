@@ -200,6 +200,11 @@ retention and recovery limitations are in [INSTALLATION.md](INSTALLATION.md).
 
 ## 6. Upgrade directly with Helm
 
+This sequence is for installations with tournament storage (including consolidated
+standalone mode). The older stateless main release has no tournament backup API;
+use the [legacy migration guide](customization/upgrading-existing-installations.md#from-the-older-main-standalone-game)
+to preserve its Helm state before that first migration.
+
 Schedule an interruption and stop admitting players. Pause the laptop loop so only
 one downloader runs. Before any changes, take a fresh external backup using that
 script. On the installer workstation (which has oc), this complete sequence keeps

@@ -37,6 +37,31 @@ Even standalone keeps a PVC and Secret so mode switching is reversible. Main's
 older chart did not create tournament storage. Select a non-default StorageClass
 before first creation if required; do not try to change it afterward.
 
+`deploy.sh` recognizes the accepted stateless combination: chart `1.0.0`, published
+UI `v1.1.2`, owned by Helm release `whisper`, with no database volumes, tournament
+PVC or tournament Secret. Read-only preflight reports that detection. The actual
+upgrade saves the old complete Helm values, manifest and Deployment privately
+under `BACKUP_DIR` (or `backups/NAMESPACE`) before applying anything. There is no
+SQLite database or backup endpoint in that old app. A missing Secret on any other
+release fails rather than generating replacement credentials. Modified legacy
+images/layouts need review; do not relabel them to force detection.
+
+For direct Helm, first save that stateless installation's configuration yourself:
+
+```bash
+umask 077
+mkdir -p legacy-main-state
+helm get values whisper -n whisper --all -o yaml > legacy-main-state/values.yaml
+helm get manifest whisper -n whisper > legacy-main-state/manifest.yaml
+oc get deployment whisper-ui -n whisper -o yaml > legacy-main-state/deployment.yaml
+```
+
+Confirm the source really is the known stateless release, retain those files
+outside Git and use the normal direct Helm upgrade/monitoring/smoke commands with
+your reviewed new values. Only this first stateless migration has no SQLite
+snapshot to download. Every later upgrade, even with tournament disabled, uses
+the regular protected database backup.
+
 Compare your old values with the candidate defaults rather than carrying forward
 an entire old chart values file unquestioned. In particular:
 
@@ -53,10 +78,13 @@ an entire old chart values file unquestioned. In particular:
 - Standalone now shares the current Hard-only Swap behavior; it does not restore
   old main's Skip implementation.
 
-A live old-main-to-candidate migration remains an acceptance gate. Rendered
-Deployment/Service selectors and Route targets were checked for compatibility;
-that check does not prove a live model/runtime migration. Keep the old Git tag,
-image and values recoverable until this path is verified for your setup.
+A live old-main-to-candidate migration passed on the fresh RHOAI 3 test cluster,
+using the old chart/UI and explicit compatible model/runtime settings on both
+sides. German and Deployment/Service/Route identities survived, new storage was
+created and real-audio/monitoring checks passed. See the acceptance report for
+exact versions. This does not validate the old quantized-model/runtime defaults
+or every historical owner override. Keep the old Git tag, image and values
+recoverable until the intended configuration is verified for your setup.
 
 ## Verify before reopening the booth
 

@@ -114,6 +114,12 @@ nodes, deploys via Helm and runs the internal real-audio smoke test. Reuse the s
 venue file/namespace on upgrades. A language/config change rolls the UI; ordinary
 upgrades preserve installed signing/admin keys.
 
+For the older stateless main release, read the
+[migration guide](customization/upgrading-existing-installations.md). The installer
+recognizes only its known chart/image without database volumes, PVC or tournament
+Secret, then saves private Helm state before creating tournament storage. It does
+not bypass backup requirements for a damaged tournament installation.
+
 ## Handoff to the technical owner
 
 Require a report containing the game URL, deployed versions, selected language,

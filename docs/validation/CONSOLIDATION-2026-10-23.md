@@ -26,7 +26,7 @@ Recovery tags were pushed and cloned independently:
 
 ## Local checks
 
-88 automated regression tests passed on macOS, Python 3.14.2, Bash 3.2.57 and
+91 automated regression tests passed on macOS, Python 3.14.2, Bash 3.2.57 and
 Helm 3.15.4. Tests cover both modes, explicit false/default/invalid configuration,
 registration, endpoint guards, additive legacy migration, scoring, concurrent
 attempt retries, completion retries, malformed requests, restore rejection and
@@ -35,6 +35,10 @@ actual rendered JavaScript functions; these are not microphone/browser tests.
 Focused restore tests also reject corrupt, truncated and incompatible snapshots.
 Helm lint, shell syntax, ShellCheck 0.10.0 and architecture JavaScript syntax pass.
 No GitHub Actions workflow was introduced.
+
+The additional legacy-installer cases verify private Helm-state capture for the
+known stateless main release, read-only legacy preflight, and refusal to treat an
+unknown/stateful installation with a missing Secret as a safe migration.
 
 ## Fresh RHDP cluster checks
 
@@ -97,7 +101,23 @@ steps and reverse navigation through steps 7–2: x=33, y=160, width=1214,
 height=506. A deleted disposable player's stale browser session returned to the
 single-field registration screen after the next game-start request. Only the
 three identified acceptance players and their games were removed afterward;
-unrelated records were compared and preserved. The fresh cluster has no players.
+unrelated records were compared and preserved. At that point the fresh cluster
+had no players; the owner subsequently added the manual acceptance result below.
+
+### Owner's subsequent manual Chrome acceptance
+
+After automated fixture cleanup, the owner completed the requested manual
+checklist and reported no issues. Their screenshots show a complete five-round
+Hard game with microphone capture and a German first challenge, followed by the
+same **128.3 points / 58.6%** result in the game, TV leaderboard and authenticated
+admin. The checklist also covered the single username form, one Hard Swap,
+refresh/resume, and no Swap on Easy/Medium. Treat the latter checks as owner
+confirmation; the three screenshots alone do not show every interaction.
+
+The owner's result was independently verified in an external SQLite snapshot
+before the migration rehearsal. It is retained and is not a disposable fixture.
+The fresh cluster therefore now contains the owner's player/result. Screenshots
+containing unrelated browser tabs/account details are not copied into Git.
 
 One external backup downloader ran with `env -i`, `PATH=/usr/bin:/bin` and
 macOS Bash 3.2: no Python, `oc`, virtualenv or repository configuration. The default
@@ -111,16 +131,56 @@ loop and keep that laptop awake; no ongoing backup service is claimed here.
 
 ![Final architecture labels and layout](integration-architecture.png)
 
+## Live migration from archived main
+
+The archived chart `1.0.0` and published UI `v1.1.2` were installed in the separate
+`whisper-main-migration` namespace. The old image digest was
+`sha256:d7a62b6fa58bc820524bd6730c7b903d96ff68983010e6208891bbf3a6721344`;
+its Python and game template hashes matched the archived main source.
+
+Both the old and new configurations explicitly selected the already validated
+RHOAI 3-compatible modelcar `registry.redhat.io/rhai/modelcar-openai-whisper-large-v3:3.0`
+and runtime `registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.2.4`. This is a migration
+of the old application/chart with compatible owner settings, not validation of
+the obsolete quantized-model/runtime defaults or a RHOAI 2 operator upgrade.
+
+Old main passed trusted HTTPS, the configured German language and real WAV
+inference. The standard wrapper then performed read-only preflight and upgrade
+to the consolidated chart with `tournament.enabled: false`, using reviewed values
+without old UI-image overrides. This exposed and fixed an installer gap: old main
+has no tournament backup API/Secret. Strict legacy detection now saves complete
+Helm values, manifest and Deployment privately before this first migration;
+unknown/stateful releases with missing credentials still fail safely.
+
+The consolidated release reached Helm revision **2** with model warmup, real-audio
+inference, DCGM and persistent AI checks passing. Deployment, Service and Route
+UIDs remained identical, German was retained, the model API moved to the internal
+service, a new PVC became Bound, and new independent credentials were generated.
+No tournament data existed in this stateless source installation.
+
+Two preliminary runs stopped on test-harness mistakes (upload field and SSE
+chunk assembly), not application failures. The recovery guard restored the owner
+installation after each; the corrected run passed. The separate rehearsal
+installation is retained with UI/model scaled to zero, preserving its Helm state
+and PVC. The single GPU is returned to the owner's original namespace.
+
+After recovery, the owner's original installation again passed real WAV
+inference and GPU/persistent AI monitoring. Every backed-up owner
+player/game/attempt/settings row matched, the 128.3-point result remained,
+username resume worked and snapshot integrity passed. Fresh-install PVC/Secret
+UIDs and both credentials remained unchanged; published source hashes still
+matched. No backup was restored over the owner's running data.
+
 ## Remaining acceptance gates
 
-1. A technical owner must play an actual five-round spoken game in a supported
-   conference browser, including microphone permission/capture, final score and
-   refresh/resume. In-app browser microphone permission could not be controlled;
-   Chrome was unavailable to this test session. Real WAV and synthetic API games
-   are separate evidence, not a substitute for this check.
-2. Rehearse a live upgrade from the older `main` release. Rendered selectors and
-   route targets are compatible, but its older model/runtime differs. Follow
-   [the migration guide](../customization/upgrading-existing-installations.md).
+1. Owner manual Chrome acceptance for username-mode tournament play passed as
+   recorded above. The broader planned Chrome/Edge, full-registration and
+   standalone spoken-game matrix is not completely exercised. Agent-side real
+   WAV/API checks remain separate evidence from the owner's browser game.
+2. Archived-main migration passed with the explicitly compatible configuration
+   above. Owners using other legacy models/runtimes still need to validate their
+   intended configuration; the obsolete defaults remain outside this evidence.
+   Follow [the migration guide](../customization/upgrading-existing-installations.md).
 3. Have an independent technical owner follow the documentation without this
    chat, check their intended language/registration choice and rehearse recovery.
 4. Before promotion, refresh Git ancestry, review the final diff, switch candidate
