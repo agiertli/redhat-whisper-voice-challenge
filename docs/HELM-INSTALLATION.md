@@ -31,7 +31,7 @@ or select `tournament.storageClass` in the venue file before first deployment.
 Cluster-admin permissions do not supply Red Hat registry entitlement.
 
 ```bash
-git clone --branch codex/consolidate-modes --single-branch \
+git clone --branch main --single-branch \
   https://github.com/agiertli/redhat-whisper-voice-challenge.git
 cd redhat-whisper-voice-challenge
 ```

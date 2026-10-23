@@ -1,14 +1,17 @@
 # Consolidating onto main: stability and acceptance plan
 
-**Status: integration candidate, 2026-10-23.** Cleanup is complete in `4316d07`.
-The toggle and reliability fixes are implemented on `codex/consolidate-modes`,
-with 91 local regression checks passing. Fresh RHDP acceptance includes both modes,
+**Status: owner-authorized promotion to main, 2026-10-23.** Cleanup is complete in
+`4316d07`. The toggle and reliability fixes were developed on
+`codex/consolidate-modes`, with 91 local regression checks passing. Fresh RHDP acceptance includes both modes,
 rollback/upgrade, owner manual Chrome username-mode play and a live archived-main
 migration with compatible model/runtime settings. Independent-owner handover and
 the wider browser matrix remain open. See [recorded checks and outstanding acceptance gates](validation/CONSOLIDATION-2026-10-23.md).
-No merge to `main` has occurred and neither accepted branch has
-been deleted. The gates below remain the acceptance criteria, not a claim that
-every check has passed.
+After reviewing these results and limitations, the owner explicitly authorized
+merging [PR #2](https://github.com/agiertli/redhat-whisper-voice-challenge/pull/2)
+into `main` and deleting the temporary integration branch. Installation references
+now use `main`. Keep `tournament-mode` and both recovery tags for external-team
+handover. Remaining checks below are follow-up and branch-retirement gates;
+promotion does not claim that every planned matrix cell passed.
 
 ## What the branch comparison establishes
 
@@ -18,12 +21,12 @@ It is the merge base and an ancestor of cleanup commit
 commits ahead on tournament-mode. Re-fetch and repeat that comparison before any
 future integration; these findings do not authorize discarding new main work.
 
-Current main is the older standalone game: no tournament database, registration,
+Before consolidation, main was the older standalone game: no tournament database, registration,
 leaderboard or admin API. Its chart is `1.0.0`, its default UI image is `v1.1.2`,
 and its model/runtime configuration differs from the tested tournament chart.
-Current tournament-mode has persistent SQLite, signed player tokens, both
+The retained tournament-mode branch has persistent SQLite, signed player tokens, both
 registration modes, backup/restore, current monitoring/install safeguards and the
-newer model configuration. The repository still directs owners to tournament-mode.
+newer model configuration. Installation now uses consolidated main instead.
 
 Git ancestry makes an eventual integration mechanically straightforward. The
 unverified work is the mode boundary, old-main upgrades and operational handover.

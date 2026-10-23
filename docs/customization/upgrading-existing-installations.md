@@ -1,7 +1,7 @@
-# Upgrade an existing installation to the consolidated candidate
+# Upgrade an existing installation to consolidated main
 
-This guide applies to `codex/consolidate-modes`, UI `v2.12.0-rc.4` and chart
-`2.0.0-rc.7`. The candidate has not yet replaced main. Read the
+This guide applies to `main`, UI `v2.12.0-rc.4` and chart
+`2.0.0-rc.7`. The tested version labels are retained after promotion. Read the
 [dated acceptance report and outstanding manual checks](../validation/CONSOLIDATION-2026-10-23.md)
 before using it at an event.
 
@@ -62,11 +62,11 @@ your reviewed new values. Only this first stateless migration has no SQLite
 snapshot to download. Every later upgrade, even with tournament disabled, uses
 the regular protected database backup.
 
-Compare your old values with the candidate defaults rather than carrying forward
+Compare your old values with the current defaults rather than carrying forward
 an entire old chart values file unquestioned. In particular:
 
 - Old UI tags such as `v1.1.2` and `v2.11.2` do not implement the new chart contract.
-  Remove an old `image.tag` override to use the candidate's published image. Chart
+  Remove an old `image.tag` override to use the chart's published image. Chart
   validation rejects those old versions before cluster access/mutations.
 - The old main modelcar/runtime differs from the currently tested RHOAI 3 setup.
   Review explicit model/runtime/resource overrides and registry entitlements.
@@ -91,5 +91,5 @@ recoverable until the intended configuration is verified for your setup.
 Check warmup, inference, monitoring, the owner language/mode and a complete spoken
 browser game. Check historical scores/tokens and backup/restore where applicable.
 Schedule upgrades and mode switches between games. A version/tag or Ready pod is
-not sufficient evidence. The candidate leaves accepted branches in place while
-manual acceptance and independent-owner handover remain outstanding.
+not sufficient evidence. The older tournament branch remains in place while
+independent-owner handover and remaining acceptance checks are completed.

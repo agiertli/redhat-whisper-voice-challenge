@@ -14,13 +14,14 @@ Choose the [agent installation](docs/AGENT-INSTALLATION.md) or
 [traditional direct Helm installation](docs/HELM-INSTALLATION.md). Both deploy the
 same chart. The command below is the automated wrapper used by the agent.
 
-This integration candidate uses **`codex/consolidate-modes`**. The accepted
-`tournament-mode` release remains available until consolidation acceptance. Start with the
+Install from **`main`**. Tournament is enabled by default; set
+`tournament.enabled: false` for anonymous standalone play. The older
+`tournament-mode` branch is retained temporarily for external-team handover. Start with the
 [installation and operations runbook](docs/INSTALLATION.md), including prerequisites,
 credentials, backups, upgrades, troubleshooting and acceptance checks.
 
 ```bash
-git clone --branch codex/consolidate-modes --single-branch \
+git clone --branch main --single-branch \
   https://github.com/agiertli/redhat-whisper-voice-challenge.git
 cd redhat-whisper-voice-challenge
 
@@ -101,9 +102,9 @@ There is no repository-managed GitHub Actions workflow.
 For owner changes, use the [customization guides](docs/CUSTOMIZATION.md); for
 background, see [architecture](docs/ARCHITECTURE.md).
 
-The proposed [consolidation onto main](docs/BRANCH-CONSOLIDATION-PLAN.md) is a
-stability plan; candidate installation uses `codex/consolidate-modes` and has
-not yet replaced the accepted branches.
+The [consolidation and branch-retirement plan](docs/BRANCH-CONSOLIDATION-PLAN.md)
+records acceptance evidence, remaining follow-up checks and safe retirement of
+the older tournament branch.
 
 The deployment runbook/chart take precedence over older background diagrams.
 This custom demo is not itself a claim of Red Hat product supportability.

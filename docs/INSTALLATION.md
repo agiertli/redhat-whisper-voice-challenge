@@ -19,9 +19,11 @@ and multiple simultaneous game installations in one namespace are outside this
 installer's current scope. Operator installation and cloud GPU provisioning are
 prerequisites, not work performed by the installer.
 
-Current integration candidate: `2.0.0-rc.7`, using UI `v2.12.0-rc.4` with a
+Current tested versions on `main`: chart `2.0.0-rc.7`, using UI `v2.12.0-rc.4` with a
 default-enabled tournament toggle, anonymous standalone play and reliable save retries.
-This candidate is on `codex/consolidate-modes`; it is not yet the accepted main release. See the
+The owner authorized promotion after live migration and manual Chrome acceptance.
+The published image/chart retain their tested release-candidate version labels.
+See the
 [consolidation acceptance evidence and remaining gates](validation/CONSOLIDATION-2026-10-23.md), the
 [cleanup verification](validation/CLEANUP-2026-10-23.md) and the
 [architecture fix verification](validation/ARCHITECTURE-2026-10-23.md).
@@ -84,7 +86,7 @@ configure cluster pulls. The published UI must also be reachable from the cluste
 ## Fresh installation
 
 ```bash
-git clone --branch codex/consolidate-modes --single-branch \
+git clone --branch main --single-branch \
   https://github.com/agiertli/redhat-whisper-voice-challenge.git
 cd redhat-whisper-voice-challenge
 

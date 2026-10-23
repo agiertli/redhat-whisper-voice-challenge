@@ -5,8 +5,10 @@ It is the shared operations runbook. Agents normally execute `./deploy.sh` using
 [docs/AGENT-INSTALLATION.md](docs/AGENT-INSTALLATION.md). The separately documented
 [direct Helm path](docs/HELM-INSTALLATION.md) is for human/scripted installation or
 an explicit request to use Helm directly. Both use the same chart. Do not invent
-a third deployment procedure. The consolidation candidate is on `codex/consolidate-modes`. Keep accepted
-`main` and `tournament-mode` unchanged until the documented merge gates pass.
+a third deployment procedure. Install and develop on `main`. Tournament is
+enabled by default; `tournament.enabled: false` selects anonymous standalone play.
+The older `tournament-mode` branch is retained for external-team handover; do not
+delete it until the documented retirement checks are accepted.
 
 ## Installation contract
 

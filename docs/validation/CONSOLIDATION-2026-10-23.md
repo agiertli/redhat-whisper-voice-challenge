@@ -1,8 +1,13 @@
 # Consolidation candidate acceptance — 2026-10-23
 
-**Candidate, not a promotion approval.** Work is on `codex/consolidate-modes`.
-Neither `main` nor `tournament-mode` has been merged or deleted. External owners
-should continue using the accepted branch until the manual gates below pass.
+**Owner-authorized promotion to main.** Work was developed on
+`codex/consolidate-modes`. After the checks recorded below, the owner explicitly
+authorized merging [PR #2](https://github.com/agiertli/redhat-whisper-voice-challenge/pull/2)
+and removing that temporary branch. Installation now uses `main`; the tested
+release-candidate image/chart version labels are retained. `tournament-mode` and
+both recovery tags remain available for external-team handover. The wider browser
+matrix and independent-owner walkthrough remain follow-up/retirement checks;
+they are not represented as completed.
 
 ## Scope and recoverability
 
@@ -183,9 +188,10 @@ matched. No backup was restored over the owner's running data.
    Follow [the migration guide](../customization/upgrading-existing-installations.md).
 3. Have an independent technical owner follow the documentation without this
    chat, check their intended language/registration choice and rehearse recovery.
-4. Before promotion, refresh Git ancestry, review the final diff, switch candidate
-   branch references in installation docs to `main`, and repeat release checks.
-   Keep recovery tags/images and both accepted branches through acceptance.
+4. Promotion updates installation references to `main` and verifies the merged
+   source from a fresh clone. Keep recovery tags/images and `tournament-mode`
+   through external-team acceptance; do not delete it with the temporary branch.
 
-No finite test suite establishes zero risk. This evidence supports a reviewable
-integration candidate; it does not justify deleting the accepted branch today.
+No finite test suite establishes zero risk. Promotion is the owner's acceptance
+of the recorded scope and limitations; retirement of `tournament-mode` remains a
+separate decision after handover.

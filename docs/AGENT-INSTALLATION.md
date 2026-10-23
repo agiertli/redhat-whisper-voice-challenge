@@ -14,7 +14,7 @@ and Python 3.9+ (no pip packages for installation). Log in as cluster-admin.
 Check the current server; do not hand an agent credentials from an expired cluster.
 
 ```bash
-git clone --branch codex/consolidate-modes --single-branch \
+git clone --branch main --single-branch \
   https://github.com/agiertli/redhat-whisper-voice-challenge.git
 cd redhat-whisper-voice-challenge
 oc whoami
@@ -45,7 +45,7 @@ May stop bundled RHDP Llama to free the GPU: <yes or no>
 Admin password: <chosen password, private file path, or "generate on first install; preserve on upgrade">
 
 INSTALLATION INSTRUCTIONS — KEEP THESE
-Read AGENTS.md and docs/INSTALLATION.md on the codex/consolidate-modes branch.
+Read AGENTS.md and docs/INSTALLATION.md on the main branch.
 You are logged into the intended RHDP OpenShift AI 3 SNO cluster as cluster-admin.
 Install Whisper using the OWNER SETTINGS above. Tournament is enabled by default;
 use disabled for anonymous standalone play.

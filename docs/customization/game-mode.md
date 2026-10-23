@@ -1,9 +1,9 @@
 # Tournament or anonymous standalone play
 
-Available in the **v2.12.0-rc.4 integration candidate** on
-`codex/consolidate-modes`. The accepted `tournament-mode` release v2.11.2 does not
-have this toggle. Main consolidation remains subject to the
-[acceptance plan](../BRANCH-CONSOLIDATION-PLAN.md).
+Available on **`main`**, using the tested **v2.12.0-rc.4** image. The older
+`tournament-mode` release v2.11.2 does not have this toggle. That branch remains
+temporarily available for external-team handover; see the
+[acceptance and retirement plan](../BRANCH-CONSOLIDATION-PLAN.md).
 
 The same image and Helm chart support both modes. Tournament is the default:
 
