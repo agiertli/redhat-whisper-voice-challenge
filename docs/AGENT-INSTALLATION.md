@@ -14,7 +14,7 @@ and Python 3.9+ (no pip packages for installation). Log in as cluster-admin.
 Check the current server; do not hand an agent credentials from an expired cluster.
 
 ```bash
-git clone --branch tournament-mode --single-branch \
+git clone --branch codex/consolidate-modes --single-branch \
   https://github.com/agiertli/redhat-whisper-voice-challenge.git
 cd redhat-whisper-voice-challenge
 oc whoami
@@ -27,7 +27,7 @@ German is `de`, Czech `cs`, Slovak `sk`, English `en`. Later rounds remain multi
 
 ## Copyable prompt
 
-**Edit the five lines under OWNER SETTINGS, then copy the entire block into your
+**Edit the six lines under OWNER SETTINGS, then copy the entire block into your
 agent.** Replace every `<...>` placeholder. Language examples: `de` = German,
 `cs` = Czech, `sk` = Slovak, `en` = English. Later rounds remain multilingual.
 
@@ -36,7 +36,8 @@ For a chosen admin password, either use a private file as described in
 or provide the private file path. A directly entered password remains in chat history.
 
 ```text
-OWNER SETTINGS — EDIT THESE FIVE LINES
+OWNER SETTINGS — EDIT THESE SIX LINES
+Tournament mode: enabled
 First required language: <language name or code, e.g. German or de>
 Registration mode: <full or username>
 Namespace: whisper
@@ -44,9 +45,10 @@ May stop bundled RHDP Llama to free the GPU: <yes or no>
 Admin password: <chosen password, private file path, or "generate on first install; preserve on upgrade">
 
 INSTALLATION INSTRUCTIONS — KEEP THESE
-Read AGENTS.md and docs/INSTALLATION.md on the tournament-mode branch.
+Read AGENTS.md and docs/INSTALLATION.md on the codex/consolidate-modes branch.
 You are logged into the intended RHDP OpenShift AI 3 SNO cluster as cluster-admin.
-Install the Whisper tournament game using the OWNER SETTINGS above.
+Install Whisper using the OWNER SETTINGS above. Tournament is enabled by default;
+use disabled for anonymous standalone play.
 
 - Use the published image and repository installer without rebuilding.
 - Normalize language names and obvious spelling mistakes (e.g. Germand -> de)
@@ -54,7 +56,9 @@ Install the Whisper tournament game using the OWNER SETTINGS above.
 - Read docs/CUSTOMIZATION.md for task-specific guides when an owner requests
   custom difficulty groups, phrases, scoring details or other configuration.
 - Save non-secret owner choices in values-conference.yaml and reuse that file.
-  Set registration.mode to the selected full or username value. Full collects
+  Set tournament.enabled to true/false for enabled/disabled; preserve it on upgrades.
+  Set registration.mode to the selected full or username value. It applies only
+  when tournament is enabled. Full collects
   nickname, name and email; username presents one field to join or resume.
 - If a literal admin password is supplied, write it to a private temporary file
   with mode 600, use --admin-password-file, and remove the temporary file afterwards.
@@ -80,10 +84,12 @@ Install the Whisper tournament game using the OWNER SETTINGS above.
 
 ## What the agent should execute
 
-Save the first language and registration mode together. Example for third-party
+Save the first language, tournament mode and registration mode together. Example for third-party
 conferences (one username field, no name/email collection):
 
 ```yaml
+tournament:
+  enabled: true
 registration:
   mode: "username"
 game:

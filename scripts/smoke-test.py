@@ -3,6 +3,7 @@ import json
 import sys
 import time
 import urllib.request
+import urllib.error
 import uuid
 
 base = 'http://127.0.0.1:8080'
@@ -11,19 +12,35 @@ with urllib.request.urlopen(base + '/', timeout=15) as response:
     page = response.read().decode()
 if "const REQUIRED_LANGUAGE = '" + required + "';" not in page:
     sys.exit('ERROR: Running UI has the wrong required language; check rollout/configuration.')
+enabled = len(sys.argv) < 4 or sys.argv[3] != 'false'
+if len(sys.argv) > 3 and sys.argv[3]:
+    if 'const TOURNAMENT_ENABLED = ' + str(enabled).lower() + ';' not in page:
+        sys.exit('ERROR: Running UI has the wrong tournament mode; check image/configuration.')
 if len(sys.argv) > 2 and sys.argv[2]:
     mode = sys.argv[2]
     if 'const REGISTRATION_MODE = ' + json.dumps(mode) + ';' not in page:
         sys.exit('ERROR: Running UI has the wrong registration mode; check image/configuration.')
-    if mode == 'username' and ('id="regUsername"' not in page or 'id="regEmail"' in page):
+    if enabled and mode == 'username' and ('id="regUsername"' not in page or 'id="regEmail"' in page):
         sys.exit('ERROR: Username-only registration form does not match configuration.')
-for path in ('/register', '/tv', '/admin'):
+for path in ('/register', '/admin') + (('/tv',) if enabled else ()):
     with urllib.request.urlopen(base + path, timeout=15) as response:
         if response.status != 200:
             sys.exit('ERROR: Page unavailable: ' + path)
-with urllib.request.urlopen(base + '/api/leaderboard', timeout=15) as response:
-    if not isinstance(json.load(response).get('leaderboard'), list):
-        sys.exit('ERROR: Tournament database/leaderboard check failed')
+if enabled:
+    with urllib.request.urlopen(base + '/api/leaderboard', timeout=15) as response:
+        if not isinstance(json.load(response).get('leaderboard'), list):
+            sys.exit('ERROR: Tournament database/leaderboard check failed')
+else:
+    if '<form ' in page:
+        sys.exit('ERROR: Standalone mode exposes registration')
+    for path in ('/tv', '/api/leaderboard'):
+        try:
+            urllib.request.urlopen(base + path, timeout=15)
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                error.close()
+                continue
+        sys.exit('ERROR: Standalone mode exposes tournament surface: ' + path)
 audio = sys.stdin.buffer.read()
 if not audio.startswith(b'RIFF'):
     sys.exit('ERROR: Missing WAV smoke-test fixture')
@@ -49,7 +66,7 @@ def transcribe():
     return text.strip()
 
 text = transcribe()
-print('PASS: configured language, UI pages, tournament database and real-audio UI -> vLLM transcription.')
+print('PASS: configured language, UI pages, selected game mode and real-audio UI -> vLLM transcription.')
 print('Transcript:', text.strip())
 
 # Monitoring is required. Prometheus scrape and per-worker UI caches need time

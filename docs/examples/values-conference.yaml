@@ -8,3 +8,7 @@ game:
 registration:
   # full collects nickname/name/email. username uses one field to join/resume.
   mode: "full"
+
+tournament:
+  # false selects anonymous standalone play; it does not erase existing results.
+  enabled: true

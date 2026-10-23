@@ -12,7 +12,8 @@ bash -n deploy.sh scripts/*.sh scripts/reporting/*.sh tests/audio/*.sh
 
 The suite exercises chart rendering, installer safeguards, backups, real Flask
 registration routes and isolated SQLite databases. Helm 3 must be available.
-Tests never connect to a cluster and do not prove browser microphone or GPU
+Node.js is required only for the frontend regression harness (built-in modules,
+no npm packages). Tests never connect to a cluster and do not prove browser microphone or GPU
 inference behavior. Follow the live acceptance checklist in
 [the runbook](../docs/INSTALLATION.md) before handing over a deployment.
 

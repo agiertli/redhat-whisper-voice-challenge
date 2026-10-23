@@ -1,9 +1,11 @@
 # Consolidating onto main: stability and acceptance plan
 
-**Status: proposal only, 2026-10-23.** Cleanup is complete in `4316d07` and verified
-on RHDP with UI `v2.11.2`. No tournament enable/disable flag has been implemented,
-no merge to `main` has occurred and neither branch has been deleted. Passing the
-cleanup checks is not evidence that a future standalone mode works.
+**Status: integration candidate, 2026-10-23.** Cleanup is complete in `4316d07`.
+The toggle and reliability fixes are implemented on `codex/consolidate-modes`,
+with 84 local regression checks passing. Live acceptance is in progress on a fresh
+RHDP environment. No merge to `main` has occurred and neither accepted branch has
+been deleted. The gates below remain the acceptance criteria, not a claim that
+every check has passed.
 
 ## What the branch comparison establishes
 
@@ -89,7 +91,10 @@ Add the flag to the values schema, ConfigMap/checksum, backend route guards,
 template context and shared frontend flow. Make disabled mode explicit rather
 than simulating a fake registered player or silently failing server calls. Keep
 one challenge-selection and audio implementation, not a second copy of the old
-main template. Keep database schema unchanged for this feature if possible.
+main template. Prefer an unchanged database schema. The candidate uses one additive nullable
+`games.round_count` column to preserve each new game's completion contract; old
+rows remain NULL and old application versions ignore the extra column. Verify
+that compatibility during upgrade, restore and rollback tests.
 
 Update the wrapper and direct Helm documentation together. Agent prompts must
 put tournament mode alongside the visible owner choices, defaulting to enabled.

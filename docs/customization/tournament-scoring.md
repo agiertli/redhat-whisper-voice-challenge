@@ -89,3 +89,12 @@ any prize tie procedure with the event owner beforehand.
 The completion API calculates rank as one plus the number of players with a
 strictly greater best score. The public leaderboard numbers the returned rows
 sequentially; tied rows can therefore show different displayed rank numbers.
+
+## Completion and retry behavior in the integration candidate
+
+New games record their configured round count at creation and require all rounds
+in order before completion. Identical attempt and completion retries return the
+saved result. The UI keeps unconfirmed saves pending and exposes Retry save rather
+than advancing or displaying success. Existing game rows retain historical scoring;
+see [game mode and compatibility](game-mode.md). Standalone mode displays accuracy
+and winning without persisting a tournament score.

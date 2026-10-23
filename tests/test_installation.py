@@ -65,6 +65,17 @@ class ChartTests(unittest.TestCase):
         self.assertNotIn('WIN_THRESHOLD', config)
         self.assertEqual(config['CHALLENGE_COUNT'], '5')
 
+    def test_tournament_flag_defaults_true_and_false_preserves_storage(self):
+        enabled=self.render()
+        disabled=self.render('--set','tournament.enabled=false')
+        self.assertEqual(enabled['ConfigMap']['data']['TOURNAMENT_ENABLED'],'true')
+        self.assertEqual(disabled['ConfigMap']['data']['TOURNAMENT_ENABLED'],'false')
+        self.assertEqual(enabled['PersistentVolumeClaim'],disabled['PersistentVolumeClaim'])
+        self.assertEqual(enabled['Secret'],disabled['Secret'])
+        self.assertEqual(enabled['Deployment']['spec']['template']['spec']['volumes'],disabled['Deployment']['spec']['template']['spec']['volumes'])
+        self.assertNotEqual(enabled['Deployment']['spec']['template']['metadata']['annotations']['checksum/config'],disabled['Deployment']['spec']['template']['metadata']['annotations']['checksum/config'])
+        self.render('--set-string','tournament.enabled=false',success=False)
+
     def test_owner_must_choose_language(self):
         self.render('--set', 'game.requiredLanguage=', success=False)
 
@@ -179,20 +190,23 @@ class InferenceChecksTests(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     exec(compile(code, '<manual-warmup>', 'exec'), {})
 
-    def smoke(self, stream, expected='cs', metrics=None, mode=None, page=None):
+    def smoke(self, stream, expected='cs', metrics=None, mode=None, page=None, enabled=None, public_tournament=False):
         class Response(io.BytesIO):
             status = 200
         def urlopen(request, timeout):
             url = request if isinstance(request, str) else request.full_url
             if url.endswith('/metrics'):
                 return Response(json.dumps(metrics() if callable(metrics) else metrics if metrics is not None else {'vram_used': 20, 'temperature': 50, 'requests_processed': 1, 'vllm_generation_tokens': 10}).encode())
+            if enabled is False and url.endswith(('/tv','/api/leaderboard')) and not public_tournament:
+                import urllib.error
+                raise urllib.error.HTTPError(url,404,'disabled',{},None)
             if url.endswith('/api/leaderboard'):
                 return Response(b'{"leaderboard": []}')
             if url.endswith('/transcribe-stream'):
                 return Response(stream)
             return Response(page if page is not None else b"const REQUIRED_LANGUAGE = 'cs';")
         with patch('urllib.request.urlopen', side_effect=urlopen):
-            with patch('sys.argv', ['smoke', expected] + ([mode] if mode else [])), patch('sys.stdin', SimpleNamespace(buffer=io.BytesIO(b'RIFFtest'))):
+            with patch('sys.argv', ['smoke', expected] + ([mode or '', str(enabled).lower()] if enabled is not None else [mode] if mode else [])), patch('sys.stdin', SimpleNamespace(buffer=io.BytesIO(b'RIFFtest'))):
                 with contextlib.redirect_stdout(io.StringIO()):
                     exec(compile((ROOT / 'scripts/smoke-test.py').read_text(), '<smoke>', 'exec'), {})
 
@@ -222,6 +236,15 @@ class InferenceChecksTests(unittest.TestCase):
             self.smoke(stream, mode='full', page=page)
         with self.assertRaisesRegex(SystemExit, 'form does not match'):
             self.smoke(stream, mode='username', page=page + b'<input id="regEmail">')
+
+    def test_smoke_standalone_requires_disabled_public_surfaces_and_no_registration(self):
+        page=b"const REQUIRED_LANGUAGE = 'cs'; const REGISTRATION_MODE = \"username\"; const TOURNAMENT_ENABLED = false;"
+        stream=b'data: {"text":"hello"}\n\ndata: {"done":true}\n\n'
+        self.smoke(stream,mode='username',page=page,enabled=False)
+        with self.assertRaisesRegex(SystemExit,'exposes tournament surface'):
+            self.smoke(stream,mode='username',page=page,enabled=False,public_tournament=True)
+        with self.assertRaisesRegex(SystemExit,'exposes registration'):
+            self.smoke(stream,mode='username',page=page+b'<form action="/api/register">',enabled=False)
 
     def test_smoke_rejects_stale_language(self):
         with self.assertRaises(SystemExit):

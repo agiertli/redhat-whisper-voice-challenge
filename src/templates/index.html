@@ -894,9 +894,14 @@
         </div>
     </div>
 
+    <div id="persistenceError" role="alert" style="display:none; margin:12px 24px; padding:12px; border:1px solid #f0561d; border-radius:4px;">
+        <span id="persistenceMessage"></span>
+        <button id="retrySaveButton" onclick="retryPersistence()" style="margin-left:12px;">Retry save</button>
+    </div>
     <div class="container">
         <!-- Registration Panel (shown before game) -->
         <div id="registrationPanel" style="grid-column: 1 / -1; grid-row: 1 / -1;">
+            {% if tournament_enabled %}
             <div class="reg-form">
                 {% if registration_mode == 'username' %}
                 <form id="regUsernameForm" onsubmit="joinByUsername(event)">
@@ -953,6 +958,7 @@
                 <h3>Leaderboard</h3>
                 <div id="regLeaderboardRows"><div class="lb-empty">No scores yet — be the first!</div></div>
             </div>
+            {% endif %}
         </div>
 
         <!-- TOP: Transcription (hero panel) -->
@@ -1011,7 +1017,7 @@
         <div class="panel" id="challenge-panel">
             <div class="tab-toggle">
                 <button class="tab-btn active" id="tabChallenge" onclick="showTab('challenge')">Challenge</button>
-                <button class="tab-btn" id="tabLeaderboard" onclick="showTab('leaderboard')">Leaderboard</button>
+                <button class="tab-btn" id="tabLeaderboard" {% if not tournament_enabled %}style="display:none"{% endif %} onclick="showTab('leaderboard')">Leaderboard</button>
             </div>
 
             <div id="challengeTab">
@@ -1144,6 +1150,7 @@
     </div>
 
     <script>
+        const TOURNAMENT_ENABLED = {{ tournament_enabled | tojson }};
         const REGISTRATION_MODE = {{ registration_mode | tojson }};
         let audioContext;
         let mediaStream;
@@ -1194,6 +1201,42 @@
         };
 
         let leaderboardInterval = null;
+        let pendingAttempt = null;
+        let pendingCompletion = false;
+        let saving = false;
+
+        function persistenceError(message) {
+            document.getElementById('persistenceMessage').textContent = message;
+            document.getElementById('persistenceError').style.display = 'block';
+        }
+
+        function clearPersistenceError() {
+            document.getElementById('persistenceError').style.display = 'none';
+        }
+
+        function updateSaveControls() {
+            document.getElementById('recordBtn').disabled = saving || !!pendingAttempt || pendingCompletion ||
+                gameState.gameCompleted || !currentChallenge;
+            const swap = document.getElementById('swapButton');
+            swap.disabled = saving || !!pendingAttempt || pendingCompletion || !currentChallenge ||
+                gameState.gameCompleted || gameState.difficulty !== 'hard' || gameState.swapsUsed >= 1;
+            document.getElementById('retrySaveButton').disabled = saving;
+        }
+
+        async function retryPersistence() {
+            if (saving) return;
+            if (pendingAttempt) return savePendingAttempt();
+            if (pendingCompletion) return finishGame();
+            return restoreSession();
+        }
+
+
+        window.addEventListener('beforeunload', event => {
+            if (pendingAttempt || pendingCompletion) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        });
 
         // Initialize
         loadMicrophones();
@@ -1222,15 +1265,28 @@
             }
         }
 
-        function restoreSession() {
-            const token = sessionStorage.getItem('tournament_token');
-            const nickname = sessionStorage.getItem('tournament_nickname');
-            if (token && nickname) {
-                playerSession.token = token;
-                playerSession.nickname = nickname;
+        async function restoreSession() {
+            if (!TOURNAMENT_ENABLED) {
                 showGameUI();
-            } else {
-                showRegistration();
+                return;
+            }
+            const token = sessionStorage.getItem('tournament_token');
+            if (!token) return showRegistration();
+            playerSession.token = token;
+            try {
+                const response = await fetch('/api/player/me', {headers: apiHeaders()});
+                if (response.status === 401 || response.status === 404) {
+                    changePlayer();
+                    return;
+                }
+                if (!response.ok) throw new Error('Session lookup failed');
+                const player = await response.json();
+                playerSession.nickname = player.nickname;
+                playerSession.playerId = player.player_id;
+                clearPersistenceError();
+                showGameUI();
+            } catch (error) {
+                persistenceError('Cannot verify your player session. Check the connection, then retry.');
             }
         }
 
@@ -1266,7 +1322,7 @@
             document.getElementById('registrationPanel').style.display = 'none';
             document.getElementById('transcription-panel').style.display = 'flex';
             document.querySelector('.bottom-row').style.display = 'grid';
-            document.getElementById('playerBadge').style.display = 'block';
+            document.getElementById('playerBadge').style.display = TOURNAMENT_ENABLED ? 'block' : 'none';
             document.getElementById('playerNickname').textContent = playerSession.nickname;
             document.getElementById('difficultySelector').style.display = 'block';
             document.getElementById('challengeContent').style.display = 'none';
@@ -1417,6 +1473,10 @@
         }
 
         function changePlayer() {
+            if (saving || pendingAttempt || pendingCompletion || isRecording) {
+                persistenceError('Save this game before changing player. Keep this page open and retry.');
+                return;
+            }
             sessionStorage.removeItem('tournament_token');
             sessionStorage.removeItem('tournament_nickname');
             playerSession = {token: null, nickname: null, playerId: null};
@@ -1431,18 +1491,22 @@
         }
 
         async function startGame(difficulty) {
+            if (saving || pendingAttempt || pendingCompletion) return;
+            saving = true;
             try {
-                const resp = await fetch('/api/game/start', {
-                    method: 'POST',
-                    headers: apiHeaders(),
-                    body: JSON.stringify({difficulty})
-                });
-                const data = await resp.json();
-                if (!resp.ok) {
-                    alert(data.error || 'Failed to start game');
-                    return;
+                let data = {};
+                if (TOURNAMENT_ENABLED) {
+                    const resp = await fetch('/api/game/start', {
+                        method: 'POST', headers: apiHeaders(), body: JSON.stringify({difficulty})
+                    });
+                    data = await resp.json();
+                    if (!resp.ok) {
+                        if (resp.status === 401) changePlayer();
+                        alert(data.error || 'Failed to start game');
+                        return;
+                    }
                 }
-
+                clearPersistenceError();
                 gameState = {
                     difficulty: difficulty,
                     attempts: [],
@@ -1451,7 +1515,7 @@
                     swapsUsed: 0,
                     gameStarted: true,
                     gameCompleted: false,
-                    gameId: data.game_id
+                    gameId: data.game_id || null
                 };
 
                 document.getElementById('difficultySelector').style.display = 'none';
@@ -1463,6 +1527,9 @@
                 nextAttempt();
             } catch (e) {
                 alert('Network error starting game');
+            } finally {
+                saving = false;
+                updateSaveControls();
             }
         }
 
@@ -1602,57 +1669,56 @@
         }
 
         async function recordAttempt(transcription, score) {
-            // Submit to server for authoritative scoring
-            let serverAccuracy = score;
-            let serverStatus = score >= 80 ? 'win' : 'fail';
+            if (pendingAttempt || saving || pendingCompletion || !currentChallenge || gameState.gameCompleted) return;
+            pendingAttempt = {
+                gameId: gameState.gameId, score,
+                payload: {attempt_index: gameState.currentAttemptIndex, language: currentChallenge.lang,
+                          phrase: currentChallenge.phrase, transcription, status: 'completed'}
+            };
+            return savePendingAttempt();
+        }
 
-            if (gameState.gameId) {
-                try {
-                    const resp = await fetch(`/api/game/${gameState.gameId}/attempt`, {
-                        method: 'POST',
-                        headers: apiHeaders(),
-                        body: JSON.stringify({
-                            attempt_index: gameState.currentAttemptIndex,
-                            language: currentChallenge.lang,
-                            phrase: currentChallenge.phrase,
-                            transcription: transcription,
-                            status: 'completed'
-                        })
+        async function savePendingAttempt() {
+            if (saving || !pendingAttempt) return;
+            saving = true;
+            updateSaveControls();
+            const attempt = pendingAttempt;
+            let accuracy = attempt.score;
+            let status = accuracy >= 80 ? 'win' : 'fail';
+            try {
+                if (TOURNAMENT_ENABLED) {
+                    const response = await fetch(`/api/game/${attempt.gameId}/attempt`, {
+                        method: 'POST', headers: apiHeaders(), body: JSON.stringify(attempt.payload)
                     });
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        serverAccuracy = Math.round(data.accuracy * 100);
-                        serverStatus = data.status;
-                        document.getElementById('accuracyScore').textContent = serverAccuracy + '%';
-                    }
-                } catch (e) {
-                    console.error('Failed to submit attempt:', e);
+                    if (!response.ok) throw new Error('Attempt save failed');
+                    const result = await response.json();
+                    accuracy = result.accuracy * 100;
+                    status = result.status;
                 }
+                gameState.attempts.push({lang: attempt.payload.language, phrase: attempt.payload.phrase,
+                    transcription: attempt.payload.transcription, score: accuracy, status});
+                gameState.currentAttemptIndex++;
+                pendingAttempt = null;
+                currentChallenge = null;
+                clearPersistenceError();
+                document.getElementById('accuracyScore').textContent = Math.round(accuracy) + '%';
+                updateChallengeUI();
+                setTimeout(() => {
+                    if (gameState.currentAttemptIndex < CHALLENGE_COUNT) nextAttempt();
+                    else finishGame();
+                    updateSaveControls();
+                }, 2000);
+            } catch (error) {
+                persistenceError('This round has not been confirmed saved. Keep this page open, check the connection and retry.');
+            } finally {
+                saving = false;
+                updateSaveControls();
             }
-
-            gameState.attempts.push({
-                lang: currentChallenge.lang,
-                phrase: currentChallenge.phrase,
-                transcription: transcription,
-                score: serverAccuracy,
-                status: serverStatus
-            });
-
-            gameState.currentAttemptIndex++;
-            currentChallenge = null;
-            updateChallengeUI();
-
-            setTimeout(() => {
-                if (gameState.currentAttemptIndex < CHALLENGE_COUNT) {
-                    nextAttempt();
-                } else {
-                    finishGame();
-                }
-            }, 2000);
         }
 
         function swapChallenge() {
-            if (!currentChallenge || !gameState.gameStarted || gameState.gameCompleted ||
+            if (saving || pendingAttempt || pendingCompletion || isRecording ||
+                !currentChallenge || !gameState.gameStarted || gameState.gameCompleted ||
                 gameState.swapsUsed >= 1 || gameState.difficulty !== 'hard') return;
 
             const oldLang = currentChallenge.lang;
@@ -1710,7 +1776,7 @@
                     const attempt = gameState.attempts[i];
                     const langInfo = LANGUAGE_INFO[attempt.lang];
                     const icon = attempt.status === 'win' ? '✅' : '❌';
-                    const scoreText = `${attempt.score}%`;
+                    const scoreText = `${Math.round(attempt.score)}%`;
                     const scoreColor = attempt.status === 'win' ? 'var(--success-green)' : 'var(--danger-orange)';
 
                     slot.classList.add(attempt.status);
@@ -1748,7 +1814,10 @@
         }
 
         async function finishGame() {
-            gameState.gameCompleted = true;
+            if (saving || pendingAttempt || gameState.gameCompleted) return;
+            pendingCompletion = true;
+            saving = true;
+            updateSaveControls();
 
             let tournamentScore = null;
             let rank = null;
@@ -1758,29 +1827,35 @@
             let isNewBest = false;
             let bestScore = null;
 
-            if (gameState.gameId) {
-                try {
+            let serverResult = null;
+            try {
+                if (TOURNAMENT_ENABLED) {
                     const resp = await fetch(`/api/game/${gameState.gameId}/complete`, {
-                        method: 'POST',
-                        headers: apiHeaders()
+                        method: 'POST', headers: apiHeaders()
                     });
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        tournamentScore = data.total_score;
-                        rank = data.rank;
-                        isNewBest = data.is_new_best;
-                        bestScore = data.best_score;
-                        fetchLeaderboard();
-                    }
-                } catch (e) {
-                    console.error('Failed to complete game:', e);
+                    if (!resp.ok) throw new Error('Completion save failed');
+                    serverResult = await resp.json();
+                    tournamentScore = serverResult.total_score;
+                    rank = serverResult.rank;
+                    isNewBest = serverResult.is_new_best;
+                    bestScore = serverResult.best_score;
+                    fetchLeaderboard();
                 }
+                gameState.gameCompleted = true;
+                pendingCompletion = false;
+                clearPersistenceError();
+            } catch (error) {
+                persistenceError('Your final result has not been confirmed saved. Keep this page open and retry before starting another game.');
+                return;
+            } finally {
+                saving = false;
+                updateSaveControls();
             }
 
             const avgScore = gameState.attempts.length > 0
                 ? gameState.attempts.reduce((sum, a) => sum + a.score, 0) / gameState.attempts.length
                 : 0;
-            const won = avgScore >= 80;
+            const won = serverResult ? serverResult.won : avgScore >= 80;
             const finalResultsEl = document.getElementById('finalResults');
 
             const scoreLine = tournamentScore !== null
@@ -1844,6 +1919,11 @@
         }
 
         function resetGame() {
+            if (saving || pendingAttempt || pendingCompletion || isRecording) {
+                persistenceError('Finish saving this game before starting another. Keep this page open and retry.');
+                return;
+            }
+            clearPersistenceError();
             gameState = {
                 difficulty: null,
                 attempts: [],
@@ -1908,6 +1988,7 @@
         }
 
         async function startRecording() {
+            if (saving || pendingAttempt || pendingCompletion || !currentChallenge || gameState.gameCompleted) return;
             transcription.textContent = '';
             document.getElementById('accuracyScore').textContent = '--';
 
@@ -2124,6 +2205,7 @@
         }
 
         function startLeaderboardPolling() {
+            if (!TOURNAMENT_ENABLED) return;
             fetchLeaderboard();
             leaderboardInterval = setInterval(fetchLeaderboard, 15000);
         }
@@ -2397,7 +2479,7 @@
             <p id="congratsMessage">You won the <strong>Gold</strong> prize!</p>
             <p id="congratsBest" style="font-size: 1.1rem; margin-top: 10px; font-weight: 700;"></p>
             <p id="congratsRank" style="font-size: 1.2rem; margin-top: 10px; color: var(--interaction-blue);"></p>
-            <p style="font-size: 1rem; margin-top: 20px; opacity: 0.9;">Keep playing to climb the leaderboard!</p>
+            <p style="font-size: 1rem; margin-top: 20px; opacity: 0.9;">{% if tournament_enabled %}Keep playing to climb the leaderboard!{% else %}Play again and try another difficulty!{% endif %}</p>
         </div>
     </div>
 

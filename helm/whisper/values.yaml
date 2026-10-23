@@ -3,7 +3,7 @@ namespace: ""
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: "v2.11.2"
+  tag: "v2.12.0-rc.2"
   pullPolicy: Always
 
 replicaCount: 1
@@ -121,6 +121,8 @@ registration:
   mode: full
 
 tournament:
+  # false opens anonymous standalone play; existing tournament data is retained.
+  enabled: true
   storage: "1Gi"
   # Empty: reuse the installed Secret; generate independent credentials on first install.
   # Explicit non-empty values intentionally rotate credentials on upgrade.

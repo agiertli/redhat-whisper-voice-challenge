@@ -5,7 +5,8 @@ It is the shared operations runbook. Agents normally execute `./deploy.sh` using
 [docs/AGENT-INSTALLATION.md](docs/AGENT-INSTALLATION.md). The separately documented
 [direct Helm path](docs/HELM-INSTALLATION.md) is for human/scripted installation or
 an explicit request to use Helm directly. Both use the same chart. Do not invent
-a third deployment procedure. Work on the `tournament-mode` branch.
+a third deployment procedure. The consolidation candidate is on `codex/consolidate-modes`. Keep accepted
+`main` and `tournament-mode` unchanged until the documented merge gates pass.
 
 ## Installation contract
 
@@ -16,10 +17,13 @@ a third deployment procedure. Work on the `tournament-mode` branch.
   gives a country but no language, confirm the language choice. Never infer it
   from laptop locale or silently fall back to Slovak/English. Examples: `cs` for
   Czech, `sk` for Slovak, `de` for German, `en` for English.
+- Tournament is enabled by default (`tournament.enabled: true`). False opens
+  anonymous standalone play; preserve PVC/Secret/data in both modes. See
+  `docs/customization/game-mode.md`. Registration settings apply only when enabled.
 - Registration is configurable via `registration.mode`: `full` (default) or
   `username` (one form/field to register or resume, no name/email collection).
-  Preserve the owner's mode in the values file across upgrades. This is one
-  feature flag on tournament-mode, not a separate branch/image variant.
+  Preserve the owner's mode in the values file across upgrades. This uses the
+  same application/chart/image in both registration modes.
 - Accept an admin password directly in the owner prompt or from a private file.
   For a literal value, create a mode-600 temporary file, use --admin-password-file,
   then remove that file. Never put it in command arguments or versioned values.

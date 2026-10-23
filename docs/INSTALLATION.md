@@ -19,8 +19,9 @@ and multiple simultaneous game installations in one namespace are outside this
 installer's current scope. Operator installation and cloud GPU provisioning are
 prerequisites, not work performed by the installer.
 
-Current chart candidate: `2.0.0-rc.5`, using UI `v2.11.2` with repository cleanup,
-Hard-only Swap and configurable registration. See the
+Current integration candidate: `2.0.0-rc.6`, using UI `v2.12.0-rc.2` with a
+default-enabled tournament toggle, anonymous standalone play and reliable save retries.
+This candidate is on `codex/consolidate-modes`; it is not yet the accepted main release. See the
 [cleanup verification](validation/CLEANUP-2026-10-23.md) and the
 [architecture fix verification](validation/ARCHITECTURE-2026-10-23.md).
 The [username-mode acceptance report](validation/USERNAME-2026-10-23.md) records
@@ -34,7 +35,7 @@ acceptance must separately verify image pulls, KServe behavior, model quality,
 route TLS, storage permissions, upgrades, and backup/restore. Do not equate passing
 local tests with verified cluster compatibility.
 
-Local verification on 2026-10-23: **70 offline regression tests passed**, Helm lint
+Local verification on 2026-10-23: **84 offline regression tests passed**, Helm lint
 passed, and ShellCheck 0.10.0 passed for the installer and all shell helpers.
 Test host: macOS, Bash 3.2.57, Helm 3.15.4, Python 3.14.2. See
 [local test instructions](../tests/README.md). No GitHub Actions workflow is
@@ -53,7 +54,8 @@ Before deployment, decide:
    the only GPU. The opt-in flag affects only
    `my-first-model/llama-32-3b-instruct`, never arbitrary GPU workloads.
 4. Who operates the off-cluster backup laptop and holds the admin credential.
-5. Registration mode: `full` (default) or `username`. See below.
+5. Tournament mode: enabled by default; false selects [anonymous standalone play](customization/game-mode.md).
+6. Registration mode: `full` (default) or `username`, when tournament is enabled. See below.
 
 No conference name is required. Keep the default application branding;
 `conference.name` remains an optional customization for the game and TV headings.
@@ -79,7 +81,7 @@ configure cluster pulls. The published UI must also be reachable from the cluste
 ## Fresh installation
 
 ```bash
-git clone --branch tournament-mode --single-branch \
+git clone --branch codex/consolidate-modes --single-branch \
   https://github.com/agiertli/redhat-whisper-voice-challenge.git
 cd redhat-whisper-voice-challenge
 
@@ -127,6 +129,13 @@ the final availability check.
 The chart sets `GUNICORN_CMD_ARGS=--preload` so SQLite initialization/migrations run
 once before the four workers fork. Live testing caught a first-boot database lock
 race without this setting. Keep preloading enabled for this SQLite deployment.
+
+## Game mode
+
+`tournament.enabled: true` is the default. Set it to false to bypass registration
+and play without persistent competition. Storage and credentials remain present,
+so switching back preserves historical results. Monitoring stays mandatory. See
+[game mode and upgrade compatibility](customization/game-mode.md).
 
 ## Registration mode
 

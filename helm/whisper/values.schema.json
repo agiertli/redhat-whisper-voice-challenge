@@ -106,6 +106,9 @@
         },
         "storageClass": {
           "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
         }
       }
     },

@@ -5,6 +5,7 @@ import io
 import os
 from pathlib import Path
 import sqlite3
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -34,6 +35,8 @@ class RegistrationTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.module.DB_PATH = str(Path(self.tmp.name) / 'tournament.db')
+        self.module.TOURNAMENT_ENABLED = True
+        self.module.CHALLENGE_COUNT = 5
         self.module.REGISTRATION_MODE = 'username'
         self.module.init_db()
         self.client = self.module.app.test_client()
@@ -159,6 +162,7 @@ class RegistrationTests(unittest.TestCase):
         self.assertEqual(self.client.post(path + '/attempt', json=attempt, headers=auth).status_code, 200)
         # Simulate an old persisted record, not a new skip API submission.
         with sqlite3.connect(self.module.DB_PATH) as db:
+            db.execute('UPDATE games SET round_count=NULL WHERE id=?', (game['game_id'],))
             db.execute("INSERT INTO attempts (game_id,attempt_index,language,phrase,accuracy,status) VALUES (?,1,'en',?,0,'skip')", (game['game_id'], phrase))
         response = self.client.get('/api/admin/backup', headers=admin)
         snapshot = response.data
@@ -202,6 +206,165 @@ class RegistrationTests(unittest.TestCase):
         self.assertEqual(backup.status_code, 200)
         self.assertTrue(backup.data.startswith(b'SQLite format 3'))
         backup.close()
+
+    def game_fixture(self, username='TestGame', difficulty='hard'):
+        player = self.join(username=username).json
+        auth = {'Authorization': 'Bearer ' + player['token']}
+        game = self.client.post('/api/game/start', json={'difficulty': difficulty}, headers=auth).json
+        return player, auth, '/api/game/' + str(game['game_id'])
+
+    def attempt_payload(self, index=0):
+        phrase = self.module.CHALLENGE_PHRASES['en'][0]
+        return dict(attempt_index=index, language='en', phrase=phrase, transcription=phrase)
+
+    def test_environment_flag_defaults_true_accepts_false_and_rejects_ambiguous_values(self):
+        for setting, expected in ((None,True),('true',True),('false',False),('yes',None),('0',None)):
+            with self.subTest(setting=setting):
+                env=os.environ.copy()
+                env['DB_PATH']=str(Path(self.tmp.name)/'flag.db')
+                env.pop('TOURNAMENT_ENABLED',None)
+                if setting is not None: env['TOURNAMENT_ENABLED']=setting
+                code="import runpy; m=runpy.run_path('src/app_streaming.py'); print('FLAG='+str(m['TOURNAMENT_ENABLED']))"
+                result=subprocess.run([sys.executable,'-c',code],cwd=ROOT,env=env,capture_output=True,text=True)
+                if expected is None:
+                    self.assertNotEqual(result.returncode,0)
+                    self.assertIn('TOURNAMENT_ENABLED must be true or false',result.stderr)
+                else:
+                    self.assertEqual(result.returncode,0,result.stderr)
+                    self.assertIn('FLAG='+str(expected),result.stdout)
+
+    def test_standalone_blocks_tournament_routes_even_with_valid_token(self):
+        _, auth, game = self.game_fixture()
+        self.module.TOURNAMENT_ENABLED = False
+        for method, path, data in [('post','/api/register',{'username':'Blocked'}),
+                                   ('post','/api/login',{'nickname':'TestGame'}),
+                                   ('get','/api/player/me',None), ('post','/api/game/start',{'difficulty':'hard'}),
+                                   ('post',game+'/attempt',self.attempt_payload()),
+                                   ('post',game+'/complete',{}), ('get','/api/leaderboard',None), ('get','/tv',None)]:
+            with self.subTest(path=path):
+                self.assertEqual(getattr(self.client,method)(path,json=data,headers=auth).status_code,404)
+        self.assertEqual(len(self.players()),1)
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM attempts').fetchone()[0],0)
+        admin={'Authorization':'Bearer '+self.module.ADMIN_TOKEN}
+        for path in ('/api/admin/players','/api/admin/export','/admin'):
+            self.assertEqual(self.client.get(path,headers=admin).status_code,200)
+        response=self.client.get('/api/admin/backup',headers=admin)
+        self.assertEqual(response.status_code,200);response.close()
+        page=self.client.get('/').get_data(as_text=True)
+        self.assertIn('const TOURNAMENT_ENABLED = false;',page)
+        self.assertNotIn('<form ',page)
+        self.assertEqual(self.client.get('/register').status_code,302)
+
+    def test_switch_off_and_back_preserves_all_data_and_original_token(self):
+        _, auth, path=self.game_fixture()
+        for i in range(5):
+            self.assertEqual(self.client.post(path+'/attempt',json=self.attempt_payload(i),headers=auth).status_code,200)
+        result=self.client.post(path+'/complete',headers=auth).json
+        def rows():
+            with sqlite3.connect(self.module.DB_PATH) as db:
+                return {t:db.execute('SELECT * FROM '+t+' ORDER BY 1').fetchall() for t in ('players','games','attempts','settings')}
+        before=rows()
+        self.module.TOURNAMENT_ENABLED=False
+        self.client.get('/')
+        self.assertEqual(rows(),before)
+        self.module.TOURNAMENT_ENABLED=True
+        self.assertEqual(self.client.get('/api/player/me',headers=auth).json['best_score'],result['total_score'])
+        self.assertEqual(rows(),before)
+
+    def test_round_contract_and_completion_retry_are_stable(self):
+        _, auth, path=self.game_fixture()
+        self.assertEqual(self.client.post(path+'/complete',headers=auth).status_code,409)
+        for index in (True,-1,5,1):
+            self.assertEqual(self.client.post(path+'/attempt',json=self.attempt_payload(index),headers=auth).status_code,400)
+        for i in range(5):
+            result=self.client.post(path+'/attempt',json=self.attempt_payload(i),headers=auth)
+            self.assertEqual(result.status_code,200)
+        first=self.client.post(path+'/complete',headers=auth)
+        self.assertEqual(first.status_code,200)
+        second=self.client.post(path+'/complete',headers=auth)
+        self.assertEqual(second.json,first.json)
+        self.assertTrue(first.json['won'])
+        self.assertEqual(first.json['avg_accuracy'],1.0)
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM attempts').fetchone()[0],5)
+
+    def test_attempt_retry_is_idempotent_but_conflicting_payload_is_not(self):
+        _, auth, path=self.game_fixture()
+        payload=self.attempt_payload()
+        first=self.client.post(path+'/attempt',json=payload,headers=auth)
+        self.assertEqual(first.status_code,200)
+        self.assertEqual(self.client.post(path+'/attempt',json=payload,headers=auth).json,first.json)
+        self.assertEqual(self.client.post(path+'/attempt',json=dict(payload,transcription='different'),headers=auth).status_code,409)
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM attempts').fetchone()[0],1)
+
+    def test_simultaneous_identical_attempt_retries_store_one_row(self):
+        _, auth, path=self.game_fixture()
+        def submit(_):
+            with self.module.app.test_client() as client:
+                return client.post(path+'/attempt',json=self.attempt_payload(),headers=auth).status_code
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            self.assertEqual(list(pool.map(submit,range(8))),[200]*8)
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM attempts').fetchone()[0],1)
+
+    def test_deleted_player_token_cannot_create_or_read_games(self):
+        player, auth, path=self.game_fixture()
+        admin={'Authorization':'Bearer '+self.module.ADMIN_TOKEN}
+        self.assertEqual(self.client.delete('/api/admin/players/'+str(player['player_id']),headers=admin).status_code,200)
+        self.assertEqual(self.client.get('/api/player/me',headers=auth).status_code,401)
+        self.assertEqual(self.client.post('/api/game/start',json={'difficulty':'easy'},headers=auth).status_code,401)
+        self.assertEqual(self.client.post(path+'/attempt',json=self.attempt_payload(),headers=auth).status_code,401)
+
+    def test_malformed_attempts_never_become_perfect_empty_results(self):
+        _, auth, path=self.game_fixture()
+        for payload in ([],42,'bad',{},dict(self.attempt_payload(),language=[]),
+                        dict(self.attempt_payload(),phrase=''), dict(self.attempt_payload(),language='zz',phrase=''),
+                        dict(self.attempt_payload(),transcription=[]),dict(self.attempt_payload(),transcription='x'*10001)):
+            self.assertEqual(self.client.post(path+'/attempt',json=payload,headers=auth).status_code,400)
+        for path2 in ('/api/login','/api/game/start'):
+            self.assertEqual(self.client.post(path2,json=['bad'],headers=auth).status_code,400)
+
+    def test_new_game_keeps_its_round_count_when_configuration_changes(self):
+        _, auth, path=self.game_fixture()
+        self.module.CHALLENGE_COUNT=3
+        for i in range(3):
+            self.client.post(path+'/attempt',json=self.attempt_payload(i),headers=auth)
+        self.assertEqual(self.client.post(path+'/complete',headers=auth).status_code,409)
+        for i in range(3,5):
+            self.assertEqual(self.client.post(path+'/attempt',json=self.attempt_payload(i),headers=auth).status_code,200)
+        self.assertEqual(self.client.post(path+'/complete',headers=auth).status_code,200)
+
+    def test_incompatible_restore_is_rejected_without_replacing_current_database(self):
+        self.game_fixture()
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            before=db.execute('SELECT * FROM players').fetchall()
+        incompatible=Path(self.tmp.name)/'incompatible.db'
+        with sqlite3.connect(incompatible) as db:
+            for table in ('players','games','attempts'):
+                db.execute('CREATE TABLE '+table+' (id INTEGER PRIMARY KEY)')
+        admin={'Authorization':'Bearer '+self.module.ADMIN_TOKEN}
+        result=self.client.post('/api/admin/restore',headers=admin,data={'file':(io.BytesIO(incompatible.read_bytes()),'incompatible.db')})
+        self.assertEqual(result.status_code,400)
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            self.assertEqual(db.execute('SELECT * FROM players').fetchall(),before)
+
+    def test_old_database_migrates_without_altering_rows_and_restores(self):
+        _, auth, path=self.game_fixture()
+        # Actual pre-integration table shape, without the additive column.
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            db.execute('ALTER TABLE games DROP COLUMN round_count')
+        admin={'Authorization':'Bearer '+self.module.ADMIN_TOKEN}
+        response=self.client.get('/api/admin/backup',headers=admin)
+        snapshot=response.data;response.close()
+        self.module.init_db()
+        with sqlite3.connect(self.module.DB_PATH) as db:
+            self.assertIsNone(db.execute('SELECT round_count FROM games').fetchone()[0])
+        restored=self.client.post('/api/admin/restore',headers=admin,data={'file':(io.BytesIO(snapshot),'old.db')})
+        self.assertEqual(restored.status_code,200)
+        self.assertEqual(self.client.get('/api/player/me',headers=auth).status_code,200)
+        self.assertEqual(self.client.post(path+'/complete',headers=auth).status_code,200)
 
 
 if __name__ == '__main__':

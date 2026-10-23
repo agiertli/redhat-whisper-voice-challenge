@@ -37,6 +37,10 @@ WHISPER_API_URL = os.getenv('WHISPER_API_URL', 'http://whisper-model.whisper.svc
 WHISPER_MODEL_NAME = os.getenv('WHISPER_MODEL_NAME', 'whisper-turbo')
 MODEL_DISPLAY_NAME = os.getenv('MODEL_DISPLAY_NAME', 'Whisper Turbo')
 CONFERENCE_NAME = os.getenv('CONFERENCE_NAME', 'Red Hat Whisper Voice Challenge')
+_tournament_enabled = os.getenv('TOURNAMENT_ENABLED', 'true').lower()
+if _tournament_enabled not in ('true', 'false'):
+    raise ValueError('TOURNAMENT_ENABLED must be true or false')
+TOURNAMENT_ENABLED = _tournament_enabled == 'true'
 REGISTRATION_MODE = os.getenv('REGISTRATION_MODE', 'full')
 if REGISTRATION_MODE not in ('full', 'username'):
     raise ValueError('REGISTRATION_MODE must be full or username')
@@ -163,6 +167,11 @@ def init_db():
     if 'follow_up' not in cols:
         db.execute('ALTER TABLE players ADD COLUMN follow_up INTEGER NOT NULL DEFAULT 0')
         db.commit()
+    game_cols = {row[1] for row in db.execute('PRAGMA table_info(games)').fetchall()}
+    if 'round_count' not in game_cols:
+        # NULL identifies pre-contract games; old releases ignore the new column.
+        db.execute('ALTER TABLE games ADD COLUMN round_count INTEGER')
+        db.commit()
     db.close()
     logger.info(f"Tournament database initialized at {DB_PATH}")
 
@@ -226,6 +235,12 @@ def require_token(f):
         player_id = verify_token(auth[7:])
         if player_id is None:
             return jsonify({'error': 'Invalid token'}), 401
+        db = get_db()
+        try:
+            if not db.execute('SELECT id FROM players WHERE id=?', (player_id,)).fetchone():
+                return jsonify({'error': 'Player session no longer exists; please register again'}), 401
+        finally:
+            db.close()
         g.player_id = player_id
         return f(*args, **kwargs)
     return decorated
@@ -487,12 +502,23 @@ def discover_dcgm_exporter_url():
         logger.error(f"Error discovering DCGM exporter: {e}. Using fallback URL.")
         return DCGM_EXPORTER_URL
 
+@app.before_request
+def guard_tournament_routes():
+    # Keep storage, credentials and protected historical administration in both modes.
+    if not TOURNAMENT_ENABLED and request.endpoint in {
+        'api_register', 'api_login', 'api_player_me', 'api_game_start',
+        'api_game_attempt', 'api_game_complete', 'api_leaderboard', 'tv_page'
+    }:
+        return jsonify({'error': 'Tournament mode is disabled'}), 404
+
+
 @app.route('/')
 def index():
     """Interactive voice challenge game (for conferences)"""
     return render_template('index.html',
                          model_display_name=MODEL_DISPLAY_NAME,
                          conference_name=CONFERENCE_NAME,
+                         tournament_enabled=TOURNAMENT_ENABLED,
                          registration_mode=REGISTRATION_MODE,
                          required_language=REQUIRED_CHALLENGE_LANGUAGE,
                          challenge_count=CHALLENGE_COUNT,
@@ -504,7 +530,7 @@ def index():
 
 @app.route('/register')
 def register_page():
-    if REGISTRATION_MODE == 'username':
+    if not TOURNAMENT_ENABLED or REGISTRATION_MODE == 'username':
         return redirect('/')
     return render_template('register.html', conference_name=CONFERENCE_NAME)
 
@@ -916,11 +942,12 @@ def api_register():
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    data = request.get_json()
-    if not data:
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not data:
         return jsonify({'error': 'JSON body required'}), 400
 
-    nickname = (data.get('nickname') or '').strip()
+    nickname = data.get('nickname')
+    nickname = nickname.strip() if isinstance(nickname, str) else ''
 
     if not nickname:
         return jsonify({'error': 'Nickname is required'}), 400
@@ -964,8 +991,8 @@ def api_player_me():
 @app.route('/api/game/start', methods=['POST'])
 @require_token
 def api_game_start():
-    data = request.get_json()
-    if not data:
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not data:
         return jsonify({'error': 'JSON body required'}), 400
 
     difficulty = data.get('difficulty')
@@ -976,8 +1003,8 @@ def api_game_start():
     db = get_db()
     try:
         cursor = db.execute(
-            'INSERT INTO games (player_id, difficulty, started_at) VALUES (?, ?, ?)',
-            (g.player_id, difficulty, started_at))
+            'INSERT INTO games (player_id, difficulty, started_at, round_count) VALUES (?, ?, ?, ?)',
+            (g.player_id, difficulty, started_at, CHALLENGE_COUNT))
         db.commit()
         return jsonify({
             'game_id': cursor.lastrowid,
@@ -991,48 +1018,52 @@ def api_game_start():
 @app.route('/api/game/<int:game_id>/attempt', methods=['POST'])
 @require_token
 def api_game_attempt(game_id):
-    data = request.get_json()
-    if not data:
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not data:
         return jsonify({'error': 'JSON body required'}), 400
+    index = data.get('attempt_index')
+    language = data.get('language', '')
+    phrase = data.get('phrase', '')
+    transcription = data.get('transcription', '')
+    if data.get('status', 'completed') != 'completed':
+        return jsonify({'error': 'Only completed attempts can be submitted; skipping is not supported'}), 400
+    if type(index) is not int or index < 0:
+        return jsonify({'error': 'Invalid attempt_index'}), 400
+    if (not isinstance(language, str) or not isinstance(phrase, str) or not phrase
+            or not isinstance(transcription, str) or len(transcription) > 10000):
+        return jsonify({'error': 'Invalid attempt text'}), 400
+    phrases = CHALLENGE_PHRASES.get(language, [])
+    mainstage_phrase = MAINSTAGE_PHRASES.get(language)
+    if phrase not in phrases and (not mainstage_phrase or phrase != mainstage_phrase):
+        return jsonify({'error': 'Invalid phrase for language'}), 400
 
     db = get_db()
     try:
-        game = db.execute('SELECT * FROM games WHERE id = ? AND player_id = ?',
-                         (game_id, g.player_id)).fetchone()
+        # Serialize retries across workers, without changing historical attempt indexes.
+        db.execute('BEGIN IMMEDIATE')
+        game = db.execute('SELECT * FROM games WHERE id=? AND player_id=?',
+                          (game_id, g.player_id)).fetchone()
         if not game:
             return jsonify({'error': 'Game not found'}), 404
-        if game['completed_at']:
-            return jsonify({'error': 'Game already completed'}), 400
-
-        attempt_index = data.get('attempt_index')
-        language = data.get('language', '')
-        phrase = data.get('phrase', '')
-        transcription = data.get('transcription', '')
-        if data.get('status', 'completed') != 'completed':
-            return jsonify({'error': 'Only completed attempts can be submitted; skipping is not supported'}), 400
-
-        if attempt_index is None or not isinstance(attempt_index, int) or attempt_index < 0:
-            return jsonify({'error': 'Invalid attempt_index'}), 400
-
-        existing = db.execute('SELECT id FROM attempts WHERE game_id = ? AND attempt_index = ?',
-                             (game_id, attempt_index)).fetchone()
+        existing = db.execute('SELECT * FROM attempts WHERE game_id=? AND attempt_index=?',
+                              (game_id, index)).fetchone()
         if existing:
-            return jsonify({'error': 'Attempt already submitted'}), 400
-
-        lang_phrases = CHALLENGE_PHRASES.get(language, [])
-        mainstage_phrase = MAINSTAGE_PHRASES.get(language, '')
-        if phrase not in lang_phrases and phrase != mainstage_phrase:
-            return jsonify({'error': 'Invalid phrase for language'}), 400
-
-        accuracy = levenshtein_similarity(transcription, phrase)
-        result_status = 'win' if accuracy >= 0.80 else 'fail'
-
-        db.execute(
-            'INSERT INTO attempts (game_id, attempt_index, language, phrase, transcription, accuracy, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            (game_id, attempt_index, language, phrase, transcription, round(accuracy, 4), result_status))
+            if (existing['language'], existing['phrase'], existing['transcription']) == (language, phrase, transcription):
+                return jsonify({'accuracy': existing['accuracy'], 'status': existing['status']})
+            return jsonify({'error': 'Attempt already saved with different content'}), 409
+        if game['completed_at']:
+            return jsonify({'error': 'Game already completed'}), 409
+        expected = game['round_count'] or CHALLENGE_COUNT
+        count = db.execute('SELECT COUNT(*) FROM attempts WHERE game_id=?', (game_id,)).fetchone()[0]
+        if index >= expected or index != count:
+            return jsonify({'error': 'Attempts must be submitted in order within the game round count'}), 400
+        raw_accuracy = levenshtein_similarity(transcription, phrase)
+        accuracy = round(raw_accuracy, 4)
+        status = 'win' if raw_accuracy >= 0.80 else 'fail'
+        db.execute('INSERT INTO attempts (game_id,attempt_index,language,phrase,transcription,accuracy,status) VALUES (?,?,?,?,?,?,?)',
+                   (game_id, index, language, phrase, transcription, accuracy, status))
         db.commit()
-
-        return jsonify({'accuracy': round(accuracy, 4), 'status': result_status})
+        return jsonify({'accuracy': accuracy, 'status': status})
     finally:
         db.close()
 
@@ -1042,54 +1073,36 @@ def api_game_attempt(game_id):
 def api_game_complete(game_id):
     db = get_db()
     try:
-        game = db.execute('SELECT * FROM games WHERE id = ? AND player_id = ?',
-                         (game_id, g.player_id)).fetchone()
+        db.execute('BEGIN IMMEDIATE')
+        game = db.execute('SELECT * FROM games WHERE id=? AND player_id=?',
+                          (game_id, g.player_id)).fetchone()
         if not game:
             return jsonify({'error': 'Game not found'}), 404
-        if game['completed_at']:
-            return jsonify({'error': 'Game already completed'}), 400
-
-        completed_at = datetime.now(timezone.utc).isoformat()
-        started_dt = datetime.fromisoformat(game['started_at'])
-        completed_dt = datetime.fromisoformat(completed_at)
-        duration_seconds = (completed_dt - started_dt).total_seconds()
-
-        attempts = db.execute('SELECT * FROM attempts WHERE game_id = ?', (game_id,)).fetchall()
-        # Preserve historical scoring when finishing/restoring a game from an older version.
-        scored = [a for a in attempts if a['status'] != 'skip']
-        avg_accuracy = sum(a['accuracy'] for a in scored) / len(scored) if scored else 0.0
-        won = 1 if avg_accuracy >= 0.80 else 0
-        total_score = compute_total_score(game['difficulty'], avg_accuracy, duration_seconds)
-
-        db.execute('''UPDATE games SET completed_at=?, total_score=?, avg_accuracy=?,
-                      duration_seconds=?, won=? WHERE id=?''',
-                   (completed_at, total_score, round(avg_accuracy, 4),
-                    round(duration_seconds, 1), won, game_id))
-        db.commit()
-
-        best_row = db.execute('SELECT MAX(total_score) as best FROM games WHERE player_id = ? AND completed_at IS NOT NULL',
-                             (g.player_id,)).fetchone()
-        best_score = best_row['best'] if best_row else total_score
-        is_new_best = total_score >= best_score
-
-        rank_row = db.execute('''
-            SELECT COUNT(*) + 1 as rank FROM (
-                SELECT player_id, MAX(total_score) as best
-                FROM games WHERE completed_at IS NOT NULL AND total_score IS NOT NULL
-                GROUP BY player_id
-            ) WHERE best > ?''', (best_score,)).fetchone()
-        rank = rank_row['rank'] if rank_row else 1
-
-        return jsonify({
-            'total_score': total_score,
-            'avg_accuracy': round(avg_accuracy, 4),
-            'duration_seconds': round(duration_seconds, 1),
-            'difficulty': game['difficulty'],
-            'won': bool(won),
-            'rank': rank,
-            'best_score': best_score,
-            'is_new_best': is_new_best
-        })
+        if not game['completed_at']:
+            attempts = db.execute('SELECT * FROM attempts WHERE game_id=? ORDER BY attempt_index', (game_id,)).fetchall()
+            if game['round_count'] is not None:
+                if ([a['attempt_index'] for a in attempts] != list(range(game['round_count']))
+                        or any(a['status'] == 'skip' for a in attempts)):
+                    return jsonify({'error': 'Complete every required round before finishing the game'}), 409
+            # Pre-contract games and backups keep their historical skip/scoring semantics.
+            scored = [a for a in attempts if a['status'] != 'skip']
+            average = sum(a['accuracy'] for a in scored) / len(scored) if scored else 0.0
+            completed_at = datetime.now(timezone.utc).isoformat()
+            duration = (datetime.fromisoformat(completed_at) - datetime.fromisoformat(game['started_at'])).total_seconds()
+            score = compute_total_score(game['difficulty'], average, duration)
+            db.execute('UPDATE games SET completed_at=?,total_score=?,avg_accuracy=?,duration_seconds=?,won=? WHERE id=?',
+                       (completed_at, score, round(average, 4), round(duration, 1), int(average >= 0.8), game_id))
+            db.commit()
+            game = db.execute('SELECT * FROM games WHERE id=?', (game_id,)).fetchone()
+        # A lost HTTP response can be retried without changing the score or elapsed time.
+        best = db.execute('SELECT MAX(total_score) FROM games WHERE player_id=? AND completed_at IS NOT NULL',
+                          (g.player_id,)).fetchone()[0]
+        rank = db.execute('SELECT COUNT(*)+1 FROM (SELECT MAX(total_score) AS best FROM games '
+                          'WHERE completed_at IS NOT NULL GROUP BY player_id) WHERE best>?', (best,)).fetchone()[0]
+        return jsonify({'total_score': game['total_score'], 'avg_accuracy': game['avg_accuracy'],
+                        'duration_seconds': game['duration_seconds'], 'difficulty': game['difficulty'],
+                        'won': bool(game['won']), 'rank': rank, 'best_score': best,
+                        'is_new_best': game['total_score'] >= best})
     finally:
         db.close()
 
@@ -1360,18 +1373,30 @@ def api_admin_restore():
     if not uploaded.filename:
         return jsonify({'error': 'No file selected'}), 400
 
-    tmp_path = os.path.join(tempfile.gettempdir(), 'restore_upload.db')
+    fd, tmp_path = tempfile.mkstemp(prefix='whisper-restore-', suffix='.db')
+    os.close(fd)
     try:
         uploaded.save(tmp_path)
-
         source = sqlite3.connect(tmp_path)
         try:
-            tables = [r[0] for r in source.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
-            for required in ('players', 'games', 'attempts'):
-                if required not in tables:
+            if source.execute('PRAGMA integrity_check').fetchall() != [('ok',)]:
+                source.close()
+                return jsonify({'error': 'Backup failed SQLite integrity validation'}), 400
+            required = {
+                'players': {'id', 'nickname', 'name', 'email', 'created_at'},
+                'games': {'id', 'player_id', 'difficulty', 'started_at', 'completed_at',
+                          'total_score', 'avg_accuracy', 'duration_seconds', 'won'},
+                'attempts': {'id', 'game_id', 'attempt_index', 'language', 'phrase',
+                             'transcription', 'accuracy', 'status'}
+            }
+            for table, columns in required.items():
+                found = {r[1] for r in source.execute('PRAGMA table_info(' + table + ')')}
+                if not columns.issubset(found):
                     source.close()
-                    return jsonify({'error': f'Invalid backup: missing table "{required}"'}), 400
+                    return jsonify({'error': 'Invalid backup schema: ' + table}), 400
+            if source.execute('PRAGMA foreign_key_check').fetchone() is not None:
+                source.close()
+                return jsonify({'error': 'Backup contains inconsistent references'}), 400
         except sqlite3.DatabaseError:
             source.close()
             return jsonify({'error': 'Uploaded file is not a valid SQLite database'}), 400
@@ -1383,6 +1408,7 @@ def api_admin_restore():
         source.backup(target)
         source.close()
         target.close()
+        init_db()
 
         logger.info(f"Database restored from backup: {player_count} players, {game_count} games")
         return jsonify({

@@ -31,7 +31,7 @@ or select `tournament.storageClass` in the venue file before first deployment.
 Cluster-admin permissions do not supply Red Hat registry entitlement.
 
 ```bash
-git clone --branch tournament-mode --single-branch \
+git clone --branch codex/consolidate-modes --single-branch \
   https://github.com/agiertli/redhat-whisper-voice-challenge.git
 cd redhat-whisper-voice-challenge
 ```
@@ -45,12 +45,17 @@ multilingual. Keep this non-secret file and reuse it on every upgrade:
 
 ```bash
 cat > values-conference.yaml <<'VALUES'
+tournament:
+  enabled: true
 registration:
   mode: "username"
 game:
   requiredLanguage: "de"
 VALUES
 ```
+
+Set `tournament.enabled: false` for [anonymous standalone play](customization/game-mode.md);
+registration mode then has no effect, and existing data remains stored.
 
 The chart's default language is deliberately empty; omitting the decision fails
 validation. No cluster domain or hardcoded route URL is required.
@@ -147,7 +152,7 @@ the venue file; it is retained only for legacy configurations.
 oc wait --for=condition=Ready inferenceservice/whisper -n whisper --timeout=600s
 oc rollout status deployment/whisper-ui -n whisper --timeout=300s
 ./scripts/enable-monitoring.sh --wait
-./scripts/verify-install.sh whisper de username
+./scripts/verify-install.sh whisper de username true
 ./scripts/show-access.sh whisper
 ```
 
@@ -215,7 +220,7 @@ helm upgrade --install whisper helm/whisper \
   --values values-conference.yaml --wait --timeout 20m
 
 ./scripts/enable-monitoring.sh --wait
-./scripts/verify-install.sh whisper de username
+./scripts/verify-install.sh whisper de username true
 ./scripts/show-access.sh whisper
 ```
 

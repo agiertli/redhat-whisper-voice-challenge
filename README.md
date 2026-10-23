@@ -14,12 +14,13 @@ Choose the [agent installation](docs/AGENT-INSTALLATION.md) or
 [traditional direct Helm installation](docs/HELM-INSTALLATION.md). Both deploy the
 same chart. The command below is the automated wrapper used by the agent.
 
-Use the **`tournament-mode` branch**. Start with the
+This integration candidate uses **`codex/consolidate-modes`**. The accepted
+`tournament-mode` release remains available until consolidation acceptance. Start with the
 [installation and operations runbook](docs/INSTALLATION.md), including prerequisites,
 credentials, backups, upgrades, troubleshooting and acceptance checks.
 
 ```bash
-git clone --branch tournament-mode --single-branch \
+git clone --branch codex/consolidate-modes --single-branch \
   https://github.com/agiertli/redhat-whisper-voice-challenge.git
 cd redhat-whisper-voice-challenge
 
@@ -48,12 +49,19 @@ players. Upgrades take a verified backup first and retain installed credentials.
 Use the [copyable installation prompt](docs/AGENT-INSTALLATION.md#copyable-prompt).
 Its owner settings are grouped at the top: first required language, registration
 mode, namespace, permission to stop the bundled Llama, and admin password choice.
-Edit those five lines and copy the full prompt into your agent.
+Edit those six lines and copy the full prompt into your agent.
 
 For third-party conferences, choose `registration.mode: username` in the values
 file: one username field registers or resumes a player, with no name/email
 collection. The default `full` mode keeps the existing registration flow. Both
 modes use the same versioned image (`v2.11.0` or newer) and persistence.
+
+## Tournament or standalone
+
+`tournament.enabled: true` is the default. Set it to false for anonymous play
+without registration or persistent leaderboards. Both modes use the same image;
+switching preserves stored results and credentials. See the
+[mode and compatibility guide](docs/customization/game-mode.md).
 
 ## Booth operation
 
@@ -94,7 +102,8 @@ For owner changes, use the [customization guides](docs/CUSTOMIZATION.md); for
 background, see [architecture](docs/ARCHITECTURE.md).
 
 The proposed [consolidation onto main](docs/BRANCH-CONSOLIDATION-PLAN.md) is a
-future stability plan; current installation remains on `tournament-mode`.
+stability plan; candidate installation uses `codex/consolidate-modes` and has
+not yet replaced the accepted branches.
 
 The deployment runbook/chart take precedence over older background diagrams.
 This custom demo is not itself a claim of Red Hat product supportability.
