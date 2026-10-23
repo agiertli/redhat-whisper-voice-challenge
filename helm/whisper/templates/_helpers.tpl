@@ -52,6 +52,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{- define "whisper-ui.validate" -}}
+{{- if not (semverCompare ">=2.12.0-0" (trimPrefix "v" .Values.image.tag)) -}}{{ fail "This chart requires UI v2.12.0 or newer (including release candidates); remove old image overrides before upgrading" }}{{- end -}}
 {{- $phrases := .Files.Get "challenges.json" | mustFromJson -}}
 {{- $pools := .Values.difficultyPools | mustFromJson -}}
 {{- $languages := .Values.languageInfo | mustFromJson -}}

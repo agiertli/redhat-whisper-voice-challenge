@@ -19,9 +19,10 @@ and multiple simultaneous game installations in one namespace are outside this
 installer's current scope. Operator installation and cloud GPU provisioning are
 prerequisites, not work performed by the installer.
 
-Current integration candidate: `2.0.0-rc.6`, using UI `v2.12.0-rc.3` with a
+Current integration candidate: `2.0.0-rc.7`, using UI `v2.12.0-rc.4` with a
 default-enabled tournament toggle, anonymous standalone play and reliable save retries.
 This candidate is on `codex/consolidate-modes`; it is not yet the accepted main release. See the
+[consolidation acceptance evidence and remaining gates](validation/CONSOLIDATION-2026-10-23.md), the
 [cleanup verification](validation/CLEANUP-2026-10-23.md) and the
 [architecture fix verification](validation/ARCHITECTURE-2026-10-23.md).
 The [username-mode acceptance report](validation/USERNAME-2026-10-23.md) records
@@ -29,13 +30,15 @@ the earlier `v2.11.0` version; the report below records the `v2.10.0` live basel
 The installation changes require explicit language selection. Live results and
 remaining checks are recorded in [the RHDP validation report](validation/RHDP-2026-10-23.md).
 Choose a published image matching the feature: username-only registration requires
-`v2.11.0` or newer. Configuration changes after that require no rebuild.
+`v2.11.0` or newer. This integration chart requires `v2.12.0` or newer (including
+release candidates) for the mode/persistence contract; old image overrides fail
+validation before deployment. Configuration changes require no rebuild.
 Offline regression tests validate rendering and error handling. Live RHDP
 acceptance must separately verify image pulls, KServe behavior, model quality,
 route TLS, storage permissions, upgrades, and backup/restore. Do not equate passing
 local tests with verified cluster compatibility.
 
-Local verification on 2026-10-23: **86 offline regression tests passed**, Helm lint
+Local verification on 2026-10-23: **88 offline regression tests passed**, Helm lint
 passed, and ShellCheck 0.10.0 passed for the installer and all shell helpers.
 Test host: macOS, Bash 3.2.57, Helm 3.15.4, Python 3.14.2. See
 [local test instructions](../tests/README.md). No GitHub Actions workflow is
@@ -275,6 +278,10 @@ recovery-point choice. Keep another protected copy outside the laptop as well.
 
 ## Upgrades and recovery
 
+Read the [migration guide](customization/upgrading-existing-installations.md) when
+coming from an older branch or a complete old values file.
+
+
 Use the **same venue values file, namespace and explicit language overrides** on
 every upgrade. Keep that non-secret file in your team's Git/configuration store.
 An omitted first language fails validation rather than silently reverting it.
@@ -367,7 +374,7 @@ semver tag; do not overwrite a published version. Podman or Docker is used only
 with `--build`, targeting linux/amd64 even on Apple Silicon.
 
 ```bash
-IMAGE_REGISTRY=quay.io/YOUR-ORG VERSION=v2.11.0-rc.1 \
+IMAGE_REGISTRY=quay.io/YOUR-ORG VERSION=v2.12.0-rc.4 \
   ./deploy.sh --build --values values-conference.yaml --free-rhdp-gpu
 
 python3 -m pip install -r tests/requirements.txt

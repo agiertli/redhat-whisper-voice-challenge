@@ -84,7 +84,7 @@ if $BUILD; then
     else fail "--build requires podman or docker"; fi
 fi
 if [[ -n ${VERSION:-} ]]; then
-    [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]] || fail "VERSION must be semver, for example v2.2.1"
+    [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]] || fail "VERSION must be semver, for example v2.12.0"
 fi
 WORK=$(mktemp -d)
 chmod 700 "$WORK"

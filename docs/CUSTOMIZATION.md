@@ -5,6 +5,7 @@ Start with the task you need. Keep your non-secret settings together in
 paths use the same chart; changes to Helm configuration need no image rebuild.
 The registration feature requires UI `v2.11.0` or newer.
 
+- [Upgrade an existing installation](customization/upgrading-existing-installations.md): migration from tournament or old main, image/version guards and recovery.
 - [Game mode](customization/game-mode.md): tournament (default) or anonymous standalone play, switching and data preservation.
 - [Choose registration mode](customization/registration.md): full registration or
   one username-only form, returning players, switching modes and existing data.

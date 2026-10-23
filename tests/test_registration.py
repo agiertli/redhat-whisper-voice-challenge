@@ -345,10 +345,12 @@ class RegistrationTests(unittest.TestCase):
             for table in ('players','games','attempts'):
                 db.execute('CREATE TABLE '+table+' (id INTEGER PRIMARY KEY)')
         admin={'Authorization':'Bearer '+self.module.ADMIN_TOKEN}
-        result=self.client.post('/api/admin/restore',headers=admin,data={'file':(io.BytesIO(incompatible.read_bytes()),'incompatible.db')})
-        self.assertEqual(result.status_code,400)
-        with sqlite3.connect(self.module.DB_PATH) as db:
-            self.assertEqual(db.execute('SELECT * FROM players').fetchall(),before)
+        for payload in (incompatible.read_bytes(),incompatible.read_bytes()[:512],b'not a SQLite database'):
+            with self.subTest(size=len(payload)):
+                result=self.client.post('/api/admin/restore',headers=admin,data={'file':(io.BytesIO(payload),'incompatible.db')})
+                self.assertEqual(result.status_code,400)
+                with sqlite3.connect(self.module.DB_PATH) as db:
+                    self.assertEqual(db.execute('SELECT * FROM players').fetchall(),before)
 
     def test_old_database_migrates_without_altering_rows_and_restores(self):
         _, auth, path=self.game_fixture()

@@ -176,7 +176,7 @@
                         </g>
                         <text x="70" y="25" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Microphone</text>
                         <text x="70" y="40" text-anchor="middle" font-size="9" fill="#3b82f6" font-weight="bold">Web Audio API</text>
-                        <text x="70" y="55" text-anchor="middle" font-size="9" fill="#64748b">48kHz, Stereo</text>
+                        <text x="70" y="55" text-anchor="middle" font-size="9" fill="#64748b">48kHz capture</text>
                     </g>
 
                     <!-- VAD Engine -->
@@ -184,9 +184,9 @@
                         <rect width="140" height="95" rx="10" fill="url(#slateGrad)" stroke="#3b82f6" stroke-width="2"/>
                         <text x="70" y="22" text-anchor="middle" font-size="13" fill="#f1f5f9" font-weight="800">VAD Engine</text>
                         <line x1="15" y1="30" x2="125" y2="30" stroke="#334155" stroke-width="1"/>
-                        <text x="70" y="47" text-anchor="middle" font-size="10" fill="#cbd5e1">RMS Energy: 0.02</text>
-                        <text x="70" y="62" text-anchor="middle" font-size="10" fill="#cbd5e1">Silence: 400ms</text>
-                        <text x="70" y="77" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="bold">Min. Speech: 500ms</text>
+                        <text x="70" y="47" text-anchor="middle" font-size="10" fill="#cbd5e1">RMS Energy: 0.05</text>
+                        <text x="70" y="62" text-anchor="middle" font-size="10" fill="#cbd5e1">Silence: 1000ms</text>
+                        <text x="70" y="77" text-anchor="middle" font-size="10" fill="#3b82f6" font-weight="bold">Min. Speech: 600ms</text>
                     </g>
 
                     <!-- WAV Encoder -->
@@ -226,8 +226,8 @@
                         <text x="50" y="20" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Whisper</text>
                         <text x="50" y="34" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">API</text>
                         <line x1="10" y1="41" x2="90" y2="41" stroke="#334155" stroke-width="1"/>
-                        <text x="50" y="56" text-anchor="middle" font-size="9" fill="#cbd5e1">v3-turbo</text>
-                        <text x="50" y="69" text-anchor="middle" font-size="9" fill="#cbd5e1">809M params</text>
+                        <text x="50" y="56" text-anchor="middle" font-size="9" fill="#cbd5e1">Configured model</text>
+                        <text x="50" y="69" text-anchor="middle" font-size="9" fill="#cbd5e1">Modelcar weights</text>
                         <rect x="10" y="78" width="80" height="16" rx="4" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-width="0.5"/>
                         <text x="50" y="89" text-anchor="middle" font-size="8" fill="#f59e0b" font-weight="bold">vLLM + GPU</text>
                     </g>
@@ -252,7 +252,7 @@
                         <rect width="175" height="60" rx="10" fill="url(#slateGrad)" stroke="#22c55e" stroke-width="1.5"/>
                         <text x="87" y="22" text-anchor="middle" font-size="12" fill="#f1f5f9" font-weight="800">Game Mode</text>
                         <text x="87" y="38" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="bold">Levenshtein Score</text>
-                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">&ge;90% = Win</text>
+                        <text x="87" y="52" text-anchor="middle" font-size="9" fill="#64748b">&ge;80% avg = Win</text>
                     </g>
 
                     <!-- Decorative: audio waveform on left side -->
@@ -380,13 +380,13 @@ sequenceDiagram
 flowchart TB
     subgraph Browser["Browser Real-time"]
         Mic["Microphone Input"]
-        VAD["VAD Engine RMS 0.02 Silence 400ms Min Speech 500ms"]
+        VAD["VAD Engine RMS 0.05 Silence 1000ms Min Speech 600ms"]
         Buffer["Audio Buffer"]
         Encoder["WAV Encoder"]
         SSE["SSE Client"]
         Mic --> VAD
         VAD -->|"Speech Detected"| Buffer
-        VAD -->|"Silence 400ms"| Encoder
+        VAD -->|"Silence 1000ms"| Encoder
         Buffer --> Encoder
         Encoder -->|"POST Chunk"| SSE
     end
@@ -412,7 +412,7 @@ flowchart TB
                     <pre class="mermaid">
 flowchart TD
     Start["Audio Sample 4096 frames"] --> RMS["Calculate RMS Energy"]
-    RMS --> Compare{"RMS > 0.02?"}
+    RMS --> Compare{"RMS > 0.05?"}
     Compare -->|"YES"| Speech["Speech Detected"]
     Compare -->|"NO"| Silence["Silence Detected"]
     Speech --> IsSpeaking{"Already speaking?"}
@@ -420,7 +420,7 @@ flowchart TD
     IsSpeaking -->|"YES"| Buffer1["Add to Buffer Reset Silence Timer"]
     Silence --> WasSpeaking{"Was speaking?"}
     WasSpeaking -->|"NO"| Ignore["Ignore waiting for speech"]
-    WasSpeaking -->|"YES"| CheckDuration{"Silence > 400ms AND Speech > 500ms?"}
+    WasSpeaking -->|"YES"| CheckDuration{"Silence > 1000ms AND Speech > 600ms?"}
     CheckDuration -->|"NO"| Buffer2["Add to Buffer short pause"]
     CheckDuration -->|"YES"| Send["Send Chunk Reset Buffers"]
                     </pre>
@@ -440,13 +440,13 @@ flowchart LR
     Lev --> Calc["Similarity = length - distance / length"]
     Calc --> Score["Accuracy % = Similarity x 100"]
     Score --> Color{"Score?"}
-    Color -->|">= 90%"| Green["Success + Prize"]
-    Color -->|"70-89%"| Blue["Good"]
-    Color -->|"< 70%"| Orange["Needs Improvement"]
+    Color -->|">= 90%"| Green["Green accuracy display"]
+    Color -->|"70-89%"| Blue["Blue accuracy display"]
+    Color -->|"< 70%"| Orange["Orange accuracy display"]
                     </pre>
                     <div class="mt-4 text-sm text-slate-400 space-y-2">
                         <p><strong class="text-slate-200">Formula:</strong> <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">similarity = (longer.length - editDistance) / longer.length</code></p>
-                        <p><strong class="text-slate-200">Implementation:</strong> Client-side JavaScript in <code class="bg-slate-800 px-2 py-0.5 rounded text-xs">src/templates/index.html</code></p>
+                        <p><strong class="text-slate-200">Implementation:</strong> Tournament accuracy and final scoring are computed and saved on the server; standalone results stay local. A game wins at average accuracy ≥80%. Display colors above are separate from winning.</p>
                     </div>
                 </div>
             </details>
@@ -477,7 +477,7 @@ flowchart LR
                 title: "Voice Activity Detection (VAD)",
                 elements: ["flow-3"],
                 nodes: ["node-vad"],
-                desc: "The VAD engine analyzes the RMS energy of each audio block in real time. If energy exceeds the 0.02 threshold, speech is detected. After 400ms of silence and at least 500ms of continuous speech, it identifies a complete speech segment."
+                desc: "The VAD engine analyzes the RMS energy of each audio block in real time. If energy exceeds the 0.05 threshold, speech is detected. After 1000ms of silence and at least 600ms of continuous speech, it identifies a complete speech segment."
             },
             {
                 id: 4,
@@ -505,14 +505,14 @@ flowchart LR
                 title: "AI Transcription (Whisper)",
                 elements: ["flow-7"],
                 nodes: ["node-whisper", "node-flask"],
-                desc: "The whisper-large-v3-turbo model (809M parameters) runs on GPU via the vLLM serving runtime. It processes the WAV input and generates a text transcription. OpenShift AI provides model serving and scaling."
+                desc: "The configured Whisper model runs on GPU via the vLLM serving runtime. It processes the WAV input and generates a text transcription. OpenShift AI provides model serving and scaling."
             },
             {
                 id: 8,
                 title: "Streamed Response and Display",
                 elements: ["flow-8a", "flow-8b", "flow-8c"],
                 nodes: ["node-sse", "node-display", "node-game"],
-                desc: "The transcription is streamed back via SSE (Server-Sent Events). Text is appended to the existing transcription in real time. In game mode, accuracy is calculated using Levenshtein distance — a score of ≥80% means a win."
+                desc: "The transcription is streamed back via SSE (Server-Sent Events). Text is appended to the existing transcription in real time. In game mode, accuracy is calculated using Levenshtein distance — a game wins at average accuracy ≥80%. Tournament results are confirmed by the server."
             }
         ];
 

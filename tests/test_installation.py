@@ -76,6 +76,10 @@ class ChartTests(unittest.TestCase):
         self.assertNotEqual(enabled['Deployment']['spec']['template']['metadata']['annotations']['checksum/config'],disabled['Deployment']['spec']['template']['metadata']['annotations']['checksum/config'])
         self.render('--set-string','tournament.enabled=false',success=False)
 
+    def test_legacy_image_tags_are_rejected_before_applying_new_chart_contract(self):
+        for tag in ('v1.1.2','v2.11.2'):
+            self.assertIn('requires UI v2.12.0',self.render('--set','image.tag='+tag,success=False).stderr)
+
     def test_owner_must_choose_language(self):
         self.render('--set', 'game.requiredLanguage=', success=False)
 
@@ -546,6 +550,12 @@ class InstallerTests(unittest.TestCase):
         self.assertIn('tournament.adminToken=' + str(password), self.calls())
         self.assertNotIn('test@password!', self.calls())
         self.assertIn('Admin password: mock-admin-password', result.stdout)
+
+    def test_legacy_image_override_fails_before_any_cluster_access(self):
+        with tempfile.NamedTemporaryFile(mode='w',suffix='.yaml') as values:
+            values.write('image:\n  tag: v2.11.2\n');values.flush()
+            self.run_script('deploy.sh','--language','de','--values',values.name,success=False)
+        self.assertEqual(self.calls(),'')
 
     def test_transient_exec_transport_retries_without_hiding_failure(self):
         self.run_script('deploy.sh','--language','de',scenario='exec-transport-once')
