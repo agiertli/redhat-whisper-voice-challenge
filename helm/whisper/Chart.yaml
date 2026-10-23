@@ -2,8 +2,8 @@ apiVersion: v2
 name: whisper-ui
 description: Whisper speech-to-text demo app for conferences on OpenShift AI
 type: application
-version: 2.0.0-rc.3
-appVersion: "2.11.0"
+version: 2.0.0-rc.4
+appVersion: "2.11.1"
 keywords:
   - whisper
   - transcription

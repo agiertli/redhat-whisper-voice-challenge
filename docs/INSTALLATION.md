@@ -19,7 +19,9 @@ and multiple simultaneous game installations in one namespace are outside this
 installer's current scope. Operator installation and cloud GPU provisioning are
 prerequisites, not work performed by the installer.
 
-Current chart candidate: `2.0.0-rc.3`, using UI `v2.11.0` for configurable registration.
+Current chart candidate: `2.0.0-rc.4`, using UI `v2.11.1` with the architecture
+walkthrough layout fix and configurable registration. See the
+[architecture fix verification](validation/ARCHITECTURE-2026-10-23.md).
 The [username-mode acceptance report](validation/USERNAME-2026-10-23.md) records
 this version; the earlier report below records the `v2.10.0` live baseline.
 The installation changes require explicit language selection. Live results and

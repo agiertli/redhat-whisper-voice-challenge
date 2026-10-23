@@ -22,6 +22,11 @@
             50% { filter: drop-shadow(0 0 14px rgba(34, 197, 94, 0.7)); }
         }
         .node-active { animation: pulse-node 1.5s ease-in-out infinite; }
+        /* Every description participates in sizing, so changing steps cannot
+           steal height from the SVG and make the diagram appear to zoom. */
+        .step-copy { display: grid; grid-template-columns: minmax(0, 1fr); }
+        .step-copy > div { grid-area: 1 / 1; min-width: 0; }
+        .step-size-reference { visibility: hidden; pointer-events: none; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 selection:bg-red-500 selection:text-white">
@@ -53,12 +58,14 @@
                 <button onclick="prevStep()" id="btn-prev" class="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition border border-slate-800 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                 </button>
-                <div class="flex-1 text-center min-w-0">
+                <div id="step-copy" class="step-copy flex-1 text-center min-w-0">
+                  <div id="step-active-copy">
                     <div class="flex items-baseline justify-center gap-3">
                         <span id="step-indicator" class="text-[11px] font-mono text-red-400 uppercase tracking-widest font-bold"></span>
                         <h3 id="step-title" class="text-sm md:text-base font-bold text-white"></h3>
                     </div>
                     <p id="step-desc" class="text-xs md:text-sm text-slate-400 max-w-3xl mx-auto leading-snug"></p>
+                  </div>
                 </div>
                 <button onclick="nextStep()" id="btn-next" class="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition border border-slate-800 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
@@ -509,8 +516,38 @@ flowchart LR
             }
         ];
 
-        const allFlowIds = tourSteps.flatMap(s => s.elements || []);
-        const allNodeIds = tourSteps.flatMap(s => s.nodes || []);
+        // Invisible grid siblings reserve the largest copy height at the actual
+        // viewport/font size. No pixel estimates, resize listeners or clipping.
+        const activeCopy = document.getElementById('step-active-copy');
+        tourSteps.forEach(step => {
+            const reference = activeCopy.cloneNode(true);
+            reference.removeAttribute('id');
+            reference.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+            reference.classList.add('step-size-reference');
+            reference.setAttribute('aria-hidden', 'true');
+            reference.querySelector('span').textContent = `Step ${step.id} of ${tourSteps.length}`;
+            reference.querySelector('h3').textContent = step.title;
+            reference.querySelector('p').textContent = step.desc;
+            document.getElementById('step-copy').appendChild(reference);
+        });
+
+        const allFlowIds = [...new Set(tourSteps.flatMap(s => s.elements || []))];
+        const allNodeIds = [...new Set(tourSteps.flatMap(s => s.nodes || []))];
+        const originalFlowStyles = new Map(allFlowIds.map(id => {
+            const el = document.getElementById(id);
+            return [id, {
+                stroke: el.getAttribute('stroke'),
+                width: el.getAttribute('stroke-width'),
+                marker: el.getAttribute('marker-end')
+            }];
+        }));
+        const originalNodeStyles = new Map(allNodeIds.map(id => {
+            const rect = document.getElementById(id).querySelector('rect');
+            return [id, rect ? {
+                stroke: rect.getAttribute('stroke'),
+                width: rect.getAttribute('stroke-width')
+            } : null];
+        }));
 
         function updateStep() {
             const step = tourSteps[currentStep];
@@ -519,51 +556,32 @@ flowchart LR
             document.getElementById('step-title').textContent = step.title;
             document.getElementById('step-desc').textContent = step.desc;
 
-            // Reset all paths
+            const activeFlows = new Set(step.elements || []);
             allFlowIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (!el) return;
-                el.setAttribute('stroke', '#64748b');
-                el.setAttribute('stroke-width', id.includes('flow-3') || id.includes('flow-7') ? '1.5' : '2');
-                el.classList.remove('animated-flow', 'glow-green');
-                el.setAttribute('marker-end', 'url(#arr)');
+                const active = activeFlows.has(id);
+                const original = originalFlowStyles.get(id);
+                el.setAttribute('stroke', active ? '#22c55e' : original.stroke);
+                el.setAttribute('stroke-width', active ? '3' : original.width);
+                el.classList.toggle('animated-flow', active);
+                el.classList.toggle('glow-green', active);
+                const marker = active ? 'url(#arr-g)' : original.marker;
+                if (marker) el.setAttribute('marker-end', marker);
+                else el.removeAttribute('marker-end');
             });
 
-            // Reset all nodes
+            // Toggle directly to the next state. Shared nodes (notably VAD in
+            // steps 2, 3 and 4) keep their existing pulse animation and phase.
+            const activeNodes = new Set(step.nodes || []);
             allNodeIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (!el) return;
-                el.classList.remove('node-active');
+                const active = activeNodes.has(id);
+                el.classList.toggle('node-active', active);
                 const rect = el.querySelector('rect');
-                if (rect && rect.dataset.origStroke) {
-                    rect.setAttribute('stroke', rect.dataset.origStroke);
-                    rect.setAttribute('stroke-width', rect.dataset.origWidth || '1.5');
-                }
-            });
-
-            // Highlight active paths
-            (step.elements || []).forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.setAttribute('stroke', '#22c55e');
-                el.setAttribute('stroke-width', '3');
-                el.classList.add('animated-flow', 'glow-green');
-                el.setAttribute('marker-end', 'url(#arr-g)');
-            });
-
-            // Highlight active nodes
-            (step.nodes || []).forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.classList.add('node-active');
-                const rect = el.querySelector('rect');
-                if (rect) {
-                    if (!rect.dataset.origStroke) {
-                        rect.dataset.origStroke = rect.getAttribute('stroke');
-                        rect.dataset.origWidth = rect.getAttribute('stroke-width');
-                    }
-                    rect.setAttribute('stroke', '#22c55e');
-                    rect.setAttribute('stroke-width', '2.5');
+                const original = originalNodeStyles.get(id);
+                if (rect && original) {
+                    rect.setAttribute('stroke', active ? '#22c55e' : original.stroke);
+                    rect.setAttribute('stroke-width', active ? '2.5' : original.width);
                 }
             });
         }
