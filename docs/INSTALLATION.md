@@ -35,7 +35,7 @@ acceptance must separately verify image pulls, KServe behavior, model quality,
 route TLS, storage permissions, upgrades, and backup/restore. Do not equate passing
 local tests with verified cluster compatibility.
 
-Local verification on 2026-10-23: **84 offline regression tests passed**, Helm lint
+Local verification on 2026-10-23: **86 offline regression tests passed**, Helm lint
 passed, and ShellCheck 0.10.0 passed for the installer and all shell helpers.
 Test host: macOS, Bash 3.2.57, Helm 3.15.4, Python 3.14.2. See
 [local test instructions](../tests/README.md). No GitHub Actions workflow is

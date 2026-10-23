@@ -429,6 +429,18 @@ elif args[:2] == ['get', 'csv']:
     print(Path(os.environ['FIXTURES'], 'operators.json').read_text())
 elif args[:2] == ['get', 'nodes']:
     print(Path(os.environ['FIXTURES'], 'nodes.json').read_text())
+elif args[:1] == ['exec']:
+    payload=sys.stdin.buffer.read()
+    command=args[args.index('--')+1:]
+    count=int(command[3])
+    assert len(command[2]) < 200, 'exec URL must not contain the entire smoke script'
+    assert payload[count:count+4] == b'RIFF', 'script byte framing must preserve WAV input'
+    if scenario == 'exec-transport-once':
+        marker=Path(os.environ['FIXTURES'])/'exec-retried'
+        if not marker.exists():
+            marker.touch();print('error: remote error: tls: bad record MAC',file=sys.stderr);sys.exit(1)
+    if scenario == 'exec-check-failure':
+        print('ERROR: Running UI has the wrong required language',file=sys.stderr);sys.exit(1)
 elif args[:2] == ['get', 'storageclasses']:
     print(Path(os.environ['FIXTURES'], 'storage.json').read_text())
 elif args[:2] == ['get', 'pods'] and '-A' in args:
@@ -534,6 +546,17 @@ class InstallerTests(unittest.TestCase):
         self.assertIn('tournament.adminToken=' + str(password), self.calls())
         self.assertNotIn('test@password!', self.calls())
         self.assertIn('Admin password: mock-admin-password', result.stdout)
+
+    def test_transient_exec_transport_retries_without_hiding_failure(self):
+        self.run_script('deploy.sh','--language','de',scenario='exec-transport-once')
+        calls=[json.loads(line) for line in self.calls().splitlines() if line.startswith('[')]
+        self.assertEqual(sum('exec' in call for call in calls),2)
+
+    def test_failed_smoke_assertion_is_not_retried_or_declared_successful(self):
+        result=self.run_script('deploy.sh','--language','de',scenario='exec-check-failure',success=False)
+        calls=[json.loads(line) for line in self.calls().splitlines() if line.startswith('[')]
+        self.assertEqual(sum('exec' in call for call in calls),1)
+        self.assertNotIn('Deployment and internal smoke checks passed',result.stdout)
 
     def test_help_needs_no_cluster(self):
         self.run_script('deploy.sh', '--help')

@@ -2,7 +2,7 @@
 
 **Status: integration candidate, 2026-10-23.** Cleanup is complete in `4316d07`.
 The toggle and reliability fixes are implemented on `codex/consolidate-modes`,
-with 84 local regression checks passing. Live acceptance is in progress on a fresh
+with 86 local regression checks passing. Live acceptance is in progress on a fresh
 RHDP environment. No merge to `main` has occurred and neither accepted branch has
 been deleted. The gates below remain the acceptance criteria, not a claim that
 every check has passed.
