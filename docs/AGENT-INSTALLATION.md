@@ -27,26 +27,47 @@ German is `de`, Czech `cs`, Slovak `sk`, English `en`. Later rounds remain multi
 
 ## Copyable prompt
 
-Replace the event name/language/namespace with your decisions:
+**Edit the five lines under OWNER SETTINGS, then copy the entire block into your
+agent.** Replace every `<...>` placeholder. Language examples: `de` = German,
+`cs` = Czech, `sk` = Slovak, `en` = English. Later rounds remain multilingual.
 
-> Read AGENTS.md and docs/INSTALLATION.md on the tournament-mode branch. You are
-> logged into the intended RHDP OpenShift AI 3 SNO cluster as cluster-admin.
-> Install the Whisper tournament game for "Our Conference", namespace whisper,
-> with German (de) as the first required challenge language. You are authorized to
-> scale my-first-model/llama-32-3b-instruct to zero to release the only GPU.
-> Enable monitoring as a required prerequisite, preserving existing monitoring
-> settings; do not ask whether it should be enabled. Verify GPU gauges and AI
-> counters. Use the published image and repository installer without rebuilding.
-> Create a non-secret venue values file, run read-only preflight, then install.
-> Preserve existing tournament data and credentials; take a verified external
-> backup before any upgrade. Verify the first language, real audio transcription,
-> player/game/leaderboard behavior and persistence. Do not claim browser microphone
-> validation from an API test. After successful verification, report the game URL,
-> admin URL and installed admin password. Explain how the owner starts the
-> standalone five-minute Bash backup on a separate laptop.
-> Fix installation gaps in the repository, run the regression checks, and report
-> what was verified and what remains untested. Never uninstall/delete the PVC or
-> reset results as a troubleshooting shortcut.
+For a chosen admin password, create the private file described in
+[Choose the admin password](INSTALLATION.md#choose-the-admin-password) first.
+Put its path in the prompt; there is no need to paste the password itself.
+
+```text
+OWNER SETTINGS — EDIT THESE FIVE LINES
+Conference name: <your conference name>
+First required language: <language code, e.g. de>
+Namespace: whisper
+May stop bundled RHDP Llama to free the GPU: <yes or no>
+Admin password: <private file path, or "generate on first install; preserve on upgrade">
+
+INSTALLATION INSTRUCTIONS — KEEP THESE
+Read AGENTS.md and docs/INSTALLATION.md on the tournament-mode branch.
+You are logged into the intended RHDP OpenShift AI 3 SNO cluster as cluster-admin.
+Install the Whisper tournament game using the OWNER SETTINGS above.
+
+- Use the published image and repository installer without rebuilding.
+- Save non-secret owner choices in values-conference.yaml and reuse that file.
+- If a private admin-password file is specified, use --admin-password-file.
+  Otherwise generate on first install and preserve the password on upgrades.
+- Stop my-first-model/llama-32-3b-instruct only if the setting above says yes.
+  If no GPU is available and stopping Llama is not authorized, report the blocker.
+- Always enable monitoring, preserving existing settings. Do not ask whether
+  monitoring should be enabled. Verify GPU gauges and persistent AI counters.
+- Run read-only preflight, then install. Preserve tournament data and credentials;
+  take a verified external backup before any upgrade.
+- Verify the first language, real audio transcription, player/game/leaderboard
+  behavior and persistence. API tests do not prove browser microphone capture.
+- After successful verification, report the game URL, admin URL and installed
+  admin password. Never disclose the player signing key.
+- Explain remaining manual checks and how to start the standalone five-minute
+  Bash backup on one separate laptop before admitting players.
+- Fix installation gaps in the repository, run regression checks, and report
+  what was verified and what remains untested. Never uninstall/delete the PVC
+  or reset results as a troubleshooting shortcut.
+```
 
 ## What the agent should execute
 

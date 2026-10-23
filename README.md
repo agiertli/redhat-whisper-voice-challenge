@@ -45,14 +45,10 @@ players. Upgrades take a verified backup first and retain installed credentials.
 ## Install through an agent
 
 [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) use the same runbook and script.
-Example prompt after checking out this branch:
-
-> Read AGENTS.md and docs/INSTALLATION.md. You are logged into the intended RHDP
-> OpenShift AI 3 SNO cluster as cluster-admin. Install the tournament game for our
-> conference, with Czech (`cs`) as the first required language. You may scale the
-> bundled my-first-model/llama-32-3b-instruct model to zero. Run preflight, install
-> and verify the smoke tests. Preserve any existing tournament data and credentials.
-> Explain the remaining browser checks and help start the external backup loop.
+Use the [copyable installation prompt](docs/AGENT-INSTALLATION.md#copyable-prompt).
+Its owner settings are grouped at the top: conference name, first required
+language, namespace, permission to stop the bundled Llama, and admin password
+choice. Edit those five lines and copy the full prompt into your agent.
 
 ## Booth operation
 
