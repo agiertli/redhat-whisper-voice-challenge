@@ -1,0 +1,4 @@
+apiVersion: v2
+name: whisper-monitoring-prerequisite
+version: 1.0.0
+description: Render a safe monitoring prerequisite update; never install as a Helm release

@@ -1,8 +1,11 @@
 # Whisper Voice Challenge: instructions for every agent
 
 Read [docs/INSTALLATION.md](docs/INSTALLATION.md) before installing or upgrading.
-It is the canonical human and agent runbook. Use `./deploy.sh`; do not invent a
-parallel set of deployment commands. Work on the `tournament-mode` branch.
+It is the shared operations runbook. Agents normally execute `./deploy.sh` using
+[docs/AGENT-INSTALLATION.md](docs/AGENT-INSTALLATION.md). The separately documented
+[direct Helm path](docs/HELM-INSTALLATION.md) is for human/scripted installation or
+an explicit request to use Helm directly. Both use the same chart. Do not invent
+a third deployment procedure. Work on the `tournament-mode` branch.
 
 ## Installation contract
 
@@ -16,6 +19,11 @@ parallel set of deployment commands. Work on the `tournament-mode` branch.
 - Ask for missing owner choices early; continue read-only discovery meanwhile.
 - On the usual RHDP SNO, use `--free-rhdp-gpu` only when stopping the bundled
   `my-first-model/llama-32-3b-instruct` is authorized. Never stop unrelated models.
+- Monitoring is REQUIRED on every installation. Use `scripts/enable-monitoring.sh`
+  to enable user workload monitoring while preserving existing settings, and
+  `--wait` to verify readiness. This standard prerequisite is authorized: do not
+  ask the owner whether monitoring should be enabled. Verify DCGM GPU gauges and
+  persistent AI counters before declaring the installation complete.
 - Run read-only `--preflight`, then the same command without `--preflight`.
 - Preserve tournament data and credentials. Upgrades take a verified external
   backup first. Never uninstall, delete a PVC, reset scores, or rotate keys as a

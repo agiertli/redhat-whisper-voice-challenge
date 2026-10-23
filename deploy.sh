@@ -125,6 +125,7 @@ oc get pvc whisper-tournament-db -n "$NAMESPACE" --ignore-not-found -o json > "$
 helm template whisper helm/whisper "${ARGS[@]}" --show-only templates/pvc.yaml > "$WORK/pvc.yaml"
 sed -n 's/^  storageClassName: "\([^" ]*\)"$/\1/p' "$WORK/pvc.yaml" > "$WORK/storage-class"
 python3 "$ROOT/scripts/check-cluster.py" "$WORK" "$NAMESPACE" "$MODEL" "$FREE_GPU"
+"$ROOT/scripts/enable-monitoring.sh" --check
 # Disallow an accidental second installation using the fixed chart resource names.
 INSTALLED=$(oc get deployment whisper-ui -n "$NAMESPACE" --ignore-not-found -o name)
 OWNER=$(oc get deployment whisper-ui -n "$NAMESPACE" --ignore-not-found -o 'jsonpath={.metadata.annotations.meta\.helm\.sh/release-name}')
@@ -157,8 +158,9 @@ if [[ -n "$INSTALLED" ]]; then
             BACKUP_DIR="${BACKUP_DIR:-$ROOT/backups/$NAMESPACE}" "$ROOT/scripts/backup.sh"
     fi
 fi
+"$ROOT/scripts/enable-monitoring.sh"
 if $FREE_GPU; then "$ROOT/scripts/free-gpu.sh"; fi
-# Label only GPU nodes; do not modify cluster monitoring policy during installation.
+# Label only detected GPU nodes; monitoring is handled by the shared helper above.
 oc label nodes -l nvidia.com/gpu.present=true node-role.kubernetes.io/gpu-worker=true --overwrite
 if $BUILD; then
     "$ENGINE" build --platform linux/amd64 -f Containerfile -t "$IMAGE" .
@@ -169,6 +171,7 @@ fi
 helm upgrade --install whisper helm/whisper "${ARGS[@]}" --create-namespace --wait --timeout "${TIMEOUT}s"
 oc wait --for=condition=Ready "inferenceservice/$MODEL" -n "$NAMESPACE" --timeout="${TIMEOUT}s"
 oc rollout status deployment/whisper-ui -n "$NAMESPACE" --timeout="${TIMEOUT}s"
+"$ROOT/scripts/enable-monitoring.sh" --wait
 "$ROOT/scripts/verify-install.sh" "$NAMESPACE" "$LANGUAGE"
 HOST=$(oc get route whisper-ui -n "$NAMESPACE" -o jsonpath='{.spec.host}')
 echo "Deployment and internal smoke checks passed: https://$HOST/"

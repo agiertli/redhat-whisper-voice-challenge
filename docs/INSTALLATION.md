@@ -3,7 +3,9 @@
 This is the canonical runbook for technical owners and AI agents. No prior chat
 history, Anton's workstation, registry push permission, or `now.env` is needed for
 the published-image installation. Agent instructions live in `AGENTS.md`;
-`CLAUDE.md` points to the same instructions. Every owner runs the same installer.
+`CLAUDE.md` points to the same instructions. Choose the [agent procedure](AGENT-INSTALLATION.md), which uses the installer,
+or the [traditional Helm procedure](HELM-INSTALLATION.md), which invokes the same
+chart directly. This page covers their shared configuration and operations.
 
 ## Target environment and validation status
 
@@ -16,18 +18,19 @@ and multiple simultaneous game installations in one namespace are outside this
 installer's current scope. Operator installation and cloud GPU provisioning are
 prerequisites, not work performed by the installer.
 
-Current chart candidate: `2.0.0-rc.1`, using the existing published UI `v2.2.0`.
-The installation changes require explicit language selection and are pending live
-RHDP acceptance; no application image rebuild is needed for these changes.
+Current chart candidate: `2.0.0-rc.2`, using the existing published UI `v2.10.0`.
+The installation changes require explicit language selection. Live results and
+remaining checks are recorded in [the RHDP validation report](validation/RHDP-2026-10-23.md).
+The published `v2.10.0` app matches this branch source exactly; no rebuild is needed.
 Offline regression tests validate rendering and error handling. Live RHDP
 acceptance must separately verify image pulls, KServe behavior, model quality,
 route TLS, storage permissions, upgrades, and backup/restore. Do not equate passing
 local tests with verified cluster compatibility.
 
-Local verification on 2026-10-23: **44 offline regression tests passed**, Helm lint
-passed, and ShellCheck 0.10.0 passed for the installer and all four shell helpers.
+Local verification on 2026-10-23: **52 offline regression tests passed**, Helm lint
+passed, and ShellCheck 0.10.0 passed for the installer and all shell helpers.
 Test host: macOS, Bash 3.2.57, Helm 3.15.4, Python 3.14.2. The GitHub workflow also
-runs the suite on Linux and macOS. Cluster acceptance below is still outstanding.
+runs the suite on Linux and macOS. The live acceptance checklist below is supplemented by the dated validation report.
 
 ## Owner decisions and prerequisites
 
@@ -100,13 +103,17 @@ for this default behavior. On a cluster without the bundled Llama, omit
 mistaken for absence, and remaining pods fail the operation.
 
 Installer sequence: validate inputs/chart, discover cluster and GPU/storage,
-back up an existing installation, release the exact opted-in demo model, label
+back up an existing installation, enable monitoring, release the exact opted-in demo model, label
 NVIDIA nodes, install/upgrade Helm, wait for model/UI, and run an internal real-audio
 smoke test. Default Helm timeout is 1200 seconds. `--timeout 1800` increases it and
 also adjusts the warmup Job deadline. A failed operation keeps resources and data
 for inspection and prints diagnostic commands/events; it never automatically
 uninstalls or deletes storage. GPU preflight is a snapshot; actual scheduling is
 the final availability check.
+
+The chart sets `GUNICORN_CMD_ARGS=--preload` so SQLite initialization/migrations run
+once before the four workers fork. Live testing caught a first-boot database lock
+race without this setting. Keep preloading enabled for this SQLite deployment.
 
 ## Credentials and tournament storage
 
@@ -136,6 +143,18 @@ guard against accidental removal; still never use uninstall as recovery. The cha
 `tournament.storageClass` is specified before initial creation. An existing PVC's
 storage class cannot be changed in place. Backup files contain attendee PII and
 must be protected and retained according to the event's policy.
+
+## Required monitoring
+
+Monitoring is always enabled as a standard installation step. The wrapper invokes
+`scripts/enable-monitoring.sh` before deploying and waits for readiness before
+completion. The [direct Helm procedure](HELM-INSTALLATION.md) invokes the same
+helper explicitly. It preserves unrelated ConfigMap settings, leaves an enabled
+configuration unchanged, and refuses invalid YAML or concurrent conflicting edits.
+The helper uses the existing Helm YAML parser; no pip/YAML package is needed.
+GPU gauges use DCGM, while persistent AI counters use user workload Prometheus and
+Thanos. Both are part of acceptance; do not treat zero counters as verified
+monitoring before a scrape cycle and a real request.
 
 ## Conference laptop: standalone backups
 
@@ -218,11 +237,25 @@ and scores. A one-GPU SNO cannot schedule a second predictor beside the live gam
 rehearse restore against the live event. For incident recovery,
 stop admitting players, preserve the existing database/PVC and external backups,
 select the correct snapshot, restore through `/admin`, and verify before reopening.
+For a safe application-level restore drill without a second GPU, use the tested
+helper against a snapshot on stdin. It starts a separate Python process in the UI
+pod and redirects `DB_PATH` to a new temporary database before importing the app:
+
+```bash
+oc exec -i deployment/whisper-ui -n whisper -- python3 -c \
+  "$(cat tests/live_restore_check.py)" < /safe/path/tournament-snapshot.db
+```
+
+It exercises the published restore handler and verifies SQLite integrity, table
+counts and scores. It never restores into the running server's database. This is
+an isolated application test, not a complete cluster-loss recovery rehearsal.
+
 The signing secret is not inside the database snapshot: preserve it separately in
 your approved secret store to keep existing player tokens valid after cluster loss.
 
-A direct Helm command is an advanced recovery path and does not perform the
-installer's preflight, external backup or smoke checks. Always provide the same
+The [direct Helm installation](HELM-INSTALLATION.md) is a supported repository
+procedure for humans and Bash scripts. Helm itself does not perform the wrapper's
+preflight, external backup or smoke checks; the documented sequence supplies them. Always provide the same
 venue file/namespace and a timeout longer than `warmup.deadlineSeconds`. Do not use
 `helm uninstall` or delete the PVC as a generic retry procedure.
 
@@ -244,9 +277,10 @@ venue file/namespace and a timeout longer than `warmup.deadlineSeconds`. Do not 
   challenge changes; later challenges remain drawn from multilingual pools.
 - **Route/microphone:** require valid HTTPS trusted by the laptop/browser and grant
   microphone permission. Internal smoke tests do not exercise the browser or DNS.
-- **Metrics missing:** user workload monitoring is optional. The installer does
-  not overwrite cluster monitoring policy. Have the cluster owner enable it using
-  their approved monitoring procedure; inspect Thanos/DCGM access separately.
+- **Metrics missing:** monitoring is mandatory. Run `./scripts/enable-monitoring.sh
+  --wait`; it preserves existing settings and never silently disables monitoring.
+  Check the user-workload Prometheus pod, `whisper-metrics` ServiceMonitor,
+  Thanos/DCGM access, and allow a scrape cycle after actual requests.
 - **Backup errors:** confirm the exact HTTPS URL, token and CA, disk space, network
   and last-success timestamp. Keep the last good snapshots; do not reset scores.
 

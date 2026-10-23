@@ -3,7 +3,7 @@ namespace: ""
 
 image:
   repository: quay.io/agiertli/whisper-ui
-  tag: "v2.2.0"
+  tag: "v2.10.0"
   pullPolicy: Always
 
 replicaCount: 1
@@ -131,3 +131,7 @@ vllm:
 # Must be shorter than the Helm timeout. Installer sets this from --timeout.
 warmup:
   deadlineSeconds: 1140
+
+# Initialize SQLite once in the master before Gunicorn forks workers.
+server:
+  gunicornArgs: "--preload"

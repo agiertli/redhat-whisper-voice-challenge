@@ -122,6 +122,15 @@
     },
     "languageInfo": {
       "type": "string"
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "gunicornArgs": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }

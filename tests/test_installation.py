@@ -52,6 +52,9 @@ class ChartTests(unittest.TestCase):
         return {doc['kind']: doc for doc in yaml.safe_load_all(result.stdout)
                 if doc and doc['kind'] in ('Deployment', 'ConfigMap', 'Secret', 'Job', 'PersistentVolumeClaim')}
 
+    def test_sqlite_initializes_before_workers_fork(self):
+        self.assertIn('--preload', self.render()['ConfigMap']['data']['GUNICORN_CMD_ARGS'])
+
     def test_owner_must_choose_language(self):
         self.render('--set', 'game.requiredLanguage=', success=False)
 
@@ -123,6 +126,41 @@ class ChartTests(unittest.TestCase):
         self.assertEqual(pvc['spec']['storageClassName'], 'fast')
 
 
+class MonitoringTests(unittest.TestCase):
+    def render(self, configuration, success=True):
+        obj = {'apiVersion': 'v1', 'kind': 'ConfigMap',
+               'metadata': {'name': 'cluster-monitoring-config', 'namespace': 'openshift-monitoring',
+                            'resourceVersion': '123', 'annotations': {'owner': 'preserve'}},
+               'data': {'config.yaml': configuration, 'other-key': 'preserve'}}
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json') as stream:
+            json.dump(obj, stream)
+            stream.flush()
+            result = subprocess.run([HELM, 'template', 'monitoring-prerequisite',
+                                     str(ROOT / 'helm/monitoring-prerequisite'), '--set-file',
+                                     'existing=' + stream.name], capture_output=True, text=True)
+        self.assertEqual(result.returncode == 0, success, result.stderr)
+        return list(yaml.safe_load_all(result.stdout))[0] if result.stdout.strip() else None
+
+    def test_preserves_unrelated_settings_metadata_and_resource_version(self):
+        result = self.render('enableUserWorkload: false\nprometheusK8s:\n  retention: 7d\n')
+        config = yaml.safe_load(result['data']['config.yaml'])
+        self.assertTrue(config['enableUserWorkload'])
+        self.assertEqual(config['prometheusK8s']['retention'], '7d')
+        self.assertEqual(result['data']['other-key'], 'preserve')
+        self.assertEqual(result['metadata']['resourceVersion'], '123')
+        self.assertEqual(result['metadata']['annotations']['owner'], 'preserve')
+
+    def test_already_enabled_has_no_update(self):
+        self.assertIsNone(self.render('enableUserWorkload: true\nprometheusK8s: {}'))
+
+    def test_json_style_monitoring_config_is_supported(self):
+        result = self.render('{"enableUserWorkload": false, "prometheusK8s": {"retention": "7d"}}')
+        self.assertTrue(yaml.safe_load(result['data']['config.yaml'])['enableUserWorkload'])
+
+    def test_invalid_existing_config_fails_without_replacement(self):
+        self.render('prometheusK8s: [invalid', success=False)
+
+
 class InferenceChecksTests(unittest.TestCase):
     def test_manual_warmup_propagates_failure(self):
         code = (ROOT / 'scripts/warmup-vllm.sh').read_text().split("<<'PY'\n", 1)[1].rsplit('\nPY', 1)[0]
@@ -131,11 +169,13 @@ class InferenceChecksTests(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     exec(compile(code, '<manual-warmup>', 'exec'), {})
 
-    def smoke(self, stream, expected='cs'):
+    def smoke(self, stream, expected='cs', metrics=None):
         class Response(io.BytesIO):
             status = 200
         def urlopen(request, timeout):
             url = request if isinstance(request, str) else request.full_url
+            if url.endswith('/metrics'):
+                return Response(json.dumps(metrics() if callable(metrics) else metrics if metrics is not None else {'vram_used': 20, 'temperature': 50, 'requests_processed': 1, 'vllm_generation_tokens': 10}).encode())
             if url.endswith('/api/leaderboard'):
                 return Response(b'{"leaderboard": []}')
             if url.endswith('/transcribe-stream'):
@@ -153,6 +193,16 @@ class InferenceChecksTests(unittest.TestCase):
         for stream in (b'data: {"done":true}\n\n', b'data: {"text":"hello"}\n\n'):
             with self.subTest(stream=stream), self.assertRaises(SystemExit):
                 self.smoke(stream)
+
+    def test_smoke_tolerates_first_scrape_before_counter_increase(self):
+        samples = iter([{}, {}, {}, {'vram_used': 20, 'temperature': 50, 'requests_processed': 1, 'vllm_generation_tokens': 10}])
+        with patch('time.sleep'), patch('time.monotonic', side_effect=range(20)):
+            self.smoke(b'data: {"text":"hello"}\n\ndata: {"done":true}\n\n', metrics=lambda: next(samples))
+
+    def test_smoke_rejects_unusable_required_monitoring(self):
+        with patch('time.monotonic', side_effect=[0, 121]):
+            with self.assertRaises(SystemExit):
+                self.smoke(b'data: {"text":"hello"}\n\ndata: {"done":true}\n\n', metrics={})
 
     def test_smoke_rejects_stale_language(self):
         with self.assertRaises(SystemExit):
@@ -352,6 +402,8 @@ elif args[:2] == ['get', 'secret'] and scenario == 'upgrade-backup-failure':
     sys.exit(24)
 elif args[:2] == ['get', 'pods'] and scenario in ('wait-failure', 'pods-remain'):
     print('pod/llama-still-running')
+elif args[:2] == ['get', 'statefulset']:
+    print('statefulset.apps/prometheus-user-workload')
 elif args[:2] == ['get', 'route']:
     print('whisper.fake.test')
 '''
@@ -434,6 +486,11 @@ class InstallerTests(unittest.TestCase):
         self.run_script('deploy.sh', '--preflight', success=False)
         self.assertEqual(self.calls(), '')
 
+    def test_monitoring_is_required_but_preflight_stays_read_only(self):
+        result = self.run_script('deploy.sh', '--language', 'de', '--preflight')
+        self.assertIn('User workload monitoring will be enabled', result.stdout)
+        self.assertNotIn('"create"', self.calls())
+
     def test_read_only_preflight_from_other_directory(self):
         self.run_script('deploy.sh', '--language', 'cs', '--preflight', '--free-rhdp-gpu')
         for forbidden in ('HELM-UPGRADE', '"patch"', '"scale"', '"label"', '"exec"'):
@@ -468,6 +525,7 @@ class InstallerTests(unittest.TestCase):
         self.assertIn('language=cs', result.stdout)
         self.assertIn('"--kube-context", "mock-context"', self.calls())
         self.assertIn('HELM-UPGRADE', self.calls())
+        self.assertIn('"create"', self.calls())
         self.assertIn('"exec"', self.calls())
         self.assertNotIn('"patch"', self.calls())
 

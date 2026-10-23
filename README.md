@@ -10,6 +10,10 @@ tracks their scores. Flask UI, vLLM on OpenShift AI, SQLite on a PVC.
 
 ## Install
 
+Choose the [agent installation](docs/AGENT-INSTALLATION.md) or
+[traditional direct Helm installation](docs/HELM-INSTALLATION.md). Both deploy the
+same chart. The command below is the automated wrapper used by the agent.
+
 Use the **`tournament-mode` branch**. Start with the
 [installation and operations runbook](docs/INSTALLATION.md), including prerequisites,
 credentials, backups, upgrades, troubleshooting and acceptance checks.
@@ -29,6 +33,7 @@ cd redhat-whisper-voice-challenge
 `my-first-model/llama-32-3b-instruct`, which normally occupies SNO's GPU. Omit it
 when that action is not needed/authorized. Default installation uses the published
 versioned UI image: no build engine or registry push permission needed.
+Monitoring is a required step and is enabled while preserving existing settings.
 The installer requires Bash, `oc`, Helm 3, Python 3 and curl; the separate conference
 backup script requires only Bash, curl and standard macOS/Linux utilities.
 

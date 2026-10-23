@@ -1,0 +1,10 @@
+{{- $object := .Values.existing | mustFromJson -}}
+{{- $data := $object.data | default dict -}}
+{{- $config := get $data "config.yaml" | default "" | fromYaml | default dict -}}
+{{- if hasKey $config "Error" -}}{{ fail "Existing monitoring config.yaml is invalid; refusing to overwrite it" }}{{- end -}}
+{{- if ne (get $config "enableUserWorkload" | toJson) "true" -}}
+{{- $_ := set $config "enableUserWorkload" true -}}
+{{- $_ := set $data "config.yaml" (toYaml $config) -}}
+{{- $_ := set $object "data" $data -}}
+{{- $object | toYaml -}}
+{{- end -}}
