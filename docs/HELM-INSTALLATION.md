@@ -42,8 +42,6 @@ multilingual. Keep this non-secret file and reuse it on every upgrade:
 
 ```bash
 cat > values-conference.yaml <<'VALUES'
-conference:
-  name: "Our Conference"
 game:
   requiredLanguage: "de"
 VALUES

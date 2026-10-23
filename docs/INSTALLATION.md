@@ -39,11 +39,14 @@ Before deployment, decide:
 1. **First challenge language.** Czechia usually uses `cs`, Slovakia `sk`, Austria
    `de`; `en` is English. The owner chooses explicitly, regardless of country or
    laptop locale. Later rounds remain multilingual according to difficulty pools.
-2. Conference name and destination namespace (default `whisper`).
+2. Destination namespace (default `whisper`).
 3. Whether stopping RHDP's bundled Llama is authorized. On SNO it normally owns
    the only GPU. The opt-in flag affects only
    `my-first-model/llama-32-3b-instruct`, never arbitrary GPU workloads.
 4. Who operates the off-cluster backup laptop and holds the admin credential.
+
+No conference name is required. Keep the default application branding;
+`conference.name` remains an optional customization for the game and TV headings.
 
 Installer workstation: Bash, `oc` logged in as cluster-admin, Helm **3**, curl, Python
 **3.9+** (standard library only). No pip packages or container engine are needed
@@ -75,7 +78,7 @@ oc whoami
 oc whoami --show-server
 
 cp examples/venue-values.yaml values-conference.yaml
-# Edit values-conference.yaml: choose conference.name and game.requiredLanguage.
+# Edit values-conference.yaml: choose game.requiredLanguage.
 
 # Read-only: no node labels, model scaling, Helm upgrade or data writes.
 ./deploy.sh --values values-conference.yaml --free-rhdp-gpu --preflight

@@ -21,13 +21,13 @@ oc whoami
 oc whoami --show-server
 ```
 
-Tell the agent the conference name, namespace, required **first** language, and
+Tell the agent the namespace, required **first** language, and
 whether it may stop the bundled RHDP Llama. The language is an owner decision;
 German is `de`, Czech `cs`, Slovak `sk`, English `en`. Later rounds remain multilingual.
 
 ## Copyable prompt
 
-**Edit the five lines under OWNER SETTINGS, then copy the entire block into your
+**Edit the four lines under OWNER SETTINGS, then copy the entire block into your
 agent.** Replace every `<...>` placeholder. Language examples: `de` = German,
 `cs` = Czech, `sk` = Slovak, `en` = English. Later rounds remain multilingual.
 
@@ -36,8 +36,7 @@ For a chosen admin password, create the private file described in
 Put its path in the prompt; there is no need to paste the password itself.
 
 ```text
-OWNER SETTINGS — EDIT THESE FIVE LINES
-Conference name: <your conference name>
+OWNER SETTINGS — EDIT THESE FOUR LINES
 First required language: <language code, e.g. de>
 Namespace: whisper
 May stop bundled RHDP Llama to free the GPU: <yes or no>
@@ -71,11 +70,9 @@ Install the Whisper tournament game using the OWNER SETTINGS above.
 
 ## What the agent should execute
 
-The venue file should contain the chosen conference and first language. Example:
+The values file only needs the chosen first language. Example:
 
 ```yaml
-conference:
-  name: "Our Conference"
 game:
   requiredLanguage: "de"
 ```

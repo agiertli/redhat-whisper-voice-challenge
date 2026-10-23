@@ -46,9 +46,9 @@ players. Upgrades take a verified backup first and retain installed credentials.
 
 [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) use the same runbook and script.
 Use the [copyable installation prompt](docs/AGENT-INSTALLATION.md#copyable-prompt).
-Its owner settings are grouped at the top: conference name, first required
-language, namespace, permission to stop the bundled Llama, and admin password
-choice. Edit those five lines and copy the full prompt into your agent.
+Its owner settings are grouped at the top: first required language, namespace,
+permission to stop the bundled Llama, and admin password choice.
+Edit those four lines and copy the full prompt into your agent.
 
 ## Booth operation
 
