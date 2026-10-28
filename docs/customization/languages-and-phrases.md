@@ -35,18 +35,57 @@ phrases suitable for the audience and microphone conditions.
 
 ## Add a language
 
-1. Add its nonempty phrase array to `helm/whisper/challenges.json`.
-2. Add its flag/display name to `languageInfo` (a JSON string) in your values file.
-   Copy the complete default object first: overriding the string replaces it.
-3. Include the code in any desired difficulty pools. If it is the first required
-   language, also set `game.requiredLanguage` to its code.
-4. Confirm the chosen Whisper model transcribes it acceptably in a real speech test.
+### 1. Verify Whisper support
 
-Inspect the existing `languageInfo` format in
-[helm/whisper/values.yaml](../../helm/whisper/values.yaml), for example
-`"de": {"flag": "🇩🇪", "name": "German"}`. Preserve metadata for all other languages
-still referenced by the pools. Helm validates matching metadata and phrase arrays;
-it does not evaluate linguistic quality.
+The game uses `openai/whisper-large-v3`, which supports 99 languages. Before
+any configuration changes, confirm the language is in the model's supported set.
+If it is not, the language **cannot** be added — Whisper will not transcribe it.
+
+Languages with known low accuracy in Whisper (low-resource languages with poor
+WER scores on the Fleurs benchmark) are technically supported but may make the
+80% win threshold unreachable for players. Test before committing to a live event.
+
+### 2. Prepare challenge phrases
+
+Add a nonempty phrase array to `helm/whisper/challenges.json`. Nine phrases per
+language is the baseline; more variety improves replay value. Follow this style:
+
+- **Theme:** Red Hat, open source, cloud, AI, Kubernetes, containers, DevOps,
+  automation, security — the same tech topics used across all existing languages.
+- **Length:** 4–8 words, natural spoken sentences.
+- **Script:** use the language's native writing system (Cyrillic, Georgian, CJK,
+  Arabic, Devanagari, Thai, etc.). Do not transliterate.
+- **Quality:** correct grammar, diacritics, and word order. Avoid abbreviations
+  or jargon that a native speaker would not say aloud. Have a native speaker
+  review if possible.
+
+### 3. Add language metadata
+
+Add the flag emoji and English display name to `languageInfo` in your values
+file. Copy the complete default object from
+[helm/whisper/values.yaml](../../helm/whisper/values.yaml) first — overriding
+`languageInfo` replaces the whole object. Example entry:
+`"de": {"flag": "🇩🇪", "name": "German"}`. Preserve metadata for all other
+languages still referenced by the pools.
+
+### 4. Assign to difficulty pools
+
+Include the new language code in the appropriate difficulty pool:
+
+- **Latin script** → add to `easy` (it propagates to `medium` and `hard`
+  automatically since pools are nested subsets).
+- **Non-Latin script** (Cyrillic, Georgian, Arabic, CJK, Devanagari, Thai,
+  etc.) → add to `hard` only.
+
+If your values file does not yet override `difficultyPools`, copy the full
+default before adding the new code. Maintain the subset invariant:
+easy ⊂ medium ⊂ hard. If it is the first required language, also set
+`game.requiredLanguage` to its code.
+
+### 5. Validate and deploy
+
+Helm validates matching metadata and phrase arrays; it does not evaluate
+linguistic quality.
 
 ## Deploy and verify
 
