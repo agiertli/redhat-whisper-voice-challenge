@@ -6,6 +6,41 @@ conversation, personal memory, `now.env`, image build engine or registry push ac
 [AGENTS.md](../AGENTS.md) is the shared entry point; [CLAUDE.md](../CLAUDE.md)
 points Claude to the same instructions. The execution path is `deploy.sh`.
 
+## Skill and agent (Codex and Claude Code)
+
+The repository includes [whisper-operations](../.agents/skills/whisper-operations/SKILL.md),
+the primary interface for all game operations: installation, upgrades, all
+documented customization tasks (languages, difficulty, scoring, registration,
+game mode, admin passwords, backups), incident diagnosis and booth-readiness
+checks. Codex discovers it in `.agents/skills`; Claude Code discovers the same
+folder through the relative symlink `.claude/skills/whisper-operations`. Edit
+the canonical file in `.agents/skills` to update both tools. Keep the symlink
+intact when cloning.
+
+In Codex, invoke `$whisper-operations`; in Claude Code, invoke
+`/whisper-operations`, followed by the task and owner settings. For example:
+"Check booth readiness; report gaps without changing the deployment." or
+"Change the first language to German and upgrade." The skill can also be
+selected automatically for matching operations requests. If it does not appear,
+restart the agent session in this repository. The skill uses the runbooks below
+and grants no additional cluster permissions.
+
+### Whisper agent
+
+Claude Code also includes a dedicated `whisper` agent type at
+`.claude/agents/whisper.md`. It can be spawned as a background subagent to
+handle operations independently:
+
+```
+Agent({ subagent_type: "whisper", prompt: "Check booth readiness on namespace whisper" })
+```
+
+The agent has the same operational knowledge as the skill but runs in isolation.
+Use the skill (`/whisper-operations`) for interactive work where you make
+decisions as you go. Use the agent for fire-and-forget tasks like readiness
+checks or diagnostics where the inputs are already known. The agent will report
+back what it needs if owner decisions are missing.
+
 ## Before starting
 
 Order the RHDP OpenShift AI 3 GPU environment and obtain its `oc login` command.
@@ -73,8 +108,9 @@ use disabled for anonymous standalone play.
   take a verified external backup before any upgrade.
 - Verify the first language, real audio transcription, player/game/leaderboard
   behavior and persistence. API tests do not prove browser microphone capture.
-- After successful verification, report the game URL, admin URL and installed
-  admin password. Never disclose the player signing key.
+- After successful verification, report the game URL, TV/leaderboard URL, admin
+  URL, architecture URL and installed game admin password. Never disclose the
+  player signing key.
 - Explain remaining manual checks and how to start the standalone five-minute
   Bash backup on one separate laptop before admitting players.
 - Fix installation gaps in the repository, run regression checks, and report

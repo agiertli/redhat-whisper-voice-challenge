@@ -47,9 +47,10 @@ The former `tournament-mode` remote branch is retired. Its recovery tag is
 - Reuse the same venue values file and explicit language on every upgrade.
 - Do not claim completion based only on Ready pods: internal real-audio smoke
   checks must pass; browser TLS, microphone and a complete game need verification.
-- After successful verification, report the game URL, admin URL and installed admin
-  password from `scripts/show-access.sh`. The owner explicitly requests this
-  credential in the installation handoff. Never print the signing key.
+- After successful verification, report the game URL, TV/leaderboard URL, admin
+  URL, architecture URL and installed game admin password from
+  `scripts/show-access.sh`. The owner explicitly requests this credential in the
+  installation handoff. Never print the signing key.
 - An owner can choose the admin password using `--admin-password-file FILE`;
   direct Helm uses `--set-file tournament.adminToken=FILE`. Omit on ordinary
   upgrades to preserve the existing password; never impose a shared default.

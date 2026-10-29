@@ -54,8 +54,8 @@ Use its owner settings and copyable prompt as the input contract.
   configuration task. Prefer Helm/env changes over rebuilding images.
 - Complete the readiness workflow before declaring the booth ready. After
   successful installation verification, use `scripts/show-access.sh` for the
-  requested game URL, admin URL and installed admin password handoff. Never
-  disclose the player signing key.
+  requested game URL, TV/leaderboard URL, admin URL, architecture URL and
+  installed game admin password handoff. Never disclose the player signing key.
 
 ## Customize the game
 
@@ -202,6 +202,31 @@ Guide: [backups-and-restore.md](../../../docs/customization/backups-and-restore.
 - Pause the laptop loop during planned upgrades; resume afterwards.
 - Incident recovery: stop admitting players, preserve existing DB/PVC and
   external backups, select the correct snapshot, restore via `/admin`, verify.
+
+### Generate award ceremony presentation
+
+Guide: [award-ceremony.md](../../../docs/customization/award-ceremony.md)
+
+Generate an animated HTML presentation for the on-stage award ceremony using
+live tournament data. The script fetches stats from the running deployment and
+produces a self-contained HTML file with Red Hat branding.
+
+- Run `scripts/generate-ceremony.sh` with `--event` and `--dates` (both
+  required). The script queries the live database via `oc exec` and generates
+  the HTML deck. No pip packages or image rebuild required.
+- The deck has 6 slides: title/numbers, language battle, fun facts, drum roll,
+  podium (winners revealed one by one), and runner-up. Navigate with arrow
+  keys or click.
+- Generate the presentation just before the ceremony to include final scores.
+  Keep the output private until the ceremony.
+- For PPTX output (offline sharing/archiving), generate a companion PPTX using
+  `python-pptx` and the same data. Use the existing reference scripts
+  (`generate_stats_pptx.py`) as the template for Red Hat brand colors, layout,
+  and typography. The agent should fetch the tournament JSON from the cluster
+  (same `oc exec` query as the shell script) and produce a PPTX with: title
+  slide with key numbers, language battle (easiest vs hardest), fun facts, and
+  a winners slide with podium + runner-up table. Install `python-pptx` first
+  if needed (`pip install python-pptx`).
 
 ### Upgrade from an older installation
 

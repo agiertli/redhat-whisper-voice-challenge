@@ -19,6 +19,8 @@ The registration feature requires UI `v2.11.0` or newer.
   prompt or private file, password preservation/rotation and access summary.
 - [Run backups and rehearse recovery](customization/backups-and-restore.md): the
   standalone five-minute laptop loop, retention, restore drills and upgrade handoff.
+- [Generate award ceremony presentation](customization/award-ceremony.md): animated
+  HTML slides from live tournament data for the on-stage award ceremony.
 
 For prerequisites, backup-protected upgrades and incident handling, use
 [the operations runbook](INSTALLATION.md). For direct Helm commands, use

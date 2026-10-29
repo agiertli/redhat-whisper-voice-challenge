@@ -2,8 +2,9 @@
 
 The dashboard password is `tournament.adminToken`. There is no shared default:
 first installation generates one unless you choose it. Ordinary upgrades preserve
-the installed password. The installer prints the installed game URL, admin URL and
-admin password only after its verification succeeds.
+the installed password. The installer prints the installed game URL, TV/leaderboard
+URL, admin URL, architecture URL and game admin password only after its
+verification succeeds.
 
 ## Choose a memorable password
 

@@ -190,10 +190,11 @@ password override on ordinary upgrades to retain the installed password. Supplyi
 a different value intentionally changes the password and requires updating the
 backup laptop's credential file. It does not change the player signing key.
 
-After successful verification, the installer prints the game URL, admin URL and
-actual installed admin password. The direct Helm procedure calls the same summary
-helper. This output intentionally contains the admin password: use a private
-terminal and do not publish its transcript or put it in CI logs.
+After successful verification, the installer prints the game URL, TV/leaderboard
+URL, admin URL, architecture URL and installed game admin password. The direct
+Helm procedure calls the same summary helper. This output intentionally contains
+the game admin password: use a private terminal and do not publish its transcript
+or put it in CI logs.
 
 ## Credentials and tournament storage
 

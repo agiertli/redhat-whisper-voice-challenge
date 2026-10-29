@@ -166,8 +166,8 @@ Open `https://HOST/` with trusted TLS, grant browser microphone permission and
 complete a real game. Check `/register`, `/tv`, `/admin` and scores. API/audio-file
 checks do not prove that the laptop microphone/browser capture path works.
 
-The success summary above prints the game URL, admin URL and installed admin
-password. Keep that output private. For the backup laptop, also save the installed
+The success summary above prints the game URL, TV/leaderboard URL, admin URL,
+architecture URL and installed game admin password. Keep that output private. For the backup laptop, also save the installed
 password into a protected file:
 
 ```bash
