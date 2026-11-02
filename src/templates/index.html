@@ -1734,17 +1734,14 @@
                     }
                 }
                 gameState.attempts.push({lang: attempt.payload.language, phrase: attempt.payload.phrase,
-                    transcription: attempt.payload.transcription, score: accuracy, status});
+                    transcription: attempt.payload.transcription, score: accuracy,
+                    rawScore: rawAccuracy != null ? rawAccuracy : accuracy, status});
                 gameState.currentAttemptIndex++;
                 pendingAttempt = null;
                 currentChallenge = null;
                 clearPersistenceError();
-                const scoreEl = document.getElementById('accuracyScore');
-                if (rawAccuracy != null && Math.round(rawAccuracy) !== Math.round(accuracy)) {
-                    scoreEl.innerHTML = Math.round(rawAccuracy) + '%<span style="font-size:0.6em; opacity:0.7; display:block;">-' + Math.round(ROMANIZATION_PENALTY * 100) + '% penalty → ' + Math.round(accuracy) + '%</span>';
-                } else {
-                    scoreEl.textContent = Math.round(accuracy) + '%';
-                }
+                const displayAccuracy = rawAccuracy != null ? rawAccuracy : accuracy;
+                document.getElementById('accuracyScore').textContent = Math.round(displayAccuracy) + '%';
                 updateChallengeUI();
                 const savedGame = gameState;
                 setTimeout(() => {
@@ -1799,7 +1796,7 @@
                     const attempt = gameState.attempts[i];
                     const langInfo = LANGUAGE_INFO[attempt.lang];
                     const icon = attempt.status === 'win' ? '✅' : '❌';
-                    const scoreText = `${Math.round(attempt.score)}%`;
+                    const scoreText = `${Math.round(attempt.rawScore || attempt.score)}%`;
                     const scoreColor = attempt.status === 'win' ? 'var(--success-green)' : 'var(--danger-orange)';
 
                     slot.classList.add(attempt.status);
@@ -1908,7 +1905,9 @@
                 document.getElementById('congratsRank').textContent = rankText;
                 document.getElementById('congratsOverlay').style.display = 'flex';
             } else {
-                const lossTitle = avgScore >= 60 ? 'So close!' : avgScore >= 30 ? 'Not quite!' : 'Tough one!';
+                const rawAvgScore = gameState.attempts.length > 0
+                    ? gameState.attempts.reduce((sum, a) => sum + (a.rawScore || a.score), 0) / gameState.attempts.length : 0;
+                const lossTitle = rawAvgScore >= 60 ? 'So close!' : rawAvgScore >= 30 ? 'Not quite!' : 'Tough one!';
                 document.getElementById('lossTitle').textContent = lossTitle;
                 document.getElementById('lossScore').innerHTML = tournamentScore !== null
                     ? `Tournament score: <strong>${tournamentScore}</strong>`
@@ -1919,11 +1918,27 @@
                 document.getElementById('lossOverlay').style.display = 'flex';
             }
 
+            const penaltyRounds = gameState.attempts.filter(a => a.rawScore && Math.round(a.rawScore) !== Math.round(a.score)).length;
+            let penaltyLine = '';
+            if (penaltyRounds > 0 && tournamentScore !== null) {
+                const rawAvg = gameState.attempts.reduce((sum, a) => sum + (a.rawScore || a.score), 0) / gameState.attempts.length;
+                const multipliers = {easy: 1.0, medium: 1.5, hard: 2.0};
+                const mult = multipliers[gameState.difficulty] || 1.0;
+                const duration = serverResult ? serverResult.duration_seconds : 0;
+                const speedBonus = Math.max(0.8, 1.2 - duration / 600);
+                const scoreWithout = Math.round(mult * rawAvg * speedBonus * 10) / 10;
+                const pointsLost = Math.round((scoreWithout - tournamentScore) * 10) / 10;
+                if (pointsLost > 0) {
+                    penaltyLine = `<p style="font-size: 0.85rem; color: var(--danger-orange);">Pronunciation reveal cost you <strong>${pointsLost}</strong> points (${penaltyRounds} round${penaltyRounds > 1 ? 's' : ''})</p>`;
+                }
+            }
+
             finalResultsEl.innerHTML = `
                 <h3 style="color: ${won ? 'var(--success-green)' : 'var(--danger-orange)'};">${won ? 'Congratulations!' : 'Almost there!'}</h3>
                 ${scoreLine}
                 ${bestLine}
                 <p style="font-size: 1rem;">Accuracy: <strong>${avgScore.toFixed(1)}%</strong> | Difficulty: <strong>${gameState.difficulty.toUpperCase()}</strong></p>
+                ${penaltyLine}
                 ${rankLine}
             `;
 
