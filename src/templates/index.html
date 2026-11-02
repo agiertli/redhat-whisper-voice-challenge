@@ -1882,9 +1882,13 @@
             const won = serverResult ? serverResult.won : avgScore >= 80;
             const finalResultsEl = document.getElementById('finalResults');
 
-            const scoreLine = tournamentScore !== null
-                ? `<p style="font-size: 1.2rem; margin: 4px 0; color: var(--white);">Tournament score: <strong>${tournamentScore}</strong></p>`
-                : '';
+            if (tournamentScore === null) {
+                const multipliers = {easy: 1.0, medium: 1.5, hard: 2.0};
+                const mult = multipliers[gameState.difficulty] || 1.0;
+                const speedBonus = Math.max(0.8, 1.2 - seconds / 600);
+                tournamentScore = Math.round(mult * avgScore / 100 * 100 * speedBonus * 10) / 10;
+            }
+            const scoreLine = `<p style="font-size: 1.2rem; margin: 4px 0; color: var(--white);">Score: <strong>${tournamentScore}</strong></p>`;
             const bestLine = isNewBest
                 ? `<p style="font-size: 0.95rem; color: var(--success-green); font-weight: 700;">⭐ New Personal Best!</p>`
                 : bestScore !== null
@@ -1901,9 +1905,7 @@
 
             if (won) {
                 document.getElementById('congratsTrophy').textContent = '🏆';
-                document.getElementById('congratsMessage').innerHTML = tournamentScore !== null
-                    ? `Tournament score: <strong>${tournamentScore}</strong>`
-                    : `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('congratsMessage').innerHTML = `Score: <strong>${tournamentScore}</strong>`;
                 document.getElementById('congratsBest').textContent = bestText;
                 document.getElementById('congratsBest').style.color = isNewBest ? 'var(--success-green)' : 'var(--gray-40)';
                 document.getElementById('congratsRank').textContent = rankText;
@@ -1913,9 +1915,7 @@
                     ? gameState.attempts.reduce((sum, a) => sum + (a.rawScore || a.score), 0) / gameState.attempts.length : 0;
                 const lossTitle = rawAvgScore >= 60 ? 'So close!' : rawAvgScore >= 30 ? 'Not quite!' : 'Tough one!';
                 document.getElementById('lossTitle').textContent = lossTitle;
-                document.getElementById('lossScore').innerHTML = tournamentScore !== null
-                    ? `Tournament score: <strong>${tournamentScore}</strong>`
-                    : `Average accuracy: <strong>${avgScore.toFixed(1)}%</strong>`;
+                document.getElementById('lossScore').innerHTML = `Score: <strong>${tournamentScore}</strong>`;
                 document.getElementById('lossBest').textContent = bestText;
                 document.getElementById('lossBest').style.color = isNewBest ? '#63993d' : '#a3a3a3';
                 document.getElementById('lossRank').textContent = rankText;
