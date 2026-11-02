@@ -1833,7 +1833,7 @@
                 return;
             }
 
-            const avg = gameState.attempts.reduce((sum, a) => sum + a.score, 0) / gameState.attempts.length;
+            const avg = gameState.attempts.reduce((sum, a) => sum + (a.rawScore || a.score), 0) / gameState.attempts.length;
             document.getElementById('averageAccuracy').textContent = avg.toFixed(1) + '%';
         }
 
@@ -1877,7 +1877,7 @@
             }
 
             const avgScore = gameState.attempts.length > 0
-                ? gameState.attempts.reduce((sum, a) => sum + a.score, 0) / gameState.attempts.length
+                ? gameState.attempts.reduce((sum, a) => sum + (a.rawScore || a.score), 0) / gameState.attempts.length
                 : 0;
             const won = serverResult ? serverResult.won : avgScore >= 80;
             const finalResultsEl = document.getElementById('finalResults');
@@ -1903,26 +1903,8 @@
                 : bestScore !== null ? `Your best: ${bestScore}` : '';
             const rankText = rank !== null ? `Leaderboard rank: #${rank}` : '';
 
-            if (won) {
-                document.getElementById('congratsTrophy').textContent = '🏆';
-                document.getElementById('congratsMessage').innerHTML = `Score: <strong>${tournamentScore}</strong>`;
-                document.getElementById('congratsBest').textContent = bestText;
-                document.getElementById('congratsBest').style.color = isNewBest ? 'var(--success-green)' : 'var(--gray-40)';
-                document.getElementById('congratsRank').textContent = rankText;
-                document.getElementById('congratsOverlay').style.display = 'flex';
-            } else {
-                const rawAvgScore = gameState.attempts.length > 0
-                    ? gameState.attempts.reduce((sum, a) => sum + (a.rawScore || a.score), 0) / gameState.attempts.length : 0;
-                const lossTitle = rawAvgScore >= 60 ? 'So close!' : rawAvgScore >= 30 ? 'Not quite!' : 'Tough one!';
-                document.getElementById('lossTitle').textContent = lossTitle;
-                document.getElementById('lossScore').innerHTML = `Score: <strong>${tournamentScore}</strong>`;
-                document.getElementById('lossBest').textContent = bestText;
-                document.getElementById('lossBest').style.color = isNewBest ? '#63993d' : '#a3a3a3';
-                document.getElementById('lossRank').textContent = rankText;
-                document.getElementById('lossOverlay').style.display = 'flex';
-            }
-
             const penaltyRounds = gameState.attempts.filter(a => a.rawScore && Math.round(a.rawScore) !== Math.round(a.score)).length;
+            let penaltyText = '';
             let penaltyLine = '';
             if (penaltyRounds > 0 && tournamentScore !== null) {
                 const rawAvg = gameState.attempts.reduce((sum, a) => sum + (a.rawScore || a.score), 0) / gameState.attempts.length;
@@ -1933,8 +1915,26 @@
                 const scoreWithout = Math.round(mult * rawAvg * speedBonus * 10) / 10;
                 const pointsLost = Math.round((scoreWithout - tournamentScore) * 10) / 10;
                 if (pointsLost > 0) {
+                    penaltyText = `Reveal penalty: -${pointsLost} pts`;
                     penaltyLine = `<p style="font-size: 0.85rem; color: var(--danger-orange);">Pronunciation reveal cost you <strong>${pointsLost}</strong> points (${penaltyRounds} round${penaltyRounds > 1 ? 's' : ''})</p>`;
                 }
+            }
+
+            if (won) {
+                document.getElementById('congratsTrophy').textContent = '🏆';
+                document.getElementById('congratsMessage').innerHTML = `Score: <strong>${tournamentScore}</strong>`;
+                document.getElementById('congratsBest').textContent = penaltyText || bestText;
+                document.getElementById('congratsBest').style.color = penaltyText ? 'var(--danger-orange)' : (isNewBest ? 'var(--success-green)' : 'var(--gray-40)');
+                document.getElementById('congratsRank').textContent = penaltyText ? bestText : rankText;
+                document.getElementById('congratsOverlay').style.display = 'flex';
+            } else {
+                const lossTitle = avgScore >= 60 ? 'So close!' : avgScore >= 30 ? 'Not quite!' : 'Tough one!';
+                document.getElementById('lossTitle').textContent = lossTitle;
+                document.getElementById('lossScore').innerHTML = `Score: <strong>${tournamentScore}</strong>`;
+                document.getElementById('lossBest').textContent = penaltyText || bestText;
+                document.getElementById('lossBest').style.color = penaltyText ? '#c9190b' : (isNewBest ? '#63993d' : '#a3a3a3');
+                document.getElementById('lossRank').textContent = penaltyText ? bestText : rankText;
+                document.getElementById('lossOverlay').style.display = 'flex';
             }
 
             finalResultsEl.innerHTML = `
