@@ -132,6 +132,34 @@ class RegistrationTests(unittest.TestCase):
         self.assertEqual(self.module.levenshtein_similarity('  HELLO,   world! ', 'hello world'), 1.0)
         self.assertLess(self.module.levenshtein_similarity('cafe', 'café'), 1.0)
 
+    def test_phonetic_normalization_japanese(self):
+        pn = self.module.phonetic_normalize
+        kanji = '東京は美しい'
+        hiragana = 'とうきょうはうつくしい'
+        self.assertEqual(pn(kanji, 'ja'), pn(hiragana, 'ja'))
+        katakana = 'トウキョウハウツクシイ'
+        self.assertEqual(pn(kanji, 'ja'), pn(katakana, 'ja'))
+
+    def test_phonetic_normalization_chinese(self):
+        pn = self.module.phonetic_normalize
+        hanzi = '你好世界'
+        self.assertEqual(pn(hanzi, 'zh'), 'ni hao shi jie')
+
+    def test_phonetic_normalization_passthrough(self):
+        pn = self.module.phonetic_normalize
+        self.assertEqual(pn('hello world', 'en'), 'hello world')
+        self.assertEqual(pn('hallo welt', 'de'), 'hallo welt')
+
+    def test_japanese_scoring_kanji_vs_hiragana(self):
+        sim = self.module.levenshtein_similarity
+        pn = self.module.phonetic_normalize
+        kanji = '東京は美しい'
+        hiragana = 'とうきょうはうつくしい'
+        raw = sim(kanji, hiragana)
+        normalized = sim(pn(kanji, 'ja'), pn(hiragana, 'ja'))
+        self.assertLess(raw, 0.5)
+        self.assertGreaterEqual(normalized, 0.95)
+
     def test_skip_submissions_are_rejected_without_consuming_an_attempt(self):
         player = self.join(username='NoSkips').json
         auth = {'Authorization': 'Bearer ' + player['token']}

@@ -13,6 +13,8 @@ import csv
 import io
 import re
 from functools import wraps
+import pykakasi
+import pypinyin
 from datetime import datetime, timezone
 from kubernetes import client, config
 import urllib3
@@ -260,6 +262,17 @@ def require_admin(f):
 
 def normalize_text(text):
     return re.sub(r'\s+', ' ', re.sub(r'[.,!?;:]', '', text.lower().strip()))
+
+
+_kakasi = pykakasi.kakasi()
+
+
+def phonetic_normalize(text, language):
+    if language == 'ja':
+        return ''.join(item['hira'] for item in _kakasi.convert(text))
+    if language == 'zh':
+        return ' '.join(pypinyin.lazy_pinyin(text))
+    return text
 
 
 def levenshtein_distance(s1, s2):
@@ -541,6 +554,42 @@ def logo():
 @app.route('/favicon.svg')
 def favicon():
     return app.send_static_file('favicon.svg')
+
+@app.route('/japanese')
+def japanese_test():
+    ja_phrases = {k: v for k, v in CHALLENGE_PHRASES.items() if k == 'ja'}
+    ja_pools = {d: ['ja'] for d in DIFFICULTY_POOLS}
+    return render_template('index.html',
+                         model_display_name=MODEL_DISPLAY_NAME,
+                         conference_name=CONFERENCE_NAME,
+                         tournament_enabled=TOURNAMENT_ENABLED,
+                         registration_mode=REGISTRATION_MODE,
+                         required_language='ja',
+                         challenge_count=len(ja_phrases.get('ja', [])),
+                         challenge_phrases=ja_phrases,
+                         difficulty_pools=ja_pools,
+                         mainstage_mode=False,
+                         mainstage_phrases={},
+                         language_info=LANGUAGE_INFO)
+
+
+@app.route('/chinese')
+def chinese_test():
+    zh_phrases = {k: v for k, v in CHALLENGE_PHRASES.items() if k == 'zh'}
+    zh_pools = {d: ['zh'] for d in DIFFICULTY_POOLS}
+    return render_template('index.html',
+                         model_display_name=MODEL_DISPLAY_NAME,
+                         conference_name=CONFERENCE_NAME,
+                         tournament_enabled=TOURNAMENT_ENABLED,
+                         registration_mode=REGISTRATION_MODE,
+                         required_language='zh',
+                         challenge_count=len(zh_phrases.get('zh', [])),
+                         challenge_phrases=zh_phrases,
+                         difficulty_pools=zh_pools,
+                         mainstage_mode=False,
+                         mainstage_phrases={},
+                         language_info=LANGUAGE_INFO)
+
 
 @app.route('/architecture')
 def architecture():
@@ -1057,7 +1106,9 @@ def api_game_attempt(game_id):
         count = db.execute('SELECT COUNT(*) FROM attempts WHERE game_id=?', (game_id,)).fetchone()[0]
         if index >= expected or index != count:
             return jsonify({'error': 'Attempts must be submitted in order within the game round count'}), 400
-        raw_accuracy = levenshtein_similarity(transcription, phrase)
+        raw_accuracy = levenshtein_similarity(
+            phonetic_normalize(transcription, language),
+            phonetic_normalize(phrase, language))
         accuracy = round(raw_accuracy, 4)
         status = 'win' if raw_accuracy >= 0.80 else 'fail'
         db.execute('INSERT INTO attempts (game_id,attempt_index,language,phrase,transcription,accuracy,status) VALUES (?,?,?,?,?,?,?)',
