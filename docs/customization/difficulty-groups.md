@@ -41,9 +41,11 @@ which may repeat languages and relax these targets. Phrase selection is random
 within the selected language. Default five-round games are the tested baseline;
 these target counts do not scale automatically with `game.challengeCount`.
 
-Hard also offers one **Swap**: it replaces the current challenge without recording
-an attempt and tries to retain the same language-mix targets. Easy and Medium
-have no Swap, and there is no Skip action.
+When `game.showRomanization` is set to `optional`, non-Latin challenges display a
+**Show pronunciation** button that reveals a Latin transliteration at the cost of
+a scoring penalty (default 30%, configurable via `game.romanizationPenalty`). See
+[tournament scoring](tournament-scoring.md) for details. There is no Skip or Swap
+action.
 
 ## Override the groups
 
@@ -84,7 +86,7 @@ helm lint helm/whisper -f values-conference.yaml
 For the direct Helm path, use its documented
 [backup and upgrade sequence](../HELM-INSTALLATION.md#6-upgrade-directly-with-helm)
 with the same file. Then play Easy, Medium and Hard, checking the first language,
-subsequent languages, phrases and Hard swap. Test several games because selection
+subsequent languages and phrases. Test several games because selection
 is random. If pools were intentionally too small, expect repeats/fallbacks.
 
 This config changes language membership, not phrase complexity, score multipliers,

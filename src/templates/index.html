@@ -820,7 +820,7 @@
             position: absolute;
             top: 4px;
             left: 12px;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             color: var(--gray-40);
         }
 
@@ -829,14 +829,18 @@
         }
 
         .player-badge a {
-            color: var(--interaction-blue);
+            color: var(--red-50);
             text-decoration: none;
-            margin-left: 6px;
-            font-size: 0.65rem;
+            margin-left: 8px;
+            font-size: 0.85rem;
+            border: 1px solid var(--red-50);
+            padding: 1px 10px;
+            border-radius: 3px;
         }
 
         .player-badge a:hover {
-            text-decoration: underline;
+            background: var(--red-50);
+            color: var(--white);
         }
 
         /* Leaderboard tab toggle */
@@ -1061,18 +1065,17 @@
                 <div class="challenge-card">
                     <div id="currentLang" style="font-size: 1.3rem; font-weight: bold; margin-bottom: 4px; color: var(--white);">🇸🇰 Slovak</div>
                     <div class="challenge-phrase" id="challengePhrase">OpenShift je skvelý produkt</div>
-                    <div id="romanizedPhrase" style="font-size: 0.85rem; color: var(--gray-40); font-style: italic; margin-top: 4px; display: none;"></div>
+                    <div id="romanizedPhrase" style="font-size: 1.1rem; color: rgba(255,255,255,0.85); font-style: italic; margin-top: 8px; letter-spacing: 0.5px; display: none;"></div>
                 </div>
 
-                <!-- Score + Swap in one row -->
+                <!-- Score + Reveal in one row -->
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
                     <div class="score-display" style="flex: 1; margin-bottom: 0;">
                         <div style="font-size: 0.7rem; color: var(--gray-40); letter-spacing: 1px;">Score</div>
                         <div class="score-value" id="accuracyScore">--</div>
                     </div>
                     <div id="challengeActions" style="flex: 1;">
-                        <button id="swapButton" onclick="swapChallenge()" style="width: 100%; background: var(--gray-70); padding: 14px 10px; font-size: 0.8rem; display: none;">
-                            🔀 Swap (1 left)
+                        <button id="revealButton" onclick="revealPronunciation()" style="width: 100%; background: var(--gray-70); padding: 14px 10px; font-size: 0.8rem; display: none;">
                         </button>
                     </div>
                 </div>
@@ -1181,7 +1184,8 @@
         const MAINSTAGE_PHRASES = {{ mainstage_phrases | tojson }};
 
         const LANGUAGE_INFO = {{ language_info | tojson }};
-        const SHOW_ROMANIZATION = {{ show_romanization | tojson }};
+        const ROMANIZATION_MODE = {{ romanization_mode | tojson }};
+        const ROMANIZATION_PENALTY = {{ romanization_penalty | tojson }};
         const ROMANIZED_PHRASES = {{ romanized_phrases | tojson }};
 
         // Game State
@@ -1190,7 +1194,7 @@
             attempts: [],
             usedLanguages: [],
             currentAttemptIndex: 0,
-            swapsUsed: 0,
+            romanizationUsed: false,
             gameStarted: false,
             gameCompleted: false,
             gameId: null
@@ -1220,9 +1224,11 @@
         function updateSaveControls() {
             document.getElementById('recordBtn').disabled = saving || !!pendingAttempt || pendingCompletion ||
                 gameState.gameCompleted || !gameState.gameStarted || !currentChallenge;
-            const swap = document.getElementById('swapButton');
-            swap.disabled = saving || !!pendingAttempt || pendingCompletion || !currentChallenge ||
-                gameState.gameCompleted || gameState.difficulty !== 'hard' || gameState.swapsUsed >= 1;
+            const reveal = document.getElementById('revealButton');
+            if (reveal) {
+                reveal.disabled = saving || !!pendingAttempt || pendingCompletion || !currentChallenge ||
+                    gameState.gameCompleted || gameState.romanizationUsed;
+            }
             document.getElementById('retrySaveButton').disabled = saving;
         }
 
@@ -1518,7 +1524,7 @@
                     attempts: [],
                     usedLanguages: [],
                     currentAttemptIndex: 0,
-                    swapsUsed: 0,
+                    romanizationUsed: false,
                     gameStarted: true,
                     gameCompleted: false,
                     gameId: data.game_id || null
@@ -1654,16 +1660,12 @@
             document.getElementById('challengePhrase').textContent = currentChallenge.phrase;
 
             const romanEl = document.getElementById('romanizedPhrase');
-            if (SHOW_ROMANIZATION && ROMANIZED_PHRASES[currentChallenge.lang]) {
-                const phraseList = challenges[currentChallenge.lang] || [];
-                const idx = phraseList.indexOf(currentChallenge.phrase);
-                const romanList = ROMANIZED_PHRASES[currentChallenge.lang];
-                if (idx >= 0 && idx < romanList.length) {
-                    romanEl.textContent = romanList[idx];
-                    romanEl.style.display = 'block';
-                } else {
-                    romanEl.style.display = 'none';
-                }
+            const hasRomanization = !!ROMANIZED_PHRASES[currentChallenge.lang];
+            const isNonLatin = NON_LATIN_LANGS.has(currentChallenge.lang);
+            gameState.romanizationUsed = false;
+
+            if (ROMANIZATION_MODE === 'always' && hasRomanization) {
+                showRomanizedText(romanEl);
             } else {
                 romanEl.style.display = 'none';
             }
@@ -1671,21 +1673,16 @@
             document.getElementById('accuracyScore').textContent = '--';
             document.getElementById('accuracyScore').style.color = 'var(--white)';
 
-            const swapBtn = document.getElementById('swapButton');
-            if (swapBtn) {
-                if (gameState.difficulty === 'hard') {
-                    swapBtn.style.display = 'block';
-                    if (gameState.swapsUsed >= 1) {
-                        swapBtn.disabled = true;
-                        swapBtn.textContent = '🔀 Swap (0 left)';
-                        swapBtn.style.opacity = '0.5';
-                    } else {
-                        swapBtn.disabled = false;
-                        swapBtn.textContent = '🔀 Swap (1 left)';
-                        swapBtn.style.opacity = '1';
-                    }
+            const revealBtn = document.getElementById('revealButton');
+            if (revealBtn) {
+                const penaltyPct = Math.round(ROMANIZATION_PENALTY * 100);
+                if (ROMANIZATION_MODE === 'optional' && isNonLatin && hasRomanization) {
+                    revealBtn.style.display = 'block';
+                    revealBtn.disabled = false;
+                    revealBtn.textContent = `Show pronunciation (-${penaltyPct}%)`;
+                    revealBtn.style.opacity = '1';
                 } else {
-                    swapBtn.style.display = 'none';
+                    revealBtn.style.display = 'none';
                 }
             }
         }
@@ -1695,7 +1692,8 @@
             pendingAttempt = {
                 gameId: gameState.gameId, score,
                 payload: {attempt_index: gameState.currentAttemptIndex, language: currentChallenge.lang,
-                          phrase: currentChallenge.phrase, transcription, status: 'completed'}
+                          phrase: currentChallenge.phrase, transcription, status: 'completed',
+                          romanization_used: gameState.romanizationUsed}
             };
             return savePendingAttempt();
         }
@@ -1740,53 +1738,31 @@
             }
         }
 
-        function swapChallenge() {
+        function showRomanizedText(romanEl) {
+            if (!currentChallenge) return;
+            const phraseList = challenges[currentChallenge.lang] || [];
+            const idx = phraseList.indexOf(currentChallenge.phrase);
+            const romanList = ROMANIZED_PHRASES[currentChallenge.lang];
+            if (romanList && idx >= 0 && idx < romanList.length) {
+                romanEl.textContent = romanList[idx];
+                romanEl.style.display = 'block';
+            }
+        }
+
+        function revealPronunciation() {
             if (saving || pendingAttempt || pendingCompletion || isRecording ||
                 !currentChallenge || !gameState.gameStarted || gameState.gameCompleted ||
-                gameState.swapsUsed >= 1 || gameState.difficulty !== 'hard') return;
+                gameState.romanizationUsed) return;
 
-            const oldLang = currentChallenge.lang;
-            const hardOnlyLangs = DIFFICULTY_POOLS.hard.filter(l => !DIFFICULTY_POOLS.medium.includes(l));
-            const oldIsHardOnly = hardOnlyLangs.includes(oldLang);
+            gameState.romanizationUsed = true;
+            showRomanizedText(document.getElementById('romanizedPhrase'));
 
-            const otherUsed = gameState.usedLanguages.filter(l => l !== oldLang);
-            const hardOnlyUsedAfterSwap = otherUsed.filter(l => hardOnlyLangs.includes(l)).length;
-            const attemptsRemaining = CHALLENGE_COUNT - gameState.currentAttemptIndex - 1;
-            const needHardOnly = hardOnlyUsedAfterSwap < 2 && (hardOnlyUsedAfterSwap + attemptsRemaining) < 2;
-
-            const nonLatinAfterSwap = countNonLatin(otherUsed);
-            const needNonLatin = nonLatinAfterSwap < MIN_NON_LATIN && (nonLatinAfterSwap + attemptsRemaining) < MIN_NON_LATIN;
-            const maxedNonLatin = nonLatinAfterSwap >= MAX_NON_LATIN;
-
-            let pool;
-            if (needNonLatin) {
-                pool = DIFFICULTY_POOLS.hard.filter(l => NON_LATIN_LANGS.has(l) && l !== oldLang && !otherUsed.includes(l));
-            } else if (oldIsHardOnly && needHardOnly) {
-                pool = hardOnlyLangs.filter(l => l !== oldLang && !otherUsed.includes(l));
-                if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
-            } else {
-                pool = DIFFICULTY_POOLS.hard.filter(l => l !== oldLang && !otherUsed.includes(l));
-                if (maxedNonLatin) pool = pool.filter(l => !NON_LATIN_LANGS.has(l));
+            const revealBtn = document.getElementById('revealButton');
+            if (revealBtn) {
+                revealBtn.disabled = true;
+                revealBtn.textContent = 'Pronunciation revealed';
+                revealBtn.style.opacity = '0.5';
             }
-            if (pool.length === 0) {
-                pool = DIFFICULTY_POOLS.hard.filter(l => l !== oldLang);
-            }
-            if (pool.length === 0) return;
-
-            const newLang = pool[Math.floor(Math.random() * pool.length)];
-            const phrasesForLang = challenges[newLang];
-            if (!phrasesForLang || phrasesForLang.length === 0) return;
-
-            const newPhrase = phrasesForLang[Math.floor(Math.random() * phrasesForLang.length)];
-
-            const oldLangIdx = gameState.usedLanguages.indexOf(oldLang);
-            if (oldLangIdx !== -1) gameState.usedLanguages.splice(oldLangIdx, 1);
-            gameState.usedLanguages.push(newLang);
-
-            currentChallenge = { lang: newLang, phrase: newPhrase };
-            gameState.swapsUsed++;
-
-            updateChallengeUI();
         }
 
         function updateProgressTracker() {
@@ -1954,7 +1930,7 @@
                 attempts: [],
                 usedLanguages: [],
                 currentAttemptIndex: 0,
-                swapsUsed: 0,
+                romanizationUsed: false,
                 gameStarted: false,
                 gameCompleted: false,
                 gameId: null

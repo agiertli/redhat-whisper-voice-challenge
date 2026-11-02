@@ -57,7 +57,11 @@ VLLM_METRICS_URL = f"{_parsed_url.scheme}://{_parsed_url.netloc}/metrics"
 # Voice Challenge Game Settings
 REQUIRED_CHALLENGE_LANGUAGE = os.getenv('REQUIRED_CHALLENGE_LANGUAGE', 'sk')
 CHALLENGE_COUNT = int(os.getenv('CHALLENGE_COUNT', '5'))
-SHOW_ROMANIZATION = os.getenv('SHOW_ROMANIZATION', 'false').lower() == 'true'
+_rom_raw = os.getenv('SHOW_ROMANIZATION', 'off').lower().strip()
+ROMANIZATION_MODE = {'true': 'always', 'false': 'off'}.get(_rom_raw, _rom_raw)
+if ROMANIZATION_MODE not in ('off', 'optional', 'always'):
+    ROMANIZATION_MODE = 'off'
+ROMANIZATION_PENALTY = float(os.getenv('ROMANIZATION_PENALTY', '0.30'))
 
 
 DIFFICULTY_POOLS = json.loads(os.getenv('DIFFICULTY_POOLS',
@@ -270,8 +274,16 @@ def normalize_text(text):
 _kakasi = pykakasi.kakasi()
 
 
+_JA_BRAND_TO_KATAKANA = {
+    'OpenShift': 'オープンシフト',
+    'Red Hat': 'レッドハット',
+}
+
+
 def phonetic_normalize(text, language):
     if language == 'ja':
+        for latin, katakana in _JA_BRAND_TO_KATAKANA.items():
+            text = text.replace(latin, katakana)
         return ''.join(item['hira'] for item in _kakasi.convert(text))
     if language == 'zh':
         return ' '.join(pypinyin.lazy_pinyin(text))
@@ -543,7 +555,8 @@ def index():
                          mainstage_mode=is_mainstage_enabled(),
                          mainstage_phrases=MAINSTAGE_PHRASES,
                          language_info=LANGUAGE_INFO,
-                         show_romanization=SHOW_ROMANIZATION,
+                         romanization_mode=ROMANIZATION_MODE,
+                         romanization_penalty=ROMANIZATION_PENALTY,
                          romanized_phrases=ROMANIZED_PHRASES)
 
 @app.route('/register')
@@ -567,7 +580,7 @@ def japanese_test():
     return render_template('index.html',
                          model_display_name=MODEL_DISPLAY_NAME,
                          conference_name=CONFERENCE_NAME,
-                         tournament_enabled=TOURNAMENT_ENABLED,
+                         tournament_enabled=False,
                          registration_mode=REGISTRATION_MODE,
                          required_language='ja',
                          challenge_count=len(ja_phrases.get('ja', [])),
@@ -576,7 +589,8 @@ def japanese_test():
                          mainstage_mode=False,
                          mainstage_phrases={},
                          language_info=LANGUAGE_INFO,
-                         show_romanization=SHOW_ROMANIZATION,
+                         romanization_mode=ROMANIZATION_MODE,
+                         romanization_penalty=ROMANIZATION_PENALTY,
                          romanized_phrases=ROMANIZED_PHRASES)
 
 
@@ -587,7 +601,7 @@ def chinese_test():
     return render_template('index.html',
                          model_display_name=MODEL_DISPLAY_NAME,
                          conference_name=CONFERENCE_NAME,
-                         tournament_enabled=TOURNAMENT_ENABLED,
+                         tournament_enabled=False,
                          registration_mode=REGISTRATION_MODE,
                          required_language='zh',
                          challenge_count=len(zh_phrases.get('zh', [])),
@@ -596,7 +610,8 @@ def chinese_test():
                          mainstage_mode=False,
                          mainstage_phrases={},
                          language_info=LANGUAGE_INFO,
-                         show_romanization=SHOW_ROMANIZATION,
+                         romanization_mode=ROMANIZATION_MODE,
+                         romanization_penalty=ROMANIZATION_PENALTY,
                          romanized_phrases=ROMANIZED_PHRASES)
 
 
@@ -1083,6 +1098,7 @@ def api_game_attempt(game_id):
     language = data.get('language', '')
     phrase = data.get('phrase', '')
     transcription = data.get('transcription', '')
+    romanization_used = bool(data.get('romanization_used', False))
     if data.get('status', 'completed') != 'completed':
         return jsonify({'error': 'Only completed attempts can be submitted; skipping is not supported'}), 400
     if type(index) is not int or index < 0:
@@ -1118,6 +1134,8 @@ def api_game_attempt(game_id):
         raw_accuracy = levenshtein_similarity(
             phonetic_normalize(transcription, language),
             phonetic_normalize(phrase, language))
+        if romanization_used and ROMANIZATION_PENALTY > 0:
+            raw_accuracy = raw_accuracy * (1 - ROMANIZATION_PENALTY)
         accuracy = round(raw_accuracy, 4)
         status = 'win' if raw_accuracy >= 0.80 else 'fail'
         db.execute('INSERT INTO attempts (game_id,attempt_index,language,phrase,transcription,accuracy,status) VALUES (?,?,?,?,?,?,?)',

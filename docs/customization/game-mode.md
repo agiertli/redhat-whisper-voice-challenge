@@ -39,7 +39,8 @@ registration form or public leaderboard; `/tv`, the public leaderboard API and
 player/game APIs return 404, even with a previously valid player token. Anonymous
 games display their own accuracy and win/loss without saving player/game/attempt
 rows. The required first language, difficulty pools, five rounds by default,
-80% winning threshold and one Hard-only Swap remain. No Skip is reintroduced.
+80% winning threshold and pronunciation reveal (when enabled) remain. No Skip is
+reintroduced.
 
 Authenticated `/admin`, exports, backups and operational settings remain available
 for managing historical data. Standalone play does not create tournament results

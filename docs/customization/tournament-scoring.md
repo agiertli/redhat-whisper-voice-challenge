@@ -35,7 +35,7 @@ score            = round(difficulty_multiplier * average_accuracy * 100
 - Medium multiplier: **1.5**.
 - Hard multiplier: **2.0**.
 - Elapsed time is measured by the server from game creation to completion. It
-  includes pauses, challenge transitions and swaps, not just microphone time.
+  includes pauses and challenge transitions, not just microphone time.
 - Speed bonus starts near 1.2, equals 1.0 at 120 seconds, reaches 0.8 at 240 seconds,
   and stays at 0.8 for longer games. The theoretical zero-time maxima for perfect
   accuracy are 120 (Easy), 180 (Medium), 240 (Hard).
@@ -52,12 +52,19 @@ With the same accuracy at 120 seconds the score is 135.0; at 240 seconds or long
 it is 108.0. The accuracy average weights each scored attempt equally,
 regardless of phrase length.
 
-## Hard-only Swap and winning
+## Pronunciation reveal and winning
 
-There is no Skip action. Easy and Medium have no Swap; Hard offers **one Swap per
-game**. Swap replaces the current challenge before submission without consuming a
-round or recording an attempt. The game clock keeps running. The default UI runs
-five scored rounds, including failed transcriptions in the accuracy average.
+There is no Skip or Swap action. When `game.showRomanization` is set to
+`optional`, non-Latin challenges show a **Show pronunciation** button. Clicking
+it reveals the Latin transliteration for the current challenge but applies a
+scoring penalty: the attempt's accuracy is multiplied by `(1 - penalty)`, where
+`penalty` defaults to 0.30 (configurable via `game.romanizationPenalty`). The
+reveal is per-round — each challenge offers it independently.
+
+When `game.showRomanization` is `always`, romanization is shown automatically
+with no penalty (useful for accessibility). When `off`, no romanization is
+displayed. The setting accepts `true`/`false` for backward compatibility
+(`true` = `always`, `false` = `off`).
 
 A completed game's `won` field is true when average accuracy >= 80%. Winning is
 separate from the numeric leaderboard score: Hard and Medium apply larger score

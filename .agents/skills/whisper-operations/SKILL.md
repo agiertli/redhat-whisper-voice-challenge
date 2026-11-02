@@ -139,10 +139,17 @@ in that language to confirm transcription quality.
 
 ### Show romanized text for non-Latin scripts
 
-Set `game.showRomanization: true` in `values-conference.yaml` to display
-a Latin transliteration below challenge phrases written in non-Latin scripts
-(Japanese, Chinese, Korean, Arabic, Thai, Hindi, Ukrainian, Bulgarian,
-Georgian). Off by default — Hard mode intentionally shows only native script.
+Set `game.showRomanization` in `values-conference.yaml` to control
+romanization for non-Latin scripts (Japanese, Chinese, Korean, Arabic, Thai,
+Hindi, Ukrainian, Bulgarian, Georgian):
+- `off` (default): no romanization shown — pure Hard mode.
+- `optional`: a "Show pronunciation" button appears on non-Latin challenges.
+  Clicking it reveals the Latin transliteration but applies a scoring penalty
+  (default 30%, configurable via `game.romanizationPenalty`).
+- `always`: romanization shown automatically with no penalty.
+- `true`/`false` accepted for backward compatibility (`true` = `always`,
+  `false` = `off`).
+
 Romanized text is pre-computed in `challenges.json` under the `_romanized`
 key; when adding a new non-Latin language, add its romanization array there
 too. No image rebuild required — Helm upgrade rolls the config change.
@@ -194,8 +201,8 @@ Guide: [tournament-scoring.md](../../../docs/customization/tournament-scoring.md
 - Accuracy: Levenshtein similarity on normalized text, 80% win threshold.
 - Final score: difficulty multiplier × average accuracy × 100 × speed bonus.
 - Speed bonus: 1.2 at 0s → 1.0 at 120s → 0.8 at 240s+.
-- Hard-only Swap replaces the challenge without recording an attempt; clock
-  keeps running.
+- Pronunciation reveal (when `showRomanization: optional`) applies a
+  configurable penalty (default 30%) to that attempt's accuracy.
 - Leaderboard ranks by best single score per player, not summed.
 
 ### Run backups and rehearse recovery

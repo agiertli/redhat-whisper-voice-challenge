@@ -18,6 +18,7 @@ data:
   REQUIRED_CHALLENGE_LANGUAGE: {{ .Values.game.requiredLanguage | quote }}
   CHALLENGE_COUNT: {{ .Values.game.challengeCount | quote }}
   SHOW_ROMANIZATION: {{ .Values.game.showRomanization | quote }}
+  ROMANIZATION_PENALTY: {{ .Values.game.romanizationPenalty | quote }}
   DCGM_EXPORTER_URL: {{ .Values.dcgmExporterUrl | quote }}
   THANOS_QUERIER_URL: {{ .Values.thanosQuerier.url | quote }}
   DIFFICULTY_POOLS: |
