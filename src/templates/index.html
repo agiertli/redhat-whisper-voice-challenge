@@ -1709,6 +1709,7 @@
             updateSaveControls();
             const attempt = pendingAttempt;
             let accuracy = attempt.score;
+            let rawAccuracy = null;
             let status = accuracy >= 80 ? 'win' : 'fail';
             try {
                 if (TOURNAMENT_ENABLED) {
@@ -1718,6 +1719,7 @@
                     if (!response.ok) throw new Error('Attempt save failed');
                     const result = await response.json();
                     accuracy = result.accuracy * 100;
+                    rawAccuracy = result.raw_accuracy != null ? result.raw_accuracy * 100 : null;
                     status = result.status;
                 } else {
                     const response = await fetch('/api/accuracy', {
@@ -1727,6 +1729,7 @@
                     if (response.ok) {
                         const result = await response.json();
                         accuracy = result.accuracy * 100;
+                        rawAccuracy = result.raw_accuracy != null ? result.raw_accuracy * 100 : null;
                         status = result.status;
                     }
                 }
@@ -1736,7 +1739,12 @@
                 pendingAttempt = null;
                 currentChallenge = null;
                 clearPersistenceError();
-                document.getElementById('accuracyScore').textContent = Math.round(accuracy) + '%';
+                const scoreEl = document.getElementById('accuracyScore');
+                if (rawAccuracy != null && Math.round(rawAccuracy) !== Math.round(accuracy)) {
+                    scoreEl.innerHTML = Math.round(rawAccuracy) + '%<span style="font-size:0.6em; opacity:0.7; display:block;">-' + Math.round(ROMANIZATION_PENALTY * 100) + '% penalty → ' + Math.round(accuracy) + '%</span>';
+                } else {
+                    scoreEl.textContent = Math.round(accuracy) + '%';
+                }
                 updateChallengeUI();
                 const savedGame = gameState;
                 setTimeout(() => {

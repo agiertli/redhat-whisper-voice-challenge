@@ -1104,11 +1104,12 @@ def api_accuracy():
     raw_accuracy = levenshtein_similarity(
         phonetic_normalize(transcription, language),
         phonetic_normalize(phrase, language))
+    penalized = raw_accuracy
     if romanization_used and ROMANIZATION_PENALTY > 0:
-        raw_accuracy = raw_accuracy * (1 - ROMANIZATION_PENALTY)
-    accuracy = round(raw_accuracy, 4)
-    status = 'win' if raw_accuracy >= 0.80 else 'fail'
-    return jsonify({'accuracy': accuracy, 'status': status})
+        penalized = raw_accuracy * (1 - ROMANIZATION_PENALTY)
+    accuracy = round(penalized, 4)
+    status = 'win' if penalized >= 0.80 else 'fail'
+    return jsonify({'accuracy': accuracy, 'raw_accuracy': round(raw_accuracy, 4), 'status': status})
 
 
 @app.route('/api/game/<int:game_id>/attempt', methods=['POST'])
@@ -1157,14 +1158,15 @@ def api_game_attempt(game_id):
         raw_accuracy = levenshtein_similarity(
             phonetic_normalize(transcription, language),
             phonetic_normalize(phrase, language))
+        penalized = raw_accuracy
         if romanization_used and ROMANIZATION_PENALTY > 0:
-            raw_accuracy = raw_accuracy * (1 - ROMANIZATION_PENALTY)
-        accuracy = round(raw_accuracy, 4)
-        status = 'win' if raw_accuracy >= 0.80 else 'fail'
+            penalized = raw_accuracy * (1 - ROMANIZATION_PENALTY)
+        accuracy = round(penalized, 4)
+        status = 'win' if penalized >= 0.80 else 'fail'
         db.execute('INSERT INTO attempts (game_id,attempt_index,language,phrase,transcription,accuracy,status) VALUES (?,?,?,?,?,?,?)',
                    (game_id, index, language, phrase, transcription, accuracy, status))
         db.commit()
-        return jsonify({'accuracy': accuracy, 'status': status})
+        return jsonify({'accuracy': accuracy, 'raw_accuracy': round(raw_accuracy, 4), 'status': status})
     finally:
         db.close()
 
