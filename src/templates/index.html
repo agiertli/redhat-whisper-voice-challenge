@@ -1741,7 +1741,9 @@
                 currentChallenge = null;
                 clearPersistenceError();
                 const displayAccuracy = rawAccuracy != null ? rawAccuracy : accuracy;
-                document.getElementById('accuracyScore').textContent = Math.round(displayAccuracy) + '%';
+                const scoreEl = document.getElementById('accuracyScore');
+                scoreEl.textContent = Math.round(displayAccuracy) + '%';
+                scoreEl.style.color = displayAccuracy >= 90 ? 'var(--success-green)' : displayAccuracy >= 70 ? 'var(--interaction-blue)' : 'var(--danger-orange)';
                 updateChallengeUI();
                 const savedGame = gameState;
                 setTimeout(() => {
@@ -1795,11 +1797,13 @@
                 if (i < gameState.attempts.length) {
                     const attempt = gameState.attempts[i];
                     const langInfo = LANGUAGE_INFO[attempt.lang];
-                    const icon = attempt.status === 'win' ? '✅' : '❌';
-                    const scoreText = `${Math.round(attempt.rawScore || attempt.score)}%`;
-                    const scoreColor = attempt.status === 'win' ? 'var(--success-green)' : 'var(--danger-orange)';
+                    const rawPct = attempt.rawScore || attempt.score;
+                    const displayWin = rawPct >= 80;
+                    const icon = displayWin ? '✅' : '❌';
+                    const scoreText = `${Math.round(rawPct)}%`;
+                    const scoreColor = displayWin ? 'var(--success-green)' : 'var(--danger-orange)';
 
-                    slot.classList.add(attempt.status);
+                    slot.classList.add(displayWin ? 'win' : 'fail');
                     slot.innerHTML = `
                         <div class="slot-num">${langInfo.flag}</div>
                         <div class="slot-icon">${icon}</div>
@@ -2142,23 +2146,9 @@
             const t = normalize(transcribed);
             const e = normalize(expected);
 
-            // Simple Levenshtein distance similarity
             const similarity = levenshteinSimilarity(t, e);
             const score = Math.round(similarity * 100);
 
-            document.getElementById('accuracyScore').textContent = score + '%';
-
-            // Update score color based on accuracy
-            const scoreElement = document.getElementById('accuracyScore');
-            if (score >= 90) {
-                scoreElement.style.color = 'var(--success-green)';
-            } else if (score >= 70) {
-                scoreElement.style.color = 'var(--interaction-blue)';
-            } else {
-                scoreElement.style.color = 'var(--danger-orange)';
-            }
-
-            // If game is active, record this attempt
             if (gameState.gameStarted && !gameState.gameCompleted) {
                 recordAttempt(transcribed, score);
             }
