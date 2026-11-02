@@ -251,5 +251,65 @@
     "ღრუბლოვანი გადაწყვეტილებები ზრდის ეფექტურობას",
     "DevOps აკავშირებს დეველოპერებსა და ოპერაციებს",
     "უსაფრთხოება პრიორიტეტია ღრუბლოვან გარემოში"
-  ]
+  ],
+
+  "_romanized": {
+    "uk": [
+      "OpenShift tse chudovyy produkt",
+      "Red Hat lidiruye v innovatsiyakh vidkrytoho kodu",
+      "Shtuchnyy intelekt transformuye biznes"
+    ],
+    "ja": [
+      "OpenShift wa subarashii seihin desu",
+      "Red Hat wa oopun soosu kakushin wo riido shite imasu",
+      "Jinkou chinou wa bijinesu wo henkaku shimasu"
+    ],
+    "ko": [
+      "OpenShift neun hullyunghan jepum imnida",
+      "Red Hat eun opeunsoseu hyeoksin eul seondo hamnida",
+      "In-gong-ji-neung eun bijiniseu reul byeonhwa sikimnida"
+    ],
+    "ar": [
+      "OpenShift muntaj rai'e",
+      "Red Hat ra'ida fi ibtikar al-masadir al-maftuha",
+      "Adh-dhaka' al-istina'i yuhawwil al-a'mal"
+    ],
+    "zh": [
+      "OpenShift shi chusei de chanpin",
+      "Red Hat zai kaiyuan chuangxin zhong chuyu lingxian diwei",
+      "Ren gong zhineng gaibian shangye"
+    ],
+    "th": [
+      "OpenShift pen phalitaphan thi yotyiam",
+      "Red Hat nam nai nawattakam openseot",
+      "Panya pradit plianplaeng thurakit"
+    ],
+    "hi": [
+      "OpenShift ek shaandaar utpaad hai",
+      "Red Hat open source navaachaar mein agrani hai",
+      "Kritrim buddhimatta vyavasaay ko badal deti hai"
+    ],
+    "bg": [
+      "OpenShift e otlichen produkt",
+      "Red Hat vodi v inovatsiite s otvoren kod",
+      "Izkustveniyat intelekt transformira biznesa",
+      "Kubernetes oprostyava vnedryavaneto na prilozheniya",
+      "Konteinerizatsiyata e badeshteto na oblaka",
+      "Avtomatizatsiyata osvobozhdava vreme za inovatsii",
+      "Oblachnite resheniya povishavat efektivnostta",
+      "DevOps svarzva razrabotchitsi i operatsii",
+      "Sigurnostta e prioritet v oblachnata sreda"
+    ],
+    "ka": [
+      "OpenShift shesanishnavi produktia",
+      "Red Hat liderobs ghia kodis inovatsiebshi",
+      "Khelovnuri intelekti tsvlis bizness",
+      "Kubernetes amartivebs aplikatsiebis gantavsebas",
+      "Konteinerizatsia ghrublis momavalia",
+      "Avtomatizatsia athavisuflebs dros inovatsiebistvis",
+      "Ghrublovani gadatsqvetilebebi zrdis epekturobas",
+      "DevOps akavshirebs developerebs da operatsiebs",
+      "Usaprtkhoebaprioritetia ghrublovan garemoshi"
+    ]
+  }
 }

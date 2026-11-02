@@ -17,6 +17,7 @@ data:
   WHISPER_NAMESPACE: {{ include "whisper-ui.namespace" . | quote }}
   REQUIRED_CHALLENGE_LANGUAGE: {{ .Values.game.requiredLanguage | quote }}
   CHALLENGE_COUNT: {{ .Values.game.challengeCount | quote }}
+  SHOW_ROMANIZATION: {{ .Values.game.showRomanization | quote }}
   DCGM_EXPORTER_URL: {{ .Values.dcgmExporterUrl | quote }}
   THANOS_QUERIER_URL: {{ .Values.thanosQuerier.url | quote }}
   DIFFICULTY_POOLS: |

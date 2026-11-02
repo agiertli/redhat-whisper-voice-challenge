@@ -137,6 +137,16 @@ as appropriate for the session context. After deployment, verify the language
 appears in the game UI and advise the owner to perform a real speech test
 in that language to confirm transcription quality.
 
+### Show romanized text for non-Latin scripts
+
+Set `game.showRomanization: true` in `values-conference.yaml` to display
+a Latin transliteration below challenge phrases written in non-Latin scripts
+(Japanese, Chinese, Korean, Arabic, Thai, Hindi, Ukrainian, Bulgarian,
+Georgian). Off by default — Hard mode intentionally shows only native script.
+Romanized text is pre-computed in `challenges.json` under the `_romanized`
+key; when adding a new non-Latin language, add its romanization array there
+too. No image rebuild required — Helm upgrade rolls the config change.
+
 ### Configure difficulty groups
 
 Guide: [difficulty-groups.md](../../../docs/customization/difficulty-groups.md)

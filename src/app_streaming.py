@@ -57,13 +57,16 @@ VLLM_METRICS_URL = f"{_parsed_url.scheme}://{_parsed_url.netloc}/metrics"
 # Voice Challenge Game Settings
 REQUIRED_CHALLENGE_LANGUAGE = os.getenv('REQUIRED_CHALLENGE_LANGUAGE', 'sk')
 CHALLENGE_COUNT = int(os.getenv('CHALLENGE_COUNT', '5'))
+SHOW_ROMANIZATION = os.getenv('SHOW_ROMANIZATION', 'false').lower() == 'true'
 
 
 DIFFICULTY_POOLS = json.loads(os.getenv('DIFFICULTY_POOLS',
     '{"easy": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr"], "medium": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no"], "hard": ["sk", "cs", "en", "pl", "hu", "de", "es", "fr", "hr", "sr", "tr", "it", "pt", "nl", "sv", "ro", "uk", "fi", "is", "no", "ja", "ko", "ar", "zh", "th", "hi"]}'))
 
-CHALLENGE_PHRASES = json.loads(os.getenv('CHALLENGE_PHRASES',
+_raw_phrases = json.loads(os.getenv('CHALLENGE_PHRASES',
     '{"en": ["Artificial intelligence transforms business", "Kubernetes simplifies application deployment", "Cloud solutions increase efficiency"]}'))
+ROMANIZED_PHRASES = _raw_phrases.pop('_romanized', {})
+CHALLENGE_PHRASES = _raw_phrases
 
 LANGUAGE_INFO = json.loads(os.getenv('LANGUAGE_INFO', '{}'))
 
@@ -539,7 +542,9 @@ def index():
                          difficulty_pools=DIFFICULTY_POOLS,
                          mainstage_mode=is_mainstage_enabled(),
                          mainstage_phrases=MAINSTAGE_PHRASES,
-                         language_info=LANGUAGE_INFO)
+                         language_info=LANGUAGE_INFO,
+                         show_romanization=SHOW_ROMANIZATION,
+                         romanized_phrases=ROMANIZED_PHRASES)
 
 @app.route('/register')
 def register_page():
@@ -570,7 +575,9 @@ def japanese_test():
                          difficulty_pools=ja_pools,
                          mainstage_mode=False,
                          mainstage_phrases={},
-                         language_info=LANGUAGE_INFO)
+                         language_info=LANGUAGE_INFO,
+                         show_romanization=SHOW_ROMANIZATION,
+                         romanized_phrases=ROMANIZED_PHRASES)
 
 
 @app.route('/chinese')
@@ -588,7 +595,9 @@ def chinese_test():
                          difficulty_pools=zh_pools,
                          mainstage_mode=False,
                          mainstage_phrases={},
-                         language_info=LANGUAGE_INFO)
+                         language_info=LANGUAGE_INFO,
+                         show_romanization=SHOW_ROMANIZATION,
+                         romanized_phrases=ROMANIZED_PHRASES)
 
 
 @app.route('/architecture')

@@ -1061,6 +1061,7 @@
                 <div class="challenge-card">
                     <div id="currentLang" style="font-size: 1.3rem; font-weight: bold; margin-bottom: 4px; color: var(--white);">🇸🇰 Slovak</div>
                     <div class="challenge-phrase" id="challengePhrase">OpenShift je skvelý produkt</div>
+                    <div id="romanizedPhrase" style="font-size: 0.85rem; color: var(--gray-40); font-style: italic; margin-top: 4px; display: none;"></div>
                 </div>
 
                 <!-- Score + Swap in one row -->
@@ -1180,6 +1181,8 @@
         const MAINSTAGE_PHRASES = {{ mainstage_phrases | tojson }};
 
         const LANGUAGE_INFO = {{ language_info | tojson }};
+        const SHOW_ROMANIZATION = {{ show_romanization | tojson }};
+        const ROMANIZED_PHRASES = {{ romanized_phrases | tojson }};
 
         // Game State
         let gameState = {
@@ -1649,6 +1652,22 @@
             const langInfo = LANGUAGE_INFO[currentChallenge.lang];
             document.getElementById('currentLang').textContent = `${langInfo.flag} ${langInfo.name}`;
             document.getElementById('challengePhrase').textContent = currentChallenge.phrase;
+
+            const romanEl = document.getElementById('romanizedPhrase');
+            if (SHOW_ROMANIZATION && ROMANIZED_PHRASES[currentChallenge.lang]) {
+                const phraseList = challenges[currentChallenge.lang] || [];
+                const idx = phraseList.indexOf(currentChallenge.phrase);
+                const romanList = ROMANIZED_PHRASES[currentChallenge.lang];
+                if (idx >= 0 && idx < romanList.length) {
+                    romanEl.textContent = romanList[idx];
+                    romanEl.style.display = 'block';
+                } else {
+                    romanEl.style.display = 'none';
+                }
+            } else {
+                romanEl.style.display = 'none';
+            }
+
             document.getElementById('accuracyScore').textContent = '--';
             document.getElementById('accuracyScore').style.color = 'var(--white)';
 

@@ -52,6 +52,7 @@ game:
   # REQUIRED owner decision: e.g. cs for Czechia, sk for Slovakia, en for English.
   requiredLanguage: ""
   challengeCount: "5"
+  showRomanization: false
 
 difficultyPools: |
   {
