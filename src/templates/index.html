@@ -1193,6 +1193,7 @@
             difficulty: null,
             attempts: [],
             usedLanguages: [],
+            usedPhrases: new Set(),
             currentAttemptIndex: 0,
             romanizationUsed: false,
             gameStarted: false,
@@ -1523,6 +1524,7 @@
                     difficulty: difficulty,
                     attempts: [],
                     usedLanguages: [],
+                    usedPhrases: new Set(),
                     currentAttemptIndex: 0,
                     romanizationUsed: false,
                     gameStarted: true,
@@ -1633,7 +1635,10 @@
                 console.error('No phrases for language:', selectedLang);
                 return;
             }
-            const randomPhrase = phrasesForLang[Math.floor(Math.random() * phrasesForLang.length)];
+            let available = phrasesForLang.filter(p => !gameState.usedPhrases.has(p));
+            if (available.length === 0) available = phrasesForLang;
+            const randomPhrase = available[Math.floor(Math.random() * available.length)];
+            gameState.usedPhrases.add(randomPhrase);
 
             currentChallenge = {
                 lang: selectedLang,
@@ -1714,6 +1719,16 @@
                     const result = await response.json();
                     accuracy = result.accuracy * 100;
                     status = result.status;
+                } else {
+                    const response = await fetch('/api/accuracy', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(attempt.payload)
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        accuracy = result.accuracy * 100;
+                        status = result.status;
+                    }
                 }
                 gameState.attempts.push({lang: attempt.payload.language, phrase: attempt.payload.phrase,
                     transcription: attempt.payload.transcription, score: accuracy, status});
@@ -1929,6 +1944,7 @@
                 difficulty: null,
                 attempts: [],
                 usedLanguages: [],
+                usedPhrases: new Set(),
                 currentAttemptIndex: 0,
                 romanizationUsed: false,
                 gameStarted: false,

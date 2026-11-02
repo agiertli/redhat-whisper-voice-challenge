@@ -137,7 +137,13 @@
   "ja": [
     "OpenShiftは素晴らしい製品です",
     "Red Hatはオープンソース革新をリードしています",
-    "人工知能はビジネスを変革します"
+    "人工知能はビジネスを変革します",
+    "Kubernetesはアプリケーションの展開を簡素化します",
+    "コンテナ化はクラウドの未来です",
+    "自動化はイノベーションの時間を生み出します",
+    "クラウドソリューションは効率を向上させます",
+    "DevOpsは開発者と運用をつなぎます",
+    "セキュリティはクラウド環境の最優先事項です"
   ],
   "ko": [
     "OpenShift는 훌륭한 제품입니다",
@@ -152,7 +158,13 @@
   "zh": [
     "OpenShift是出色的产品",
     "Red Hat在开源创新中处于领先地位",
-    "人工智能改变商业"
+    "人工智能改变商业",
+    "Kubernetes简化应用程序部署",
+    "容器化是云计算的未来",
+    "自动化为创新腾出时间",
+    "云解决方案提高效率",
+    "DevOps连接开发者和运维",
+    "安全是云环境的首要任务"
   ],
   "th": [
     "OpenShift เป็นผลิตภัณฑ์ที่ยอดเยี่ยม",
@@ -262,7 +274,13 @@
     "ja": [
       "OpenShift wa subarashii seihin desu",
       "Red Hat wa oopun soosu kakushin wo riido shite imasu",
-      "Jinkou chinou wa bijinesu wo henkaku shimasu"
+      "Jinkou chinou wa bijinesu wo henkaku shimasu",
+      "Kubernetes wa apurikeeshon no tenkai wo kanso-ka shimasu",
+      "Kontena-ka wa kuraudo no mirai desu",
+      "Jidou-ka wa inobeeshon no jikan wo umidashimasu",
+      "Kuraudo soryuushon wa kouritsu wo koujou sasemasu",
+      "DevOps wa kaihatsusha to un-you wo tsunagimasu",
+      "Sekyuriti wa kuraudo kankyou no saiyuusen jikou desu"
     ],
     "ko": [
       "OpenShift neun hullyunghan jepum imnida",
@@ -277,7 +295,13 @@
     "zh": [
       "OpenShift shi chusei de chanpin",
       "Red Hat zai kaiyuan chuangxin zhong chuyu lingxian diwei",
-      "Ren gong zhineng gaibian shangye"
+      "Ren gong zhineng gaibian shangye",
+      "Kubernetes jianhua yingyong chengxu bushu",
+      "Rongqi-hua shi yun jisuan de weilai",
+      "Zidong-hua wei chuangxin tengchu shijian",
+      "Yun jiejue fangan tigao xiaolyu",
+      "DevOps lianjie kaifazhe he yunwei",
+      "Anquan shi yun huanjing de shouyao renwu"
     ],
     "th": [
       "OpenShift pen phalitaphan thi yotyiam",

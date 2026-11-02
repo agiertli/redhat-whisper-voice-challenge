@@ -277,6 +277,8 @@ _kakasi = pykakasi.kakasi()
 _JA_BRAND_TO_KATAKANA = {
     'OpenShift': 'オープンシフト',
     'Red Hat': 'レッドハット',
+    'Kubernetes': 'クーバネティス',
+    'DevOps': 'デブオプス',
 }
 
 
@@ -580,7 +582,7 @@ def japanese_test():
     return render_template('index.html',
                          model_display_name=MODEL_DISPLAY_NAME,
                          conference_name=CONFERENCE_NAME,
-                         tournament_enabled=TOURNAMENT_ENABLED,
+                         tournament_enabled=False,
                          registration_mode=REGISTRATION_MODE,
                          required_language='ja',
                          challenge_count=CHALLENGE_COUNT,
@@ -601,7 +603,7 @@ def chinese_test():
     return render_template('index.html',
                          model_display_name=MODEL_DISPLAY_NAME,
                          conference_name=CONFERENCE_NAME,
-                         tournament_enabled=TOURNAMENT_ENABLED,
+                         tournament_enabled=False,
                          registration_mode=REGISTRATION_MODE,
                          required_language='zh',
                          challenge_count=CHALLENGE_COUNT,
@@ -1086,6 +1088,27 @@ def api_game_start():
         }), 201
     finally:
         db.close()
+
+
+@app.route('/api/accuracy', methods=['POST'])
+def api_accuracy():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON body required'}), 400
+    language = data.get('language', '')
+    phrase = data.get('phrase', '')
+    transcription = data.get('transcription', '')
+    romanization_used = bool(data.get('romanization_used', False))
+    if not phrase or not isinstance(transcription, str):
+        return jsonify({'error': 'Invalid input'}), 400
+    raw_accuracy = levenshtein_similarity(
+        phonetic_normalize(transcription, language),
+        phonetic_normalize(phrase, language))
+    if romanization_used and ROMANIZATION_PENALTY > 0:
+        raw_accuracy = raw_accuracy * (1 - ROMANIZATION_PENALTY)
+    accuracy = round(raw_accuracy, 4)
+    status = 'win' if raw_accuracy >= 0.80 else 'fail'
+    return jsonify({'accuracy': accuracy, 'status': status})
 
 
 @app.route('/api/game/<int:game_id>/attempt', methods=['POST'])
