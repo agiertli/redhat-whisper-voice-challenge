@@ -1883,10 +1883,11 @@
             const finalResultsEl = document.getElementById('finalResults');
 
             if (tournamentScore === null) {
+                const penalizedAvg = gameState.attempts.reduce((sum, a) => sum + a.score, 0) / gameState.attempts.length;
                 const multipliers = {easy: 1.0, medium: 1.5, hard: 2.0};
                 const mult = multipliers[gameState.difficulty] || 1.0;
                 const speedBonus = Math.max(0.8, 1.2 - seconds / 600);
-                tournamentScore = Math.round(mult * avgScore / 100 * 100 * speedBonus * 10) / 10;
+                tournamentScore = Math.round(mult * penalizedAvg / 100 * 100 * speedBonus * 10) / 10;
             }
             const scoreLine = `<p style="font-size: 1.2rem; margin: 4px 0; color: var(--white);">Score: <strong>${tournamentScore}</strong></p>`;
             const bestLine = isNewBest
