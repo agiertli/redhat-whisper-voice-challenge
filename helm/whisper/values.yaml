@@ -43,7 +43,7 @@ readinessProbe:
 
 whisperApi:
   modelName: "whisper"
-  displayName: "Whisper large-v3 (Red Hat modelcar)"
+  displayName: "RedHatAI/whisper-large-v3-FP8-dynamic"
 
 conference:
   name: "Red Hat Whisper Voice Challenge"
