@@ -171,6 +171,16 @@ def init_db():
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+            event_type TEXT NOT NULL,
+            player_id INTEGER,
+            game_id INTEGER,
+            detail TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_audit_log_game ON audit_log(game_id);
+        CREATE INDEX IF NOT EXISTS idx_audit_log_player ON audit_log(player_id);
     ''')
     cols = {row[1] for row in db.execute('PRAGMA table_info(players)').fetchall()}
     if 'follow_up' not in cols:
@@ -180,6 +190,13 @@ def init_db():
     if 'round_count' not in game_cols:
         # NULL identifies pre-contract games; old releases ignore the new column.
         db.execute('ALTER TABLE games ADD COLUMN round_count INTEGER')
+        db.commit()
+    attempt_cols = {row[1] for row in db.execute('PRAGMA table_info(attempts)').fetchall()}
+    if 'raw_accuracy' not in attempt_cols:
+        db.execute('ALTER TABLE attempts ADD COLUMN raw_accuracy REAL')
+        db.commit()
+    if 'romanization_used' not in attempt_cols:
+        db.execute('ALTER TABLE attempts ADD COLUMN romanization_used INTEGER DEFAULT 0')
         db.commit()
     db.close()
     logger.info(f"Tournament database initialized at {DB_PATH}")
@@ -193,6 +210,15 @@ def get_db():
     db.execute('PRAGMA journal_mode=WAL')
     db.execute('PRAGMA foreign_keys=ON')
     return db
+
+def audit(db, event_type, player_id=None, game_id=None, **detail):
+    import json as _json
+    detail_json = _json.dumps(detail) if detail else None
+    db.execute('INSERT INTO audit_log (timestamp, event_type, player_id, game_id, detail) VALUES (?, ?, ?, ?, ?)',
+               (datetime.now(timezone.utc).isoformat(), event_type, player_id, game_id, detail_json))
+    logger.info("AUDIT %s player=%s game=%s %s", event_type, player_id, game_id,
+                ' '.join(f'{k}={v}' for k, v in detail.items()) if detail else '')
+
 
 def is_mainstage_enabled():
     db = get_db()
@@ -1080,9 +1106,12 @@ def api_game_start():
         cursor = db.execute(
             'INSERT INTO games (player_id, difficulty, started_at, round_count) VALUES (?, ?, ?, ?)',
             (g.player_id, difficulty, started_at, CHALLENGE_COUNT))
+        game_id = cursor.lastrowid
+        audit(db, 'game_start', player_id=g.player_id, game_id=game_id,
+              difficulty=difficulty, round_count=CHALLENGE_COUNT)
         db.commit()
         return jsonify({
-            'game_id': cursor.lastrowid,
+            'game_id': game_id,
             'difficulty': difficulty,
             'started_at': started_at
         }), 201
@@ -1163,8 +1192,11 @@ def api_game_attempt(game_id):
             penalized = raw_accuracy * (1 - ROMANIZATION_PENALTY)
         accuracy = round(penalized, 4)
         status = 'win' if penalized >= 0.80 else 'fail'
-        db.execute('INSERT INTO attempts (game_id,attempt_index,language,phrase,transcription,accuracy,status) VALUES (?,?,?,?,?,?,?)',
-                   (game_id, index, language, phrase, transcription, accuracy, status))
+        db.execute('INSERT INTO attempts (game_id,attempt_index,language,phrase,transcription,accuracy,raw_accuracy,romanization_used,status) VALUES (?,?,?,?,?,?,?,?,?)',
+                   (game_id, index, language, phrase, transcription, accuracy, round(raw_accuracy, 4), int(romanization_used), status))
+        audit(db, 'attempt', player_id=game['player_id'], game_id=game_id,
+              attempt_index=index, language=language, raw_accuracy=round(raw_accuracy, 4),
+              penalized_accuracy=accuracy, romanization_used=romanization_used, status=status)
         db.commit()
         return jsonify({'accuracy': accuracy, 'raw_accuracy': round(raw_accuracy, 4), 'status': status})
     finally:
@@ -1195,6 +1227,10 @@ def api_game_complete(game_id):
             score = compute_total_score(game['difficulty'], average, duration)
             db.execute('UPDATE games SET completed_at=?,total_score=?,avg_accuracy=?,duration_seconds=?,won=? WHERE id=?',
                        (completed_at, score, round(average, 4), round(duration, 1), int(average >= 0.8), game_id))
+            audit(db, 'game_complete', player_id=g.player_id, game_id=game_id,
+                  difficulty=game['difficulty'], total_score=score,
+                  avg_accuracy=round(average, 4), duration_seconds=round(duration, 1),
+                  won=bool(average >= 0.8))
             db.commit()
             game = db.execute('SELECT * FROM games WHERE id=?', (game_id,)).fetchone()
         # A lost HTTP response can be retried without changing the score or elapsed time.
@@ -1444,6 +1480,39 @@ def api_admin_delete_game(game_id):
         db.execute('DELETE FROM games WHERE id = ?', (game_id,))
         db.commit()
         return jsonify({'message': 'Game deleted'})
+    finally:
+        db.close()
+
+
+@app.route('/api/admin/audit-log', methods=['GET'])
+@require_admin
+def api_admin_audit_log():
+    player_id = request.args.get('player_id', type=int)
+    game_id = request.args.get('game_id', type=int)
+    event_type = request.args.get('event_type')
+    limit = min(int(request.args.get('limit', 200)), 1000)
+    db = get_db()
+    try:
+        query = 'SELECT * FROM audit_log WHERE 1=1'
+        params = []
+        if player_id is not None:
+            query += ' AND player_id = ?'
+            params.append(player_id)
+        if game_id is not None:
+            query += ' AND game_id = ?'
+            params.append(game_id)
+        if event_type:
+            query += ' AND event_type = ?'
+            params.append(event_type)
+        query += ' ORDER BY id DESC LIMIT ?'
+        params.append(limit)
+        rows = db.execute(query, params).fetchall()
+        import json as _json
+        return jsonify({'entries': [{
+            'id': r['id'], 'timestamp': r['timestamp'], 'event_type': r['event_type'],
+            'player_id': r['player_id'], 'game_id': r['game_id'],
+            'detail': _json.loads(r['detail']) if r['detail'] else None
+        } for r in rows]})
     finally:
         db.close()
 

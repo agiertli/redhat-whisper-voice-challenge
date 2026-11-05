@@ -2056,7 +2056,7 @@
                 audioContext = new AudioContext({ sampleRate: 48000 });
                 audioInput = audioContext.createMediaStreamSource(mediaStream);
                 recorder = new VADRecorder(audioContext, audioInput);
-                recorder.start();
+                await recorder.start();
                 isRecording = true;
                 vadIndicator.classList.add('active');
                 vadStatus.textContent = 'Listening...';
@@ -2290,7 +2290,7 @@
             if (tab === 'leaderboard') fetchLeaderboard();
         }
 
-        // VAD Recorder (same as streaming version)
+        // VAD Recorder — uses AudioWorklet (off-main-thread) with ScriptProcessor fallback
         class VADRecorder {
             constructor(audioContext, source) {
                 this.context = audioContext;
@@ -2300,82 +2300,136 @@
                 this.isSpeaking = false;
                 this.silenceStart = null;
                 this.speechStart = null;
+                this.useWorklet = false;
+                this.workletNode = null;
+                this.processor = null;
             }
 
-            start() {
+            async start() {
                 this.buffers = [];
                 this.recording = true;
                 this.isSpeaking = false;
                 this.silenceStart = null;
                 this.speechStart = null;
 
+                try {
+                    if (this.context.audioWorklet) {
+                        await this.context.audioWorklet.addModule('/static/vad-processor.js');
+                        this.useWorklet = true;
+                    }
+                } catch (e) {
+                    console.warn('AudioWorklet unavailable, using ScriptProcessor fallback:', e);
+                }
+
+                if (this.useWorklet) {
+                    this._startWorklet();
+                } else {
+                    this._startScriptProcessor();
+                }
+            }
+
+            _handleRms(rms) {
+                if (!this.recording) return;
+                const now = Date.now();
+
+                if (rms > VAD_THRESHOLD) {
+                    if (!this.isSpeaking) {
+                        this.isSpeaking = true;
+                        this.speechStart = now;
+                        this._clearBuffers();
+                        vadIndicator.classList.add('speaking');
+                        vadStatus.textContent = 'Speaking...';
+                    }
+                    this.silenceStart = null;
+                } else {
+                    if (this.isSpeaking) {
+                        if (!this.silenceStart) {
+                            this.silenceStart = now;
+                        }
+                        const silenceDuration = now - this.silenceStart;
+                        const speechDuration = this.speechStart ? now - this.speechStart : 0;
+
+                        if (silenceDuration > SILENCE_DURATION_MS && speechDuration > MIN_SPEECH_DURATION_MS) {
+                            vadIndicator.classList.remove('speaking');
+                            vadStatus.textContent = 'Processing...';
+
+                            this._dispatchChunk();
+
+                            this.isSpeaking = false;
+                            this.silenceStart = null;
+                            this.speechStart = null;
+                            vadStatus.textContent = 'Listening...';
+                        }
+                    } else {
+                        this._clearBuffers();
+                    }
+                }
+            }
+
+            _clearBuffers() {
+                this.buffers = [];
+                if (this.useWorklet) {
+                    this.workletNode.port.postMessage({ type: 'clearBuffers' });
+                }
+            }
+
+            _dispatchChunk() {
+                if (this.useWorklet) {
+                    this.workletNode.port.postMessage({ type: 'getChunk' });
+                } else {
+                    const chunk = this._mergeBuffers(this.buffers);
+                    this.buffers = [];
+                    if (chunk.length > 0) {
+                        const p = sendChunk(chunk);
+                        pendingSends.push(p);
+                        p.finally(() => { pendingSends = pendingSends.filter(x => x !== p); });
+                    }
+                }
+            }
+
+            _startWorklet() {
+                this.workletNode = new AudioWorkletNode(this.context, 'vad-processor');
+                this.workletNode.port.onmessage = (e) => {
+                    if (e.data.type === 'rms') {
+                        this._handleRms(e.data.rms);
+                    } else if (e.data.type === 'chunk') {
+                        if (e.data.samples.length > 0) {
+                            const p = sendChunk(e.data.samples);
+                            pendingSends.push(p);
+                            p.finally(() => { pendingSends = pendingSends.filter(x => x !== p); });
+                        }
+                    }
+                };
+                this.source.connect(this.workletNode);
+                this.workletNode.connect(this.context.destination);
+            }
+
+            _startScriptProcessor() {
                 const processor = this.context.createScriptProcessor(4096, 1, 1);
                 processor.onaudioprocess = (e) => {
                     if (!this.recording) return;
-
                     const channelData = e.inputBuffer.getChannelData(0);
                     const buffer = new Float32Array(channelData);
-
                     let sum = 0;
                     for (let i = 0; i < buffer.length; i++) {
                         sum += buffer[i] * buffer[i];
                     }
                     const rms = Math.sqrt(sum / buffer.length);
-
-                    const now = Date.now();
-
-                    if (rms > VAD_THRESHOLD) {
-                        if (!this.isSpeaking) {
-                            this.isSpeaking = true;
-                            this.speechStart = now;
-                            vadIndicator.classList.add('speaking');
-                            vadStatus.textContent = 'Speaking...';
-                        }
-                        this.silenceStart = null;
-                        this.buffers.push(buffer);
-                    } else {
-                        if (this.isSpeaking) {
-                            if (!this.silenceStart) {
-                                this.silenceStart = now;
-                            }
-
-                            const silenceDuration = now - this.silenceStart;
-                            const speechDuration = this.speechStart ? now - this.speechStart : 0;
-
-                            if (silenceDuration > SILENCE_DURATION_MS && speechDuration > MIN_SPEECH_DURATION_MS) {
-                                vadIndicator.classList.remove('speaking');
-                                vadStatus.textContent = 'Processing...';
-
-                                const chunk = this.getChunk();
-                                if (chunk.length > 0) {
-                                    const p = sendChunk(chunk);
-                                    pendingSends.push(p);
-                                    p.finally(() => { pendingSends = pendingSends.filter(x => x !== p); });
-                                }
-
-                                this.isSpeaking = false;
-                                this.silenceStart = null;
-                                this.speechStart = null;
-                                vadStatus.textContent = 'Listening...';
-                            } else {
-                                this.buffers.push(buffer);
-                            }
-                        }
-                    }
+                    this.buffers.push(buffer);
+                    this._handleRms(rms);
                 };
-
                 this.source.connect(processor);
                 processor.connect(this.context.destination);
                 this.processor = processor;
             }
 
             getChunk() {
-                const chunk = this.mergeBuffers(this.buffers);
+                const chunk = this._mergeBuffers(this.buffers);
                 this.buffers = [];
                 return chunk;
             }
 
-            mergeBuffers(buffers) {
+            _mergeBuffers(buffers) {
                 const length = buffers.reduce((acc, buf) => acc + buf.length, 0);
                 const merged = new Float32Array(length);
                 let offset = 0;
@@ -2388,6 +2442,11 @@
 
             stop() {
                 this.recording = false;
+                if (this.workletNode) {
+                    this.workletNode.port.postMessage({ type: 'stop' });
+                    this.workletNode.disconnect();
+                    this.source.disconnect(this.workletNode);
+                }
                 if (this.processor) {
                     this.processor.disconnect();
                     this.source.disconnect(this.processor);
