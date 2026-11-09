@@ -2081,9 +2081,9 @@
             vadStatus.textContent = 'Processing...';
 
             // Flush any remaining speech buffers the VAD hasn't sent yet
-            if (recorder && recorder.buffers.length > 0) {
-                const chunk = recorder.getChunk();
-                if (chunk.length > 0) {
+            if (recorder) {
+                const chunk = await recorder.flush();
+                if (chunk && chunk.length > 0) {
                     const p = sendChunk(chunk);
                     pendingSends.push(p);
                 }
@@ -2101,6 +2101,10 @@
 
             if (mediaStream) {
                 mediaStream.getTracks().forEach(track => track.stop());
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
             }
 
             recordBtn.disabled = false;
@@ -2427,6 +2431,26 @@
                 const chunk = this._mergeBuffers(this.buffers);
                 this.buffers = [];
                 return chunk;
+            }
+
+            async flush() {
+                if (!this.useWorklet) {
+                    const chunk = this._mergeBuffers(this.buffers);
+                    this.buffers = [];
+                    return chunk;
+                }
+                return new Promise((resolve) => {
+                    const origHandler = this.workletNode.port.onmessage;
+                    this.workletNode.port.onmessage = (e) => {
+                        if (e.data.type === 'chunk') {
+                            this.workletNode.port.onmessage = origHandler;
+                            resolve(e.data.samples);
+                        } else {
+                            if (origHandler) origHandler(e);
+                        }
+                    };
+                    this.workletNode.port.postMessage({ type: 'getChunk' });
+                });
             }
 
             _mergeBuffers(buffers) {
