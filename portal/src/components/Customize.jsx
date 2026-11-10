@@ -33,7 +33,7 @@ export default function Customize() {
       </section>
       <section>
         <h3>Phrases follow the campaign</h3>
-        <p>Marketing pushing Ansible this quarter? Ask the agent for Ansible phrases in every booth language. No rebuild.</p>
+        <p>Marketing pushing Ansible this quarter? Ask <code>/whisper-operations</code> for Ansible phrases in every booth language. No rebuild.</p>
         <div className="seg" role="group" aria-label="Phrase theme">
           {Object.keys(THEMES).map((k) => <button key={k} aria-pressed={k === theme} onClick={() => setTheme(k)}>{k}</button>)}
         </div>
