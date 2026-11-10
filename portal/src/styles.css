@@ -311,8 +311,8 @@ pre.cmd .c { color: #a3a3a3; }
 .hype { border: 2px solid var(--ink); padding: 0; overflow: hidden; position: relative; margin: 20px 0 8px; }
 .hype svg { display: block; width: 100%; height: auto; background: var(--mist); }
 .hype-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-top: 2px solid var(--ink); flex-wrap: wrap; }
-.hype-shout { position: absolute; left: 36%; top: 7%; transform: translateX(-50%); background: var(--red); color: #fff; font: 800 clamp(1rem, 2.4vw, 1.6rem) var(--display); padding: 10px 20px; white-space: nowrap; animation: shout 0.5s cubic-bezier(.2,1.6,.4,1); letter-spacing: -0.01em; }
-@keyframes shout { from { transform: translateX(-50%) scale(0.4) rotate(-4deg); opacity: 0; } to { transform: translateX(-50%) scale(1) rotate(0); opacity: 1; } }
+.hype-shout { position: absolute; left: 3%; top: 7%; max-width: 64%; background: var(--red); color: #fff; font: 800 clamp(0.95rem, 2.2vw, 1.6rem)/1.15 var(--display); padding: 10px 18px; letter-spacing: -0.01em; transform-origin: left center; animation: shout 0.5s cubic-bezier(.2,1.6,.4,1); }
+@keyframes shout { from { transform: scale(0.4) rotate(-4deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
 .person { transition: transform 1.6s cubic-bezier(.3,.7,.2,1); }
 
 /* --- booth diagram --- */
