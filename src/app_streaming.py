@@ -1176,7 +1176,10 @@ def api_game_attempt(game_id):
                               (game_id, index)).fetchone()
         if existing:
             if (existing['language'], existing['phrase'], existing['transcription']) == (language, phrase, transcription):
-                return jsonify({'accuracy': existing['accuracy'], 'status': existing['status']})
+                # Same response shape as a first save. Rows saved before raw_accuracy existed
+                # had no romanization penalty, so their accuracy is the raw accuracy.
+                raw = existing['raw_accuracy'] if existing['raw_accuracy'] is not None else existing['accuracy']
+                return jsonify({'accuracy': existing['accuracy'], 'raw_accuracy': raw, 'status': existing['status']})
             return jsonify({'error': 'Attempt already saved with different content'}), 409
         if game['completed_at']:
             return jsonify({'error': 'Game already completed'}), 409

@@ -214,7 +214,7 @@ class RegistrationTests(unittest.TestCase):
         attempt = {'attempt_index': 0, 'language': 'en', 'phrase': self.module.CHALLENGE_PHRASES['en'][0], 'transcription': ''}
         result = self.client.post('/api/game/' + str(game['game_id']) + '/attempt', json=attempt, headers=auth)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.json, {'accuracy': 0.0, 'status': 'fail'})
+        self.assertEqual(result.json, {'accuracy': 0.0, 'raw_accuracy': 0.0, 'status': 'fail'})
 
     def test_runtime_assets_are_served_from_the_application(self):
         for path in ('/logo.svg', '/favicon.svg', '/architecture'):
