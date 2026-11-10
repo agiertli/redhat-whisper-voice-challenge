@@ -52,9 +52,9 @@ export default function TechOwner({ section }) {
           <ol className="steps">
             <li><b>Log in with <code>oc</code></b> to the new cluster, using the credentials from the RHDP email.</li>
             <li><b>Clone the repo, open Claude Code or Codex in it and call the skill by name.</b> Don’t just say “install Whisper” and hope. Start with the skill, so the agent follows the runbook instead of improvising:
-              <pre className="cmd"><span className="c"># Claude Code</span>{'\n'}/whisper-operations Install Whisper on this cluster{'\n'}{'\n'}<span className="c"># Codex</span>{'\n'}$whisper-operations Install Whisper on this cluster</pre>
+              <pre className="cmd"><span className="c"># Claude Code (in Codex, start with $whisper-operations)</span>{'\n'}/whisper-operations Install Whisper on this cluster{'\n'}for a conference in Italy.{'\n'}Registration: nickname only.{'\n'}You may stop the RHDP demo Llama to free the GPU.{'\n'}Generate the admin password.</pre>
               No skill in the list? Restart the agent session inside the repo folder.</li>
-            <li><b>Answer its questions.</b> First challenge language (always your call), registration mode, the admin password, and whether it may stop the RHDP demo Llama to free the GPU.</li>
+            <li><b>Confirm the plan.</b> From “Italy” the skill proposes Italian as the first-round language and Easy, Medium and Hard pools that suit an Italian crowd. Nothing is installed until you say yes. Everything you didn’t mention stays default: tournament on, standard phrases, no romanization.</li>
             <li><b>Let it verify.</b> It checks the model, the routes, monitoring and a test transcription, then hands you the URLs.</li>
             <li><b>Repeat on the backup cluster</b> with the same values file.</li>
           </ol>
