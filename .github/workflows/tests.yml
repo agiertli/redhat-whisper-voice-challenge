@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  pull_request:
+    paths-ignore: ['portal/**', '**.md']
+  push:
+    branches: [main]
+    paths-ignore: ['portal/**', '**.md']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'   # matches the ubi9/python-311 runtime image
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            tests/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: azure/setup-helm@v4
+      - run: pip install -r tests/requirements.txt
+      - name: Unit and regression tests
+        run: python -m unittest discover -s tests -v
+      - name: Helm lint
+        run: helm lint helm/whisper --set game.requiredLanguage=en
+      - name: Shell syntax
+        run: bash -n deploy.sh scripts/*.sh scripts/reporting/*.sh tests/audio/*.sh

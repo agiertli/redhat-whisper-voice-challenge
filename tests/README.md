@@ -1,6 +1,8 @@
 # Local verification
 
-No GitHub Actions pipeline is required. Run from the repository root:
+The same checks run in GitHub Actions on every pull request and push to `main`
+(`.github/workflows/tests.yml`, Python 3.11 to match the runtime image). Run them
+locally from the repository root:
 
 ```bash
 python3 -m venv /tmp/whisper-tests
