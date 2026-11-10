@@ -10,7 +10,7 @@ convenience wrapper; it is not required by the commands below.
 
 Use the prepared RHDP OpenShift AI 3 SNO GPU environment. Install Git (to clone),
 Bash, oc and Helm 3 on the deployment workstation. Backups also need curl and
-standard macOS/Linux utilities. The cluster needs configured KServe/GPU operators,
+standard macOS/Linux utilities. Helm 4 is not supported: package managers may install it by default, so check `helm version` reports v3. The cluster needs configured KServe/GPU operators,
 a Ready NVIDIA GPU, registry pull access, enough RAM/CPU and persistent storage.
 See [the shared runbook](INSTALLATION.md) for the exact target and limitations.
 
