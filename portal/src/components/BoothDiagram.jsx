@@ -2,11 +2,12 @@ import { useState } from 'react'
 
 const ITEMS = {
   mac: {
-    title: 'M-chip MacBook',
+    title: 'A high-spec laptop',
     lines: [
-      'Not optional. Audio is processed in the browser, and a slow laptop leaves gaps that Whisper happily fills with fiction.',
-      'Chrome, full screen, sleep and notifications off.',
-      'Displays: mirror to TV 1, extend to TV 2.',
+      'Audio is processed in the browser, so the laptop matters. Bring a recent, well-specced one.',
+      'Any M-series Mac does the job, even an M1. A high-end Windows laptop should be fine too.',
+      'Whatever you bring, play a few rounds on it at the booth before doors open.',
+      'Chrome, full screen, sleep and notifications off. Displays: mirror to TV 1, extend to TV 2.',
     ],
   },
   tv1: {
@@ -26,7 +27,7 @@ const ITEMS = {
   mic: {
     title: 'DJI Mic Mini 2',
     lines: [
-      'Pairs with the Mac over Bluetooth. Pick it in the game’s microphone list before the first round.',
+      'Pairs with the laptop over Bluetooth. Pick it in the game’s microphone list before the first round.',
       'One transmitter goes to the player. The other waits charged in the case: swap at lunch.',
       'Keep it close to the player’s mouth and away from chatty friends.',
     ],
@@ -97,9 +98,9 @@ export default function BoothDiagram() {
         </Hot>
 
         <rect x="170" y="180" width="360" height="72" fill="#e6e6e6" stroke="#bdbdbd" />
-        <Hot id="mac" on={on} set={setOn} label="MacBook">
+        <Hot id="mac" on={on} set={setOn} label="Laptop">
           <rect className="hl" x="312" y="192" width="78" height="50" rx="4" fill="#fff" stroke="#151515" strokeWidth="2" />
-          <text x="351" y="223" textAnchor="middle" {...t} fontWeight="700">Mac</text>
+          <text x="351" y="223" textAnchor="middle" {...t} fontWeight="700">Laptop</text>
         </Hot>
         <Hot id="mic" on={on} set={setOn} label="DJI Mic Mini 2">
           <rect className="hl" x="440" y="196" width="80" height="42" rx="6" fill="#fff" stroke="#151515" strokeWidth="1.5" />

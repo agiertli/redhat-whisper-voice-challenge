@@ -84,7 +84,7 @@ export default function Home() {
               <span className="role">You make sure it works, all day.</span>
               <ul className="door-list">
                 <li>Two clusters, backups, an agent that installs it for you</li>
-                <li>The booth kit: two TVs, one Mac, one good mic</li>
+                <li>The booth kit: two TVs, one good laptop, one good mic</li>
                 <li>Local languages, campaign phrases, how scoring works</li>
               </ul>
               <span className="door-go">Read the tech owner guide · 8 min</span>
