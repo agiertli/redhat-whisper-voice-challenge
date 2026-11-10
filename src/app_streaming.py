@@ -57,7 +57,7 @@ VLLM_METRICS_URL = f"{_parsed_url.scheme}://{_parsed_url.netloc}/metrics"
 # Voice Challenge Game Settings
 REQUIRED_CHALLENGE_LANGUAGE = os.getenv('REQUIRED_CHALLENGE_LANGUAGE', 'sk')
 CHALLENGE_COUNT = int(os.getenv('CHALLENGE_COUNT', '5'))
-_rom_raw = os.getenv('SHOW_ROMANIZATION', 'off').lower().strip()
+_rom_raw = os.getenv('SHOW_ROMANIZATION', 'optional').lower().strip()
 ROMANIZATION_MODE = {'true': 'always', 'false': 'off'}.get(_rom_raw, _rom_raw)
 if ROMANIZATION_MODE not in ('off', 'optional', 'always'):
     ROMANIZATION_MODE = 'off'

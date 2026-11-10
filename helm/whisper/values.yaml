@@ -52,7 +52,8 @@ game:
   # REQUIRED owner decision: e.g. cs for Czechia, sk for Slovakia, en for English.
   requiredLanguage: ""
   challengeCount: "5"
-  showRomanization: "off"
+  # off | optional (default: reveal button, scoring penalty) | always
+  showRomanization: "optional"
   romanizationPenalty: "0.30"
 
 difficultyPools: |
