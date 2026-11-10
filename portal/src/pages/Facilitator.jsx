@@ -138,12 +138,20 @@ export default function Facilitator({ section }) {
 
         <Chapter id="prizes" title="Prizes and retries" lede="We want people to come back. Competition is the fun part.">
           <ul>
-            <li>A game wins with an <strong>average of 80% or more</strong> across five rounds.</li>
-            <li>Hard scores double and Medium scores one and a half times, so brave players climb the leaderboard faster.</li>
+            <li><strong>Prizes go to the top 3 on the leaderboard.</strong> That’s the only win that counts in tournament mode.</li>
+            <li>Hard scores double and Medium scores one and a half times, so brave players climb faster.</li>
+            <li>The “≥80% average” on the game screen is per-game feedback, not a prize ticket.</li>
             <li>Retries are encouraged. Play as many games as you like. Your best score counts.</li>
           </ul>
           <div className="say">“Nice one, you’re third. Check back in an hour to see if you’re still in the top 3.”</div>
-          <p className="muted">The tech owner prepares the award ceremony from live data. You bring the drum roll.</p>
+          <h3 style={{ marginTop: 32, marginBottom: 8 }}>Running the award ceremony</h3>
+          <p>The tech owner generates the slides from live scores just before the ceremony and hands you the file. You bring the drum roll.</p>
+          <ul>
+            <li>Open it full screen on the stage display. Arrow keys, space or a click move to the next slide.</li>
+            <li>On the podium slide, each click reveals one winner: third, then second, then first. Milk it.</li>
+            <li>Read the language battle out loud. “Japanese: 6.7% average. Respect to everyone who tried.” always gets a laugh.</li>
+            <li>Rehearse once on the real screen. Nobody wants to reveal the winner by accident.</li>
+          </ul>
         </Chapter>
         <Contact />
       </Track>

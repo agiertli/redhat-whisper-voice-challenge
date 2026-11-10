@@ -80,7 +80,7 @@ export default function ScoringPlayground() {
         </div>
         <p className="small muted" style={{ marginTop: 8 }}>
           Accuracy = 1 − edit distance ÷ length of the longer text, after lowercasing and dropping punctuation.
-          Accents count. To win, the average over five rounds must be at least 80%. Hard can lose and still beat an Easy winner on the leaderboard.
+          Accents count. The game shows a round as passed at 80%, but prizes go to the top 3 scores, so a shaky Hard game can still beat a perfect Easy one.
         </p>
       </div>
     </div>

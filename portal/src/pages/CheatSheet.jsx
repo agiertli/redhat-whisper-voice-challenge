@@ -42,10 +42,11 @@ export default function CheatSheet() {
           <ul>
             <li>Two facilitators at all times: host and guide.</li>
             <li>Never tease pronunciation. Laugh at the AI, not at people.</li>
-            <li>Win = 80% average over five rounds. Hard ×2, Medium ×1.5.</li>
+            <li>Prizes = top 3 on the leaderboard. Hard ×2, Medium ×1.5.</li>
             <li>Retries welcome. Best game counts.</li>
             <li>Business talk? The guide takes it, the game keeps going.</li>
             <li>Queue too long? Shorter chats, snappier rounds.</li>
+            <li>Ceremony: podium reveals 3rd → 2nd → 1st, one click each.</li>
           </ul>
         </section>
         <section>

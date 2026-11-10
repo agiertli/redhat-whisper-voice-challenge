@@ -6,7 +6,6 @@ import Facilitator from './pages/Facilitator.jsx'
 import TechOwner from './pages/TechOwner.jsx'
 import CheatSheet from './pages/CheatSheet.jsx'
 import { REPO } from './links.js'
-import { Mail } from './components/Contact.jsx'
 
 const PAGES = {
   home: { C: Home, title: 'Booth guide' },
@@ -47,7 +46,7 @@ export default function App() {
       </main>
       <footer className="foot">
         <div className="wrap">
-          <span>Whisper Voice Challenge, a Red Hat booth game running on OpenShift AI. Created by Anton Giertli. <Mail>Get in touch</Mail>.</span>
+          <span>Whisper Voice Challenge, a Red Hat booth game running on OpenShift AI. Created by Anton Giertli.</span>
           <a href={REPO}>Source and docs on GitHub</a>
         </div>
       </footer>
