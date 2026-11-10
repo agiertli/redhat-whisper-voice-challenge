@@ -48,11 +48,16 @@ export default function TechOwner({ section }) {
           </div>
           <ol className="steps">
             <li><b>Log in with <code>oc</code></b> to the new cluster, using the credentials from the RHDP email.</li>
-            <li><b>Clone the repo and open your coding agent in it.</b> Ask: “Install Whisper on this cluster.” The repo tells the agent exactly how.</li>
+            <li><b>Clone the repo, open Claude Code or Codex in it and call the skill by name.</b> Don’t just say “install Whisper” and hope. Start with the skill, so the agent follows the runbook instead of improvising:
+              <pre className="cmd"><span className="c"># Claude Code</span>{'\n'}/whisper-operations Install Whisper on this cluster{'\n'}{'\n'}<span className="c"># Codex</span>{'\n'}$whisper-operations Install Whisper on this cluster</pre>
+              No skill in the list? Restart the agent session inside the repo folder.</li>
             <li><b>Answer its questions.</b> First challenge language (always your call), registration mode, the admin password, and whether it may stop the RHDP demo Llama to free the GPU.</li>
             <li><b>Let it verify.</b> It checks the model, the routes, monitoring and a test transcription, then hands you the URLs.</li>
             <li><b>Repeat on the backup cluster</b> with the same values file.</li>
           </ol>
+          <div className="note">
+            <p><strong>One skill for everything after the install too.</strong> Language changes, phrases, upgrades, backups and readiness checks all go through <code>/whisper-operations</code>. For example: <code>/whisper-operations Check booth readiness; report gaps without changing the deployment</code></p>
+          </div>
           <p className="muted">Prefer doing it by hand? There’s a direct Helm path. It uses the same chart and gives the same result.</p>
           <div className="docs-links">
             <a className="btn small" href={doc('docs/INSTALLATION.md')}>Installation runbook</a>
@@ -101,7 +106,7 @@ export default function TechOwner({ section }) {
         </Chapter>
 
         <Chapter id="show-up" title="Show up" lede="The cluster isn’t the hard part. The booth is.">
-          <p>Be at the booth for the first hour and the busy slots. Check the mic, watch a few rounds, and make sure the facilitators know who to call. When things go wrong, nobody in the aisle cares whose fault it was. Help out.</p>
+          <p>On the morning of each day, run <code>/whisper-operations</code> with “Check booth readiness” before doors open. Then be at the booth for the first hour and the busy slots. Check the mic, watch a few rounds, and make sure the facilitators know who to call. When things go wrong, nobody in the aisle cares whose fault it was. Help out.</p>
           <p>Send your facilitators the <a href={href('facilitator')}>facilitator guide</a> before the event and print the <a href={href('cheatsheet')}>cheat sheet</a> for the booth.</p>
           <p className="muted small">Everything else lives in the <a href={REPO}>repository</a>.</p>
         </Chapter>
