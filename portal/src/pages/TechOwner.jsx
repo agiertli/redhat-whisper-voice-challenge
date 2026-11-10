@@ -39,7 +39,7 @@ export default function TechOwner({ section }) {
             <li><b>Backups, every few minutes</b><span>One script on a laptop, running all day.</span></li>
             <li><b>Language pools</b><span>What Easy, Medium and Hard mean for this crowd.</span></li>
             <li><b>Challenge phrases</b><span>Default tech phrases, or whatever marketing is pushing.</span></li>
-            <li><b>The booth kit</b><span>Mac, two TVs, mic, maybe a registration tablet. Tested before doors open.</span></li>
+            <li><b>The booth kit</b><span>Laptop, two TVs, mic, maybe a registration tablet. Tested before doors open.</span></li>
             <li><b>The award ceremony</b><span>A slide deck from live data, one command. See below.</span></li>
             <li><b>Being there</b><span>Facilitators will need you. More on that below.</span></li>
           </ul>
@@ -95,11 +95,11 @@ export default function TechOwner({ section }) {
         </Chapter>
 
         <Chapter id="planb" title="Backups and plan B" lede="Conference Wi-Fi, borrowed GPUs, a two-day event. Assume something will fail.">
-          <p>Run the backup script on a laptop (not the booth Mac) and leave it running. It pulls a validated snapshot every five minutes.</p>
+          <p>Run the backup script on a laptop (not the booth laptop) and leave it running. It pulls a validated snapshot every five minutes.</p>
           <pre className="cmd"><span className="c"># no oc, no cluster credentials, just curl</span>{'\n'}WHISPER_URL=https://whisper.apps.your-cluster \{'\n'}ADMIN_TOKEN_FILE=./admin-token \{'\n'}./scripts/backup.sh --loop</pre>
           <ul>
             <li><strong>Restore through the admin upload</strong>, never by copying the database into a pod. That route corrupts it.</li>
-            <li><strong>Switch to the backup cluster</strong> by restoring the latest snapshot there and pointing the booth Mac at its URL.</li>
+            <li><strong>Switch to the backup cluster</strong> by restoring the latest snapshot there and pointing the booth laptop at its URL.</li>
             <li><strong>Try the switch once before the event.</strong> A plan B nobody has tested is just a hope.</li>
           </ul>
           <div className="docs-links">

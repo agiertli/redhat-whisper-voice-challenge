@@ -52,7 +52,7 @@ export default function CheatSheet() {
         <section>
           <h2>Screens</h2>
           <ul>
-            <li><b>TV 1:</b> game, mirrored from the Mac.</li>
+            <li><b>TV 1:</b> game, mirrored from the laptop.</li>
             <li><b>TV 2:</b> <code>/tv</code> leaderboard, extended, full screen.</li>
             <li><b>Tablet (optional):</b> <code>/register</code> only, for full registration.</li>
             <li><b>Never</b> show <code>/admin</code> on a TV.</li>
