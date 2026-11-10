@@ -43,6 +43,7 @@ versioned UI image: no build engine or registry push permission needed.
 Monitoring is a required step and is enabled while preserving existing settings.
 The installer requires Bash, `oc`, Helm 3, Python 3 and curl; the separate conference
 backup script requires only Bash, curl and standard macOS/Linux utilities.
+Helm 4 is not supported: package managers may install it by default, so check `helm version` reports v3.
 
 For a repeatable venue configuration, copy [docs/examples/values-conference.yaml](docs/examples/values-conference.yaml)
 and use `--values values-conference.yaml` on every install/upgrade. A first-language choice is

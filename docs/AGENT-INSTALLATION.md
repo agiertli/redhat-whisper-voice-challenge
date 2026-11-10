@@ -45,7 +45,7 @@ back what it needs if owner decisions are missing.
 
 Order the RHDP OpenShift AI 3 GPU environment and obtain its `oc login` command.
 On the installer workstation provide Git (for cloning), Bash, oc, Helm 3, curl,
-and Python 3.9+ (no pip packages for installation). Log in as cluster-admin.
+and Python 3.9+ (no pip packages for installation). Helm 4 is not supported: package managers may install it by default, so check `helm version` reports v3. Log in as cluster-admin.
 Check the current server; do not hand an agent credentials from an expired cluster.
 
 ```bash

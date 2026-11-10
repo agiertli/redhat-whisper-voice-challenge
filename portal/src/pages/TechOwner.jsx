@@ -50,6 +50,7 @@ export default function TechOwner({ section }) {
             <p><strong>The only technical prerequisite:</strong> order the <strong>OpenShift AI 3</strong> item from the Red Hat Demo Platform (RHDP). It comes with a single-node cluster and an NVIDIA GPU, which is everything Whisper needs. Order two: one primary, one backup.</p>
           </div>
           <ol className="steps">
+            <li><b>Get your laptop ready:</b> Git, <code>oc</code>, Python 3, curl and <strong>Helm 3</strong>. Not Helm 4: a fresh <code>brew install helm</code> may give you 4, and the installer refuses it. <code>helm version</code> should say v3.</li>
             <li><b>Log in with <code>oc</code></b> to the new cluster, using the credentials from the RHDP email.</li>
             <li><b>Clone the repo, open Claude Code or Codex in it and call the skill by name.</b> Don’t just say “install Whisper” and hope. Start with the skill, so the agent follows the runbook instead of improvising:
               <pre className="cmd"><span className="c"># Claude Code (in Codex, start with $whisper-operations)</span>{'\n'}/whisper-operations Install Whisper on this cluster{'\n'}for a conference in Italy.{'\n'}Registration: nickname only.{'\n'}You may stop the RHDP demo Llama to free the GPU.{'\n'}Admin password: &lt;pick one you’ll remember&gt;</pre>
