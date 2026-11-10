@@ -99,6 +99,10 @@ export default function Home() {
           <p className="muted">Scroll down and follow the voice.</p>
           <LayerStack />
           <p className="say" style={{ marginTop: 0 }}>That’s the Sovereign AI pitch, by the way. And people just played it.</p>
+          <div className="finale">
+            <p>There are no limits when it comes to creativity.</p>
+            <p>Go and have fun with Whisper. You know what works best for your event, your audience and your country.</p>
+          </div>
         </div>
       </section>
     </>

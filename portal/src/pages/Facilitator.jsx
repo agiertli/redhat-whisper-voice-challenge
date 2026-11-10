@@ -3,9 +3,11 @@ import { Chapter, Track } from '../components/Track.jsx'
 import Contact from '../components/Contact.jsx'
 import RoundSimulator from '../components/RoundSimulator.jsx'
 import HardHype from '../components/HardHype.jsx'
+import Sticker from '../components/Sticker.jsx'
 import { href } from '../router.js'
 
 const SECTIONS = [
+  { id: 'spread', title: 'Fill the booth' },
   { id: 'vibe', title: 'The vibe' },
   { id: 'round', title: 'Running a round' },
   { id: 'noise', title: 'Make some noise' },
@@ -59,6 +61,17 @@ export default function Facilitator({ section }) {
       </header>
 
       <Track page="facilitator" sections={SECTIONS} section={section} extra={<a className="print-link" href={href('cheatsheet')}>Printable cheat sheet</a>}>
+        <Chapter id="spread" title="Fill the booth before it opens" lede="The best booths have a crowd from minute one. That starts before the event does.">
+          <div className="spread">
+            <ol>
+              <li><b>Get it on the main stage</b><span>Two minutes in the keynote or a sponsor slot is plenty. “Come to our booth and break our AI” is all you need to say.</span></li>
+              <li><b>Brief your account executives</b><span>They bring their customers over. The game breaks the ice, and the guide takes it from there.</span></li>
+              <li><b>Stickers on name tags</b><span>If the venue allows, put them on badges or flyers. Say hello in a random language and the sticker becomes the first challenge.</span></li>
+            </ol>
+            <Sticker />
+          </div>
+        </Chapter>
+
         <Chapter id="vibe" title="Be the person people want to play with" lede="No script needed. Be natural, keep it light, and make everyone look good.">
           <div className="say">“Fancy a quick game? Takes a minute, and you can win a prize.”</div>
           <div className="pairs">
@@ -152,7 +165,14 @@ export default function Facilitator({ section }) {
             <li>Read the language battle out loud. “Japanese: 6.7% average. Respect to everyone who tried.” always gets a laugh.</li>
             <li>Rehearse once on the real screen. Nobody wants to reveal the winner by accident.</li>
           </ul>
+          <div className="note red">
+            <p><strong>Read the nicknames and play along.</strong> Our third place in Sibenik went by “Rammstein”, so he walked up to collect his prize to <em>Du hast</em>. Check the podium names beforehand and cue up a walk-on song. That’s the moment people film and remember.</p>
+          </div>
         </Chapter>
+        <div className="finale">
+          <p>There are no limits when it comes to creativity.</p>
+          <p>Go and have fun with Whisper. You know what works best for your event, your audience and your country.</p>
+        </div>
         <Contact />
       </Track>
     </>

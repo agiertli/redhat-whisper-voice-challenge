@@ -453,3 +453,26 @@ pre.cmd .c { color: #a3a3a3; }
 .contact h3 { margin-bottom: 8px; }
 .contact p { margin: 0; color: var(--ink-soft); }
 .copied { color: var(--pass); font-weight: 600; font-size: 0.9em; }
+
+/* --- awareness --- */
+.spread { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.spread ol { margin: 0; padding: 0; list-style: none; }
+.spread li { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.spread li:first-child { padding-top: 0; }
+.spread li b { display: block; font-family: var(--display); font-size: 1.1rem; margin-bottom: 4px; }
+.spread li span { color: var(--ink-soft); }
+.badge { width: 240px; margin: 0 auto; background: linear-gradient(160deg, #3a3a3a, #151515); border-radius: 14px; padding: 30px 18px 18px; position: relative; color: #fff; box-shadow: 0 20px 40px -20px rgba(0,0,0,.5); }
+.badge-clip { position: absolute; top: 10px; left: 50%; width: 44px; height: 10px; margin-left: -22px; border-radius: 6px; background: var(--paper); }
+.badge-event { font: 800 1.1rem var(--display); text-align: center; margin: 8px 0 18px; opacity: .9; }
+.sticker { background: #fff; color: var(--ink); border: 3px solid var(--ink); border-radius: 22px; padding: 10px 12px; text-align: center; position: relative; margin: 0 8px 26px; box-shadow: 3px 3px 0 var(--red); }
+.sticker::after { content: ''; position: absolute; left: 26px; bottom: -14px; border: 7px solid transparent; border-top-color: var(--ink); border-left-color: var(--ink); }
+.sticker b { display: block; font: 800 1.5rem var(--display); animation: pop .35s ease-out; }
+.sticker span { display: block; font-size: 0.82rem; font-weight: 600; }
+.sticker-rh { color: var(--red-deep); }
+.badge-name { background: #fff; color: var(--ink); border-radius: 6px; padding: 10px 12px; font: 700 1.1rem var(--display); }
+.badge-name small { display: block; font: 500 0.85rem var(--text); color: var(--ink-soft); }
+@media (max-width: 800px) { .spread { grid-template-columns: 1fr; } }
+
+.finale { border-top: 3px solid var(--ink); padding: 40px 0 48px; margin-top: 16px; }
+.finale p:first-child { font: 800 clamp(1.8rem, 3.6vw, 2.8rem)/1.1 var(--display); letter-spacing: -0.025em; max-width: 20ch; margin-bottom: 14px; color: var(--ink); }
+.finale p:last-child { font-size: 1.2rem; color: var(--ink-soft); max-width: 48ch; margin: 0; }
