@@ -43,7 +43,7 @@ export default function Customize() {
       </section>
       <section>
         <h3>Romanization, the secret weapon</h3>
-        <p>Nobody reads Korean at a booth. With <code>showRomanization: optional</code>, players can reveal how to say it and accept a {ROMANIZATION_PENALTY * 100}% hit to that round.</p>
+        <p>Nobody reads Korean at a booth. It’s on by default (<code>showRomanization: optional</code>): players can reveal how to say it and accept a {ROMANIZATION_PENALTY * 100}% hit to that round.</p>
         <div className="romcard">
           <div className="p">OpenShiftは素晴らしい製品です</div>
           <div className="r">{shown ? 'OpenShift wa subarashii seihin desu' : ''}</div>

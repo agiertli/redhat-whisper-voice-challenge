@@ -55,7 +55,7 @@ regardless of phrase length.
 ## Pronunciation reveal and winning
 
 There is no Skip or Swap action. When `game.showRomanization` is set to
-`optional`, non-Latin challenges show a **Show pronunciation** button. Clicking
+`optional` (the chart default), non-Latin challenges show a **Show pronunciation** button. Clicking
 it reveals the Latin transliteration for the current challenge but applies a
 scoring penalty: the attempt's accuracy is multiplied by `(1 - penalty)`, where
 `penalty` defaults to 0.30 (configurable via `game.romanizationPenalty`). The

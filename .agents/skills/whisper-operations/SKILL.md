@@ -150,10 +150,10 @@ in that language to confirm transcription quality.
 Set `game.showRomanization` in `values-conference.yaml` to control
 romanization for non-Latin scripts (Japanese, Chinese, Korean, Arabic, Thai,
 Hindi, Ukrainian, Bulgarian, Georgian):
-- `off` (default): no romanization shown — pure Hard mode.
-- `optional`: a "Show pronunciation" button appears on non-Latin challenges.
+- `optional` (default): a "Show pronunciation" button appears on non-Latin challenges.
   Clicking it reveals the Latin transliteration but applies a scoring penalty
   (default 30%, configurable via `game.romanizationPenalty`).
+- `off`: no romanization shown — pure Hard mode.
 - `always`: romanization shown automatically with no penalty.
 - `true`/`false` accepted for backward compatibility (`true` = `always`,
   `false` = `off`).
