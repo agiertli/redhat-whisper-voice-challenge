@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Chapter, Track } from '../components/Track.jsx'
+import Contact from '../components/Contact.jsx'
 import RoundSimulator from '../components/RoundSimulator.jsx'
 import HardHype from '../components/HardHype.jsx'
 import { href } from '../router.js'
@@ -144,6 +145,7 @@ export default function Facilitator({ section }) {
           <div className="say">“Nice one, you’re third. Check back in an hour to see if you’re still in the top 3.”</div>
           <p className="muted">The tech owner prepares the award ceremony from live data. You bring the drum roll.</p>
         </Chapter>
+        <Contact />
       </Track>
     </>
   )
