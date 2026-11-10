@@ -4,6 +4,7 @@ import BoothDiagram from '../components/BoothDiagram.jsx'
 import EndpointTour from '../components/EndpointTour.jsx'
 import Customize from '../components/Customize.jsx'
 import ScoringPlayground from '../components/ScoringPlayground.jsx'
+import DeckPreview from '../components/DeckPreview.jsx'
 import { doc, REPO } from '../links.js'
 import { href } from '../router.js'
 
@@ -11,7 +12,7 @@ const SECTIONS = [
   { id: 'plate', title: 'What’s on your plate' },
   { id: 'install', title: 'Installing' },
   { id: 'kit', title: 'Booth kit' },
-  { id: 'endpoints', title: 'The four URLs' },
+  { id: 'endpoints', title: 'The URLs' },
   { id: 'customize', title: 'Make it local' },
   { id: 'scoring', title: 'How scoring works' },
   { id: 'planb', title: 'Backups and plan B' },
@@ -38,7 +39,7 @@ export default function TechOwner({ section }) {
             <li><b>Backups, every few minutes</b><span>One script on a laptop, running all day.</span></li>
             <li><b>Language pools</b><span>What Easy, Medium and Hard mean for this crowd.</span></li>
             <li><b>Challenge phrases</b><span>Default tech phrases, or whatever marketing is pushing.</span></li>
-            <li><b>The booth kit</b><span>Mac, two TVs, mic. Tested before doors open.</span></li>
+            <li><b>The booth kit</b><span>Mac, two TVs, mic, maybe a registration tablet. Tested before doors open.</span></li>
             <li><b>The award ceremony</b><span>A slide deck from live data, one command. See below.</span></li>
             <li><b>Being there</b><span>Facilitators will need you. More on that below.</span></li>
           </ul>
@@ -72,7 +73,7 @@ export default function TechOwner({ section }) {
           <BoothDiagram />
         </Chapter>
 
-        <Chapter id="endpoints" title="The four URLs" lede="One app, four faces. Know which one goes where.">
+        <Chapter id="endpoints" title="The URLs" lede="One app, five faces. Know which screen shows which.">
           <EndpointTour />
         </Chapter>
 
@@ -110,6 +111,11 @@ export default function TechOwner({ section }) {
           <p>Generate it <strong>right before the ceremony</strong>, so the final scores are in. Ask the skill, or run the script yourself while logged in with <code>oc</code>:</p>
           <pre className="cmd"><span className="c"># through the agent</span>{'\n'}/whisper-operations Generate the award ceremony{'\n'}{'\n'}<span className="c"># or directly</span>{'\n'}./scripts/generate-ceremony.sh \{'\n'}  --event "Innovate Together" --dates "October 13–14, 2026" \{'\n'}  --namespace whisper --output ceremony.html</pre>
           <p>You get one self-contained HTML file: event numbers, the language battle, fun facts, a drum roll, then the podium revealed third, second, first. Copy it to the stage laptop.</p>
+          <div className="browser" style={{ margin: '18px 0 8px' }}>
+            <div className="browser-bar"><i /><i /><i /><span>ceremony.html</span></div>
+            <DeckPreview src="./ceremony-demo.html" />
+          </div>
+          <p className="small muted">Click the deck, then use the arrow keys or space. Every name and number here is made up. <a href="./ceremony-demo.html" target="_blank" rel="noopener">Open it full screen</a>.</p>
           <ul>
             <li><strong>Keep the file to yourself</strong> until the ceremony. It contains the winners.</li>
             <li><strong>Click through the podium once beforehand</strong> on the actual stage screen.</li>

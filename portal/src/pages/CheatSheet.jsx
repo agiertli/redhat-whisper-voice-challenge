@@ -45,7 +45,7 @@ export default function CheatSheet() {
             <li>Prizes = top 3 on the leaderboard. Hard ×2, Medium ×1.5.</li>
             <li>Retries welcome. Best game counts.</li>
             <li>Business talk? The guide takes it, the game keeps going.</li>
-            <li>Queue too long? Shorter chats, snappier rounds.</li>
+            <li>Ideal queue: 3–5 people. Longer? Snappier rounds, send newcomers to register first.</li>
             <li>Ceremony: podium reveals 3rd → 2nd → 1st, one click each.</li>
           </ul>
         </section>
@@ -54,6 +54,7 @@ export default function CheatSheet() {
           <ul>
             <li><b>TV 1:</b> game, mirrored from the Mac.</li>
             <li><b>TV 2:</b> <code>/tv</code> leaderboard, extended, full screen.</li>
+            <li><b>Tablet (optional):</b> <code>/register</code> only, for full registration.</li>
             <li><b>Never</b> show <code>/admin</code> on a TV.</li>
           </ul>
         </section>

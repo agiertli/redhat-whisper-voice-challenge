@@ -145,7 +145,7 @@ export default function Facilitator({ section }) {
             If someone bites, the guide walks them through <code>/architecture</code>. If nobody does, that’s fine. They’ll remember the booth.
           </p>
           <div className="note">
-            <p><strong>Watch the queue.</strong> A small crowd is gold. A long queue makes people walk away, so keep rounds snappy when it builds up.</p>
+            <p><strong>Watch the queue.</strong> You want one, just not a long one: <strong>three to five people</strong> waiting works best. Longer, and people walk away. Keep rounds snappy, and if registration asks for name and email, send newcomers to the registration tablet first so they only type a nickname at the mic.</p>
           </div>
         </Chapter>
 
@@ -158,7 +158,7 @@ export default function Facilitator({ section }) {
           </ul>
           <div className="say">“Nice one, you’re third. Check back in an hour to see if you’re still in the top 3.”</div>
           <h3 style={{ marginTop: 32, marginBottom: 8 }}>Running the award ceremony</h3>
-          <p>The tech owner generates the slides from live scores just before the ceremony and hands you the file. You bring the drum roll.</p>
+          <p>The tech owner generates the slides from live scores just before the ceremony and hands you the file. You bring the drum roll. <a href="./ceremony-demo.html" target="_blank" rel="noopener">See an example deck</a>.</p>
           <ul>
             <li>Open it full screen on the stage display. Arrow keys, space or a click move to the next slide.</li>
             <li>On the podium slide, each click reveals one winner: third, then second, then first. Milk it.</li>

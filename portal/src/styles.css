@@ -476,3 +476,4 @@ pre.cmd .c { color: #a3a3a3; }
 .finale { border-top: 3px solid var(--ink); padding: 40px 0 48px; margin-top: 16px; }
 .finale p:first-child { font: 800 clamp(1.8rem, 3.6vw, 2.8rem)/1.1 var(--display); letter-spacing: -0.025em; max-width: 20ch; margin-bottom: 14px; color: var(--ink); }
 .finale p:last-child { font-size: 1.2rem; color: var(--ink-soft); max-width: 48ch; margin: 0; }
+.deck { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; background: #151515; }

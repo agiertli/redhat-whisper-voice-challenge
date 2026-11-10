@@ -28,6 +28,24 @@ const EPS = [
     ),
   },
   {
+    path: '/register',
+    name: 'Registration',
+    who: 'The registration tablet',
+    text: 'Only with full registration (name and email). Put it on its own tablet: people register while they wait, then just type their nickname at the game as a returning player. Shorter stops at the mic, shorter queue.',
+    view: () => (
+      <div className="mini">
+        <h6>Innovate Together</h6>
+        {['Nickname', 'Full name', 'Email'].map((l, i) => (
+          <div key={l} style={{ marginBottom: 10 }}>
+            <div style={{ color: '#a3a3a3', marginBottom: 4 }}>{l}</div>
+            <div style={{ background: '#292929', border: '1px solid #383838', padding: 8, borderRadius: 3 }}>{['PolyglotPro', 'Jana Novak', 'jana@example.com'][i]}</div>
+          </div>
+        ))}
+        <div style={{ background: '#ee0000', padding: 9, borderRadius: 3, fontWeight: 700, textAlign: 'center', marginTop: 4 }}>Register</div>
+      </div>
+    ),
+  },
+  {
     path: '/tv',
     name: 'Leaderboard',
     who: 'Everyone walking past',
