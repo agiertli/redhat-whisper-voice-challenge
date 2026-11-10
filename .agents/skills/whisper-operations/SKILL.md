@@ -41,8 +41,14 @@ Read [the agent installation procedure](../../../docs/AGENT-INSTALLATION.md).
 Use its owner settings and copyable prompt as the input contract.
 
 - Establish fresh install versus upgrade from actual release and storage state.
-  Reuse the existing venue values file and preserve choices on upgrades. The
-  owner selects the first language explicitly; a country alone is insufficient.
+  Reuse the existing venue values file and preserve choices on upgrades.
+- **Infer the conference locale early.** If the owner mentions a city or country,
+  use it to automatically propose (1) the required first language and
+  (2) a locale-appropriate difficulty pool division. If neither city nor country
+  is mentioned anywhere in the request, ask before proceeding — do not silently
+  default. Apply the inference rules documented under "Configure difficulty
+  groups" below. Present the proposed language and pool layout for confirmation;
+  do not deploy without the owner's explicit approval.
 - Follow the documented `deploy.sh` procedure on `main`: read-only preflight,
   then the same inputs without `--preflight`. Use direct Helm only when explicitly
   requested. Do not create another deployment mechanism.
@@ -69,8 +75,10 @@ and a Helm upgrade — no image rebuild required unless application source chang
 Guide: [languages-and-phrases.md](../../../docs/customization/languages-and-phrases.md)
 
 - Set the first required challenge language in `values-conference.yaml`
-  (`game.requiredLanguage`). The owner chooses explicitly; never infer from
-  locale. Normalize names/typos to supported codes (`German` → `de`).
+  (`game.requiredLanguage`). When the owner provides a conference city or
+  country, infer the required language and propose it for confirmation (see
+  inference rules under "Configure difficulty groups"). When neither is
+  given, ask. Normalize names/typos to supported codes (`German` → `de`).
 - Edit existing challenge phrases in `helm/whisper/challenges.json`.
 
 ### Add a new language (end-to-end)
@@ -163,6 +171,41 @@ Guide: [difficulty-groups.md](../../../docs/customization/difficulty-groups.md)
   string under `game.difficultyGroups`.
 - Understand selection logic: required first language, per-difficulty language
   targets, non-Latin targets reserved for Hard.
+
+**Locale-based inference.** When the owner provides a conference city or
+country, automatically compose the difficulty pools and required language
+using these rules:
+
+1. **Required language**: the primary official language of the conference
+   country (e.g., Sweden → `sv`, Czechia → `cs`, Germany → `de`,
+   Spain → `es`, France → `fr`). For multilingual countries, pick the
+   majority language of the conference city and confirm with the owner.
+2. **Easy pool**: the host country language + English + languages that are
+   **phonetically accessible** to a typical speaker from that country. This
+   means regionally familiar languages AND languages whose pronunciation is
+   transparent from spelling (e.g., Italian, Spanish read aloud roughly as
+   written). Avoid placing phonetically difficult languages in Easy even if
+   they use Latin script — for example, Polish (consonant clusters) and
+   French (nasal vowels, silent letters) are harder to read aloud for most
+   non-native speakers than Italian or Portuguese. Aim for 5–8 languages.
+   Always include the required language and `en`.
+3. **Medium pool**: Easy + broader European Latin-script languages that are
+   less familiar to the regional audience. Aim for 12–16 total.
+4. **Hard pool**: Medium + all non-Latin script languages (ja, ko, ar, zh,
+   th, hi, bg, ka, uk). Aim for 22–28 total.
+5. **Subset invariant**: easy ⊂ medium ⊂ hard — always maintained.
+6. The host country's language must be in the **easy** pool. If an attendee
+   picks Easy, they must be able to encounter their own language.
+
+Present the proposed pools and required language to the owner before writing
+them to `values-conference.yaml`. Example for Stockholm:
+
+```
+Required language: sv
+Easy:    sv, en, no, de, es, it, pt        (Nordic neighbours + phonetically transparent)
+Medium:  + fr, pl, fi, is, nl, hu, tr, hr, ro, sl  (broader European, harder pronunciation)
+Hard:    + uk, ar, zh, ja, ko, th, hi, bg, ka      (non-Latin scripts)
+```
 
 ### Change game mode
 
