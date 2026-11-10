@@ -8,6 +8,10 @@ A multilingual voice transcription tournament for conference booths: attendees
 speak challenge phrases, Whisper transcribes them, and a persistent leaderboard
 tracks their scores. Flask UI, vLLM on OpenShift AI, SQLite on a PVC.
 
+**New to Whisper?** Start with the interactive
+[booth guide for facilitators and tech owners](https://agiertli.github.io/redhat-whisper-voice-challenge/)
+(source in [`portal/`](portal/)).
+
 ## Install
 
 Choose the [agent installation](docs/AGENT-INSTALLATION.md) or
