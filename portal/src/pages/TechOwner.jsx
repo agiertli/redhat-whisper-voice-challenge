@@ -1,4 +1,5 @@
 import { Chapter, Track } from '../components/Track.jsx'
+import Contact from '../components/Contact.jsx'
 import BoothDiagram from '../components/BoothDiagram.jsx'
 import EndpointTour from '../components/EndpointTour.jsx'
 import Customize from '../components/Customize.jsx'
@@ -110,6 +111,7 @@ export default function TechOwner({ section }) {
           <p>Send your facilitators the <a href={href('facilitator')}>facilitator guide</a> before the event and print the <a href={href('cheatsheet')}>cheat sheet</a> for the booth.</p>
           <p className="muted small">Everything else lives in the <a href={REPO}>repository</a>.</p>
         </Chapter>
+        <Contact />
       </Track>
     </>
   )
