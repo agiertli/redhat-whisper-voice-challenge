@@ -15,6 +15,7 @@ const SECTIONS = [
   { id: 'customize', title: 'Make it local' },
   { id: 'scoring', title: 'How scoring works' },
   { id: 'planb', title: 'Backups and plan B' },
+  { id: 'ceremony', title: 'Award ceremony' },
   { id: 'show-up', title: 'Show up' },
 ]
 
@@ -38,7 +39,7 @@ export default function TechOwner({ section }) {
             <li><b>Language pools</b><span>What Easy, Medium and Hard mean for this crowd.</span></li>
             <li><b>Challenge phrases</b><span>Default tech phrases, or whatever marketing is pushing.</span></li>
             <li><b>The booth kit</b><span>Mac, two TVs, mic. Tested before doors open.</span></li>
-            <li><b>The award ceremony</b><span>Generated from live data in one command.</span></li>
+            <li><b>The award ceremony</b><span>A slide deck from live data, one command. See below.</span></li>
             <li><b>Being there</b><span>Facilitators will need you. More on that below.</span></li>
           </ul>
         </Chapter>
@@ -102,7 +103,20 @@ export default function TechOwner({ section }) {
           </ul>
           <div className="docs-links">
             <a className="btn small" href={doc('docs/customization/backups-and-restore.md')}>Backups and restore</a>
-            <a className="btn small" href={doc('docs/customization/award-ceremony.md')}>Award ceremony</a>
+          </div>
+        </Chapter>
+
+        <Chapter id="ceremony" title="Award ceremony" lede="The finale. One command turns the live leaderboard into a stage-ready slide deck.">
+          <p>Generate it <strong>right before the ceremony</strong>, so the final scores are in. Ask the skill, or run the script yourself while logged in with <code>oc</code>:</p>
+          <pre className="cmd"><span className="c"># through the agent</span>{'\n'}/whisper-operations Generate the award ceremony{'\n'}{'\n'}<span className="c"># or directly</span>{'\n'}./scripts/generate-ceremony.sh \{'\n'}  --event "Innovate Together" --dates "October 13–14, 2026" \{'\n'}  --namespace whisper --output ceremony.html</pre>
+          <p>You get one self-contained HTML file: event numbers, the language battle, fun facts, a drum roll, then the podium revealed third, second, first. Copy it to the stage laptop.</p>
+          <ul>
+            <li><strong>Keep the file to yourself</strong> until the ceremony. It contains the winners.</li>
+            <li><strong>Click through the podium once beforehand</strong> on the actual stage screen.</li>
+            <li>Want more names on stage? <code>--winners</code> and <code>--runners</code> set how many.</li>
+          </ul>
+          <div className="docs-links">
+            <a className="btn small" href={doc('docs/customization/award-ceremony.md')}>Award ceremony docs</a>
           </div>
         </Chapter>
 
