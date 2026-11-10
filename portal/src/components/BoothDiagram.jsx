@@ -31,6 +31,14 @@ const ITEMS = {
       'Keep it close to the player’s mouth and away from chatty friends.',
     ],
   },
+  tablet: {
+    title: 'Registration tablet (optional)',
+    lines: [
+      'Worth it when registration asks for name and email. The tablet shows only /register.',
+      'People register while they wait, then type just their nickname at the game. The mic stays busy, the queue moves.',
+      'Not needed with username-only registration: /register just redirects to the game.',
+    ],
+  },
   people: {
     title: 'Two facilitators, always',
     lines: [
@@ -41,13 +49,13 @@ const ITEMS = {
   queue: {
     title: 'The crowd',
     lines: [
-      'A few people watching is great. A long queue is not: people leave.',
-      'If it grows, keep rounds snappy and save the deep-dive talks for the guide.',
+      'You want a queue, just not a long one. Three to five people waiting is the sweet spot.',
+      'Longer than that? Snappier rounds, deep-dive talks go to the guide, and send newcomers to the registration tablet first.',
     ],
   },
 }
 
-const ORDER = ['tv1', 'tv2', 'mac', 'mic', 'people', 'queue']
+const ORDER = ['tv1', 'tv2', 'mac', 'mic', 'tablet', 'people', 'queue']
 
 function Hot({ id, on, set, children, label }) {
   return (
@@ -106,6 +114,11 @@ export default function BoothDiagram() {
           <circle className="hl" cx="590" cy="300" r="15" fill="#ee0000" stroke="#ee0000" />
           <text x="590" y="334" textAnchor="middle" {...t} fontSize="15">guide</text>
         </Hot>
+        <Hot id="tablet" on={on} set={setOn} label="Registration tablet">
+          <rect className="hl" x="96" y="276" width="44" height="58" rx="5" fill="#fff" stroke="#151515" strokeWidth="2" />
+          <rect x="102" y="284" width="32" height="40" fill="#151515" />
+          <text x="118" y="352" textAnchor="middle" {...t} fontSize="15">tablet</text>
+        </Hot>
         <P x={352} y={300} c="#151515" />
         <text x="352" y="350" textAnchor="middle" {...t} fontSize="15" fontWeight="600">player</text>
 
@@ -121,7 +134,7 @@ export default function BoothDiagram() {
         <div className="booth-pick">
           {ORDER.map((k) => (
             <button key={k} className="sim-tab" aria-selected={k === on} onClick={() => setOn(k)} style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-              {ITEMS[k].title.split(':')[0].replace('Two facilitators, always', 'Facilitators')}
+              {ITEMS[k].title.split(':')[0].replace('Two facilitators, always', 'Facilitators').replace(' (optional)', '')}
             </button>
           ))}
         </div>
