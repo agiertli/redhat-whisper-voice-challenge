@@ -76,7 +76,8 @@ function fixture(enabled) {
     assert.equal(standalone.run('gameState.currentAttemptIndex'),1);
     standalone.run('gameState.currentAttemptIndex=5;gameState.attempts=Array(5).fill({score:100});currentChallenge=null;');
     await standalone.run('finishGame()');
-    assert.equal(standalone.requests.length,0);
+    // Anonymous play may ask the server to score (/api/accuracy) but must never touch tournament APIs.
+    assert.ok(standalone.requests.every(r => r.url === '/api/accuracy'), JSON.stringify(standalone.requests.map(r => r.url)));
     assert.equal(standalone.run('gameState.gameCompleted'),true);
     const expired=fixture(true);
     expired.run('playerSession={token:"deleted",nickname:"Deleted",playerId:9};');

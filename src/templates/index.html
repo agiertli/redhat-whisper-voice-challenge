@@ -1721,15 +1721,21 @@
                     rawAccuracy = result.raw_accuracy != null ? result.raw_accuracy * 100 : null;
                     status = result.status;
                 } else {
-                    const response = await fetch('/api/accuracy', {
-                        method: 'POST', headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(attempt.payload)
-                    });
-                    if (response.ok) {
-                        const result = await response.json();
-                        accuracy = result.accuracy * 100;
-                        rawAccuracy = result.raw_accuracy != null ? result.raw_accuracy * 100 : null;
-                        status = result.status;
+                    // Anonymous mode persists nothing: if server scoring is unreachable,
+                    // keep the locally computed score instead of blocking the game.
+                    try {
+                        const response = await fetch('/api/accuracy', {
+                            method: 'POST', headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(attempt.payload)
+                        });
+                        if (response.ok) {
+                            const result = await response.json();
+                            accuracy = result.accuracy * 100;
+                            rawAccuracy = result.raw_accuracy != null ? result.raw_accuracy * 100 : null;
+                            status = result.status;
+                        }
+                    } catch (scoringError) {
+                        console.warn('Server scoring unavailable; using local score', scoringError);
                     }
                 }
                 gameState.attempts.push({lang: attempt.payload.language, phrase: attempt.payload.phrase,

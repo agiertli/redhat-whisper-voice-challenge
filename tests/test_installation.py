@@ -575,7 +575,8 @@ class InstallerTests(unittest.TestCase):
 
     def test_access_summary_fails_without_disclosing_partial_details(self):
         result = self.run_script('scripts/show-access.sh', scenario='upgrade-backup-failure', success=False)
-        self.assertNotIn('Admin password:', result.stdout)
+        self.assertNotIn('admin password:', result.stdout.lower())
+        self.assertNotIn('mock-admin-password', result.stdout)
         self.assertNotIn('Game URL:', result.stdout)
 
     def test_password_file_is_passed_without_password_in_arguments(self):
@@ -584,7 +585,7 @@ class InstallerTests(unittest.TestCase):
         result = self.run_script('deploy.sh', '--language', 'de', '--admin-password-file', str(password))
         self.assertIn('tournament.adminToken=' + str(password), self.calls())
         self.assertNotIn('test@password!', self.calls())
-        self.assertIn('Admin password: mock-admin-password', result.stdout)
+        self.assertRegex(result.stdout, r'Game admin password:\s+mock-admin-password')
 
     def test_legacy_image_override_fails_before_any_cluster_access(self):
         with tempfile.NamedTemporaryFile(mode='w',suffix='.yaml') as values:
@@ -647,8 +648,8 @@ class InstallerTests(unittest.TestCase):
 
     def test_default_no_build_deploy_uses_requested_language(self):
         result = self.run_script('deploy.sh', '--language', 'cs', '--namespace', 'venue')
-        self.assertIn('Admin URL: https://whisper.fake.test/admin', result.stdout)
-        self.assertIn('Admin password: mock-admin-password', result.stdout)
+        self.assertRegex(result.stdout, r'Admin URL:\s+https://whisper\.fake\.test/admin')
+        self.assertRegex(result.stdout, r'Game admin password:\s+mock-admin-password')
         self.assertIn('language=cs', result.stdout)
         self.assertIn('"--kube-context", "mock-context"', self.calls())
         self.assertIn('HELM-UPGRADE', self.calls())
