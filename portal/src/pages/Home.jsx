@@ -33,6 +33,7 @@ export default function Home() {
       <section className="hero">
         <div className="wrap">
           <div>
+            <p className="shoutout">Ahoj Lado! 👋 Vitaj vo Whisper guide, nech sa ti s boothom darí!</p>
             <h1>The booth where people queue up to break our AI.</h1>
             <p className="lede">
               Whisper Voice Challenge is a five-round party game. Read a phrase in some language, say it out loud,
