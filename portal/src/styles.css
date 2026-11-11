@@ -95,6 +95,7 @@ strong { font-weight: 700; }
 .hero { padding: clamp(40px, 7vw, 88px) 0 56px; }
 .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: clamp(28px, 5vw, 64px); align-items: center; }
 .hero h1 { margin-bottom: 22px; }
+.shoutout { display: inline-block; margin: 0 0 18px; padding: 6px 14px; border-radius: 999px; background: var(--red-wash); color: var(--red-deep); font-weight: 600; font-size: 0.95rem; }
 .hero .lede { margin-bottom: 30px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .hero-caption { margin-top: 40px; font-size: 0.85rem; color: var(--ink-faint); text-align: center; }
