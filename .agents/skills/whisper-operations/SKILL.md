@@ -274,11 +274,27 @@ produces a self-contained HTML file with Red Hat branding.
 - Run `scripts/generate-ceremony.sh` with `--event` and `--dates` (both
   required). The script queries the live database via `oc exec` and generates
   the HTML deck. No pip packages or image rebuild required.
-- The deck has 6 slides: title/numbers, language battle, fun facts, drum roll,
-  podium (winners revealed one by one), and runner-up. Navigate with arrow
-  keys or click.
+- The deck has up to 7 slides: title/numbers, language battle, fun facts,
+  optional Whisper Fail of the Day, drum roll, podium (winners revealed one by
+  one), and runner-up. Navigate with arrow keys or click.
 - Generate the presentation just before the ceremony to include final scores.
   Keep the output private until the ceremony.
+- Include a "Whisper Fail of the Day" slide by default (expected phrase vs.
+  what Whisper heard, shown before the drum roll). The script cannot judge
+  humor, so the agent picks it without asking:
+  1. Run `scripts/generate-ceremony.sh --list-bloopers` (optionally `N`,
+     default 25) to get pre-filtered candidates with attempt IDs.
+  2. Read them as a native-speaker audience would. Pick the funniest one:
+     real words with a different, absurd meaning beat gibberish or a single
+     wrong ending. Never pick anything offensive, sexual, political, or
+     containing personal data.
+  3. Generate the deck with `--blooper <ID>`. If there are no suitable
+     candidates, generate it without the slide and say so.
+  4. In the report, name the chosen fail (expected vs. heard, translated if
+     not English) with a one-line reason and two runner-up IDs. If the owner
+     dislikes it, regenerate with another ID or without `--blooper`.
+  The slide is anonymous; add `--blooper-credit` only when the owner asks
+  for it and confirms the player agreed.
 - For PPTX output (offline sharing/archiving), generate a companion PPTX using
   `python-pptx` and the same data. Use the existing reference scripts
   (`generate_stats_pptx.py`) as the template for Red Hat brand colors, layout,
