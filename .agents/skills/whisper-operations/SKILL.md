@@ -274,9 +274,18 @@ produces a self-contained HTML file with Red Hat branding.
 - Run `scripts/generate-ceremony.sh` with `--event` and `--dates` (both
   required). The script queries the live database via `oc exec` and generates
   the HTML deck. No pip packages or image rebuild required.
-- The deck has up to 7 slides: title/numbers, language battle, fun facts,
-  optional Whisper Fail of the Day, drum roll, podium (winners revealed one by
-  one), and runner-up. Navigate with arrow keys or click.
+- The deck has up to 5 slides: title/numbers, language battle, optional
+  Whisper fail of the day, drum roll, and winners (top 3 revealed 3rd → 2nd →
+  1st, honourable mentions below; last slide). Arrows/space/click navigate,
+  F fullscreen, B blackout.
+- The deck language follows the deployment's required challenge language
+  (read from the pod): `cs`, `sk` or `en`, otherwise English. Use `--lang` only
+  when the owner asks for a different language. Write the `--blooper-note` in
+  the deck language.
+- Styling lives in `scripts/ceremony/render.py`: Red Hat brand standards,
+  light theme, palette colours only, embedded Red Hat fonts and the unmodified
+  logo, offline. Keep changes within those rules (no emoji icons, no CDN
+  fonts, sentence case).
 - Generate the presentation just before the ceremony to include final scores.
   Keep the output private until the ceremony.
 - Include a "Whisper Fail of the Day" slide by default (expected phrase vs.
@@ -295,7 +304,7 @@ produces a self-contained HTML file with Red Hat branding.
      English `--blooper-note` (translation or the punchline). If there are no
      suitable candidates, generate it without the slide and say so.
   4. In the report, name the chosen fail (expected vs. heard, translated if
-     not English) with a one-line reason and two runner-up IDs. If the owner
+     not English) with a one-line reason and two alternative IDs. If the owner
      dislikes it, regenerate with another ID or without `--blooper`.
   The slide is anonymous; add `--blooper-credit` only when the owner asks
   for it and confirms the player agreed.
@@ -305,7 +314,7 @@ produces a self-contained HTML file with Red Hat branding.
   and typography. The agent should fetch the tournament JSON from the cluster
   (same `oc exec` query as the shell script) and produce a PPTX with: title
   slide with key numbers, language battle (easiest vs hardest), fun facts, and
-  a winners slide with podium + runner-up table. Install `python-pptx` first
+  a winners slide with podium + honourable mentions. Install `python-pptx` first
   if needed (`pip install python-pptx`).
 
 ### Upgrade from an older installation
