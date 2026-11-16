@@ -9,7 +9,7 @@ const BOOTHS = {
 }
 
 const THEMES = {
-  Default: ['OpenShift is great product', 'Red Hat leads in open source innovation', 'Kubernetes simplifies application deployment'],
+  Default: ['OpenShift is a great product', 'Red Hat leads in open source innovation', 'Kubernetes simplifies application deployment'],
   Ansible: ['Ansible automates the boring parts', 'Playbooks turn chaos into routine', 'Event-Driven Ansible reacts before you do'],
 }
 
