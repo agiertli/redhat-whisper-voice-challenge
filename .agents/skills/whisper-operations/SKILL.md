@@ -284,12 +284,16 @@ produces a self-contained HTML file with Red Hat branding.
   humor, so the agent picks it without asking:
   1. Run `scripts/generate-ceremony.sh --list-bloopers` (optionally `N`,
      default 25) to get pre-filtered candidates with attempt IDs.
-  2. Read them as a native-speaker audience would. Pick the funniest one:
-     real words with a different, absurd meaning beat gibberish or a single
-     wrong ending. Never pick anything offensive, sexual, political, or
-     containing personal data.
-  3. Generate the deck with `--blooper <ID>`. If there are no suitable
-     candidates, generate it without the slide and say so.
+  2. Read them as the venue audience would. Pick the funniest one: real
+     words with a different, absurd meaning beat gibberish or a single wrong
+     ending. Prefer Latin-script candidates the audience can read; use a
+     non-Latin one only when a short note makes the joke land (e.g. Whisper
+     appending "ご視聴ありがとうございました", "thanks for watching"). Ignore
+     candidates that differ only in script or punctuation. Never pick anything
+     offensive, sexual, political, or containing personal data.
+  3. Generate the deck with `--blooper <ID>` and, when it helps, a short
+     English `--blooper-note` (translation or the punchline). If there are no
+     suitable candidates, generate it without the slide and say so.
   4. In the report, name the chosen fail (expected vs. heard, translated if
      not English) with a one-line reason and two runner-up IDs. If the owner
      dislikes it, regenerate with another ID or without `--blooper`.

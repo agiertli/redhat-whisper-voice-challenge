@@ -15,6 +15,7 @@ NUM_WINNERS=3
 NUM_RUNNERS=4
 BLOOPER_ID=""
 BLOOPER_CREDIT=false
+BLOOPER_NOTE=""
 LIST_BLOOPERS=""
 
 usage() {
@@ -32,6 +33,8 @@ Usage: ./scripts/generate-ceremony.sh [options]
                      (pick the ID from --list-bloopers)
   --blooper-credit   Show the player's nickname on the fail slide
                      (default: anonymous)
+  --blooper-note TEXT One short line under the fail (e.g. a translation or
+                     why it is funny)
   -h, --help         Show this help
 USAGE
     exit 0
@@ -47,6 +50,7 @@ while [[ $# -gt 0 ]]; do
         --runners)   NUM_RUNNERS="$2"; shift 2 ;;
         --blooper)   BLOOPER_ID="$2"; shift 2 ;;
         --blooper-credit) BLOOPER_CREDIT=true; shift ;;
+        --blooper-note) BLOOPER_NOTE="$2"; shift 2 ;;
         --list-bloopers)
             if [[ "${2:-}" =~ ^[0-9]+$ ]]; then LIST_BLOOPERS="$2"; shift 2
             else LIST_BLOOPERS=25; shift; fi ;;
@@ -62,32 +66,40 @@ fi
 
 if [[ -n "$LIST_BLOOPERS" ]]; then
     echo "Fetching Whisper fail candidates from namespace $NS..." >&2
-    # Partly-right misheard sentences are the funny ones: skip empty output,
-    # exact matches and pure garbage; one row per distinct transcription.
+    # Partly-right misheard sentences are the funny ones. Similarity is
+    # recomputed here (letters/digits only) because stored accuracy can include
+    # the romanization penalty, which would list correct answers as fails.
     oc exec deployment/whisper-ui -n "$NS" -- python3 -c "
-import sqlite3
+import sqlite3, difflib
 db = sqlite3.connect('/app/data/tournament.db')
 rows = db.execute('''
-    SELECT MIN(a.id), a.language, a.phrase, a.transcription, MIN(a.accuracy), p.nickname
+    SELECT a.id, a.language, a.phrase, a.transcription, p.nickname
     FROM attempts a
     JOIN games g ON g.id = a.game_id
     JOIN players p ON p.id = g.player_id
-    WHERE a.status != 'skip'
-      AND a.transcription IS NOT NULL
+    WHERE a.status != 'skip' AND a.transcription IS NOT NULL
       AND length(trim(a.transcription)) >= 8
-      AND a.accuracy BETWEEN 0.15 AND 0.90
-      AND lower(trim(a.transcription)) != lower(trim(a.phrase))
-    GROUP BY lower(trim(a.transcription))
-    ORDER BY MIN(a.accuracy) ASC
-    LIMIT $LIST_BLOOPERS
+    ORDER BY a.id
 ''').fetchall()
-if not rows:
-    print('No candidates yet.')
-for r in rows:
-    print(f'#{r[0]}  [{r[1]}]  {round((r[4] or 0) * 100)}%  player={r[5]}')
-    print(f'    expected: {r[2]}')
-    print(f'    heard:    {r[3]}')
 db.close()
+norm = lambda s: ''.join(ch for ch in s.lower() if ch.isalnum())
+seen, out = set(), []
+for aid, lang, phrase, heard, nick in rows:
+    key = norm(heard)
+    if key in seen:
+        continue
+    seen.add(key)
+    sim = difflib.SequenceMatcher(None, norm(phrase), key).ratio()
+    if 0.15 <= sim < 0.95:
+        out.append((sim, aid, lang, phrase, heard, nick))
+out.sort()
+if not out:
+    print('No candidates yet.')
+for sim, aid, lang, phrase, heard, nick in out[:$LIST_BLOOPERS]:
+    script = 'latin' if all(ord(c) < 0x250 for c in norm(phrase)) else 'non-latin'
+    print(f'#{aid}  [{lang}, {script}]  similarity {round(sim * 100)}%  player={nick}')
+    print(f'    expected: {phrase}')
+    print(f'    heard:    {heard}')
 "
     exit 0
 fi
@@ -171,7 +183,7 @@ echo "Generating ceremony presentation..."
 
 # Pass data via environment: transcriptions and names may contain quotes.
 STATS_JSON="$STATS_JSON" EVENT_NAME="$EVENT_NAME" EVENT_DATES="$EVENT_DATES" \
-OUTPUT_FILE="$OUTPUT" BLOOPER_CREDIT="$BLOOPER_CREDIT" python3 -c "
+OUTPUT_FILE="$OUTPUT" BLOOPER_CREDIT="$BLOOPER_CREDIT" BLOOPER_NOTE="$BLOOPER_NOTE" python3 -c "
 import json, os, sys, html as html_mod
 
 data = json.loads(os.environ['STATS_JSON'])
@@ -181,6 +193,7 @@ num_winners = $NUM_WINNERS
 num_runners = $NUM_RUNNERS
 output_file = os.environ['OUTPUT_FILE']
 blooper_credit = os.environ.get('BLOOPER_CREDIT') == 'true'
+blooper_note = os.environ.get('BLOOPER_NOTE', '').strip()
 
 LANG_NAMES = {
     'sk':'Slovak','cs':'Czech','en':'English','pl':'Polish','hu':'Hungarian',
@@ -301,6 +314,7 @@ blooper = data.get('blooper')
 blooper_slide = ''
 if blooper:
     credit = f'<div class=\"bl-credit\" data-delay=\"1600\">Spoken by {esc(blooper[\"nickname\"])}</div>' if blooper_credit else ''
+    note = f'<div class=\"bl-note\" data-delay=\"1400\">{esc(blooper_note)}</div>' if blooper_note else ''
     blooper_slide = f'''
 <!-- Whisper Fail of the Day -->
 <div class=\"slide\" id=\"slideBlooper\">
@@ -316,6 +330,7 @@ if blooper:
             <div class=\"bl-text\">{esc(blooper['heard'])}</div>
             <div class=\"bl-acc\">{blooper['accuracy']}% accuracy</div>
         </div>
+        {note}
         {credit}
     </div>
 </div>'''
@@ -467,6 +482,8 @@ HTML = f'''<!DOCTYPE html>
         .bl-text {{ font-family: 'Red Hat Display', sans-serif; font-weight: 700; font-size: 2rem; line-height: 1.25; }}
         .bl-row.heard .bl-text {{ color: #f0ab00; }}
         .bl-acc {{ font-family: 'Red Hat Mono', monospace; font-size: 1rem; color: #ee0000; margin-top: 10px; }}
+        .bl-note {{ text-align: center; color: #e0e0e0; font-size: 1.3rem; font-style: italic; opacity: 0; }}
+        .bl-note.animate {{ animation: fadeIn 0.6s ease forwards; }}
         .bl-credit {{ text-align: center; color: #6a6e73; font-size: 1rem; opacity: 0; }}
         .bl-credit.animate {{ animation: fadeIn 0.6s ease forwards; }}
 

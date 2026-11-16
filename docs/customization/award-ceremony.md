@@ -42,11 +42,13 @@ Requires `oc` logged into the cluster and Python 3 (standard library only).
 | `--list-bloopers [N]` | `25` | Print Whisper fail candidates (attempt ID, expected vs. heard) and exit |
 | `--blooper ID` | (none) | Add the Whisper Fail of the Day slide for that attempt |
 | `--blooper-credit` | off | Show the player's nickname on the fail slide (anonymous by default) |
+| `--blooper-note TEXT` | (none) | One short line under the fail, e.g. a translation or the punchline |
 
 ### Whisper Fail of the Day
 
 Humor needs judgment, so the script only pre-filters: it lists partly-correct
-transcriptions (accuracy 15–90 %, non-empty, deduplicated). When asked for a
+transcriptions (similarity 15–95 % after ignoring case and punctuation,
+non-empty, deduplicated), labelled Latin or non-Latin script. When asked for a
 ceremony deck, the agent reads the candidates, picks the funniest (never
 anything offensive or personal), includes it by default and reports its pick
 so the owner can swap or drop it:
