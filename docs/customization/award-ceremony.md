@@ -10,8 +10,13 @@ and designed for fullscreen display on stage.
 2. **Language battle** — easiest vs toughest languages (accuracy bars), most played
 3. **Whisper fail of the day** — optional; what the player said vs. what Whisper heard
 4. **Drum roll**
-5. **Winners podium** — revealed one at a time (3rd → 2nd → 1st)
-6. **Close behind** — next ranked players (optional)
+5. **Winners** — podium revealed one at a time (3rd → 2nd → 1st), honourable
+   mentions (places 4–7 by default, `--runners N`) below it. This is the last slide.
+
+The deck language follows the deployment's required challenge language
+(`REQUIRED_CHALLENGE_LANGUAGE`, read from the running pod): Czech, Slovak or
+English; other languages fall back to English. Override with `--lang cs|sk|en`.
+Write `--blooper-note` in the same language.
 
 Controls: → / space / click to advance, ← to go back, F fullscreen, B blackout.
 On the podium slide each press reveals the next winner.
@@ -42,7 +47,8 @@ Requires `oc` logged into the cluster and Python 3 (standard library only).
 | `--namespace NS` | `whisper` | Kubernetes namespace |
 | `--output FILE` | `ceremony.html` | Output HTML file path |
 | `--winners N` | `3` | Number of podium winners |
-| `--runners N` | `4` | Number of runner-up entries |
+| `--runners N` | `4` | Honourable mentions under the podium |
+| `--lang CODE` | required language | Deck language: `cs`, `sk` or `en` |
 | `--list-bloopers [N]` | `25` | Print Whisper fail candidates (attempt ID, expected vs. heard) and exit |
 | `--blooper ID` | (none) | Add the Whisper Fail of the Day slide for that attempt |
 | `--blooper-credit` | off | Show the player's nickname on the fail slide (anonymous by default) |

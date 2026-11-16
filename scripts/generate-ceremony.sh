@@ -16,6 +16,7 @@ NUM_RUNNERS=4
 BLOOPER_ID=""
 BLOOPER_CREDIT=false
 BLOOPER_NOTE=""
+DECK_LANG=""
 LIST_BLOOPERS=""
 
 usage() {
@@ -26,7 +27,9 @@ Usage: ./scripts/generate-ceremony.sh [options]
   --namespace NS     Kubernetes namespace (default: whisper)
   --output FILE      Output HTML file (default: ceremony.html)
   --winners N        Number of podium winners (default: 3)
-  --runners N        Number of runner-up rows (default: 4)
+  --runners N        Honourable mentions under the podium (default: 4)
+  --lang CODE        Deck language: cs, sk or en (default: the deployment's
+                     required challenge language; others fall back to en)
   --list-bloopers [N] Print up to N (default 25) "Whisper fail" candidates
                      (expected phrase vs. what Whisper heard) and exit
   --blooper ID       Add a "Whisper Fail of the Day" slide for attempt ID
@@ -51,6 +54,7 @@ while [[ $# -gt 0 ]]; do
         --blooper)   BLOOPER_ID="$2"; shift 2 ;;
         --blooper-credit) BLOOPER_CREDIT=true; shift ;;
         --blooper-note) BLOOPER_NOTE="$2"; shift 2 ;;
+        --lang)      DECK_LANG="$2"; shift 2 ;;
         --list-bloopers)
             if [[ "${2:-}" =~ ^[0-9]+$ ]]; then LIST_BLOOPERS="$2"; shift 2
             else LIST_BLOOPERS=25; shift; fi ;;
@@ -163,7 +167,9 @@ if '$BLOOPER_ID':
     blooper = {'lang': r[0], 'phrase': r[1], 'heard': r[2] or '',
                'accuracy': round((r[3] or 0) * 100), 'nickname': r[4]}
 
+import os
 result = {
+    'required_language': os.environ.get('REQUIRED_CHALLENGE_LANGUAGE', ''),
     'blooper': blooper,
     'total_players': total_players,
     'total_games': total_games,
@@ -186,7 +192,7 @@ echo "Generating ceremony presentation..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATS_JSON="$STATS_JSON" EVENT_NAME="$EVENT_NAME" EVENT_DATES="$EVENT_DATES" \
 OUTPUT_FILE="$OUTPUT" NUM_WINNERS="$NUM_WINNERS" NUM_RUNNERS="$NUM_RUNNERS" \
-BLOOPER_CREDIT="$BLOOPER_CREDIT" BLOOPER_NOTE="$BLOOPER_NOTE" \
+BLOOPER_CREDIT="$BLOOPER_CREDIT" BLOOPER_NOTE="$BLOOPER_NOTE" DECK_LANG="$DECK_LANG" \
     python3 "$SCRIPT_DIR/ceremony/render.py"
 
 echo "Done: $OUTPUT"

@@ -3,7 +3,7 @@
 
 Called by scripts/generate-ceremony.sh. Inputs come from environment variables
 (STATS_JSON, EVENT_NAME, EVENT_DATES, OUTPUT_FILE, NUM_WINNERS, NUM_RUNNERS,
-BLOOPER_CREDIT, BLOOPER_NOTE). Standard library only.
+BLOOPER_CREDIT, BLOOPER_NOTE, DECK_LANG). Standard library only.
 
 Branding follows https://www.redhat.com/en/about/brand/standards: light theme,
 palette colours only, Red Hat Display/Text Regular and Bold embedded (SIL OFL,
@@ -20,15 +20,72 @@ from pathlib import Path
 ASSETS = Path(__file__).resolve().parent / 'assets'
 
 LANG_NAMES = {
-    'sk': 'Slovak', 'cs': 'Czech', 'en': 'English', 'pl': 'Polish', 'hu': 'Hungarian',
-    'de': 'German', 'es': 'Spanish', 'fi': 'Finnish', 'fr': 'French', 'hr': 'Croatian',
-    'is': 'Icelandic', 'no': 'Norwegian', 'sr': 'Serbian', 'tr': 'Turkish', 'it': 'Italian',
-    'pt': 'Portuguese', 'nl': 'Dutch', 'sv': 'Swedish', 'ro': 'Romanian', 'uk': 'Ukrainian',
-    'ja': 'Japanese', 'ko': 'Korean', 'ar': 'Arabic', 'zh': 'Chinese', 'th': 'Thai',
-    'hi': 'Hindi', 'sl': 'Slovenian', 'bg': 'Bulgarian', 'bs': 'Bosnian', 'da': 'Danish',
-    'el': 'Greek', 'he': 'Hebrew', 'id': 'Indonesian', 'ms': 'Malay', 'ru': 'Russian',
-    'vi': 'Vietnamese', 'fa': 'Persian', 'ka': 'Georgian', 'hy': 'Armenian',
-    'et': 'Estonian', 'lv': 'Latvian', 'lt': 'Lithuanian', 'ca': 'Catalan',
+    'en': {
+        'sk': 'Slovak', 'cs': 'Czech', 'en': 'English', 'pl': 'Polish', 'hu': 'Hungarian',
+        'de': 'German', 'es': 'Spanish', 'fi': 'Finnish', 'fr': 'French', 'hr': 'Croatian',
+        'is': 'Icelandic', 'no': 'Norwegian', 'sr': 'Serbian', 'tr': 'Turkish', 'it': 'Italian',
+        'pt': 'Portuguese', 'nl': 'Dutch', 'sv': 'Swedish', 'ro': 'Romanian', 'uk': 'Ukrainian',
+        'ja': 'Japanese', 'ko': 'Korean', 'ar': 'Arabic', 'zh': 'Chinese', 'th': 'Thai',
+        'hi': 'Hindi', 'sl': 'Slovenian', 'bg': 'Bulgarian', 'ka': 'Georgian', 'ru': 'Russian',
+        'el': 'Greek', 'da': 'Danish',
+    },
+    'cs': {
+        'sk': 'slovenština', 'cs': 'čeština', 'en': 'angličtina', 'pl': 'polština',
+        'hu': 'maďarština', 'de': 'němčina', 'es': 'španělština', 'fi': 'finština',
+        'fr': 'francouzština', 'hr': 'chorvatština', 'is': 'islandština', 'no': 'norština',
+        'sr': 'srbština', 'tr': 'turečtina', 'it': 'italština', 'pt': 'portugalština',
+        'nl': 'nizozemština', 'sv': 'švédština', 'ro': 'rumunština', 'uk': 'ukrajinština',
+        'ja': 'japonština', 'ko': 'korejština', 'ar': 'arabština', 'zh': 'čínština',
+        'th': 'thajština', 'hi': 'hindština', 'sl': 'slovinština', 'bg': 'bulharština',
+        'ka': 'gruzínština', 'ru': 'ruština', 'el': 'řečtina', 'da': 'dánština',
+    },
+    'sk': {
+        'sk': 'slovenčina', 'cs': 'čeština', 'en': 'angličtina', 'pl': 'poľština',
+        'hu': 'maďarčina', 'de': 'nemčina', 'es': 'španielčina', 'fi': 'fínčina',
+        'fr': 'francúzština', 'hr': 'chorvátčina', 'is': 'islandčina', 'no': 'nórčina',
+        'sr': 'srbčina', 'tr': 'turečtina', 'it': 'taliančina', 'pt': 'portugalčina',
+        'nl': 'holandčina', 'sv': 'švédčina', 'ro': 'rumunčina', 'uk': 'ukrajinčina',
+        'ja': 'japončina', 'ko': 'kórejčina', 'ar': 'arabčina', 'zh': 'čínština',
+        'th': 'thajčina', 'hi': 'hindčina', 'sl': 'slovinčina', 'bg': 'bulharčina',
+        'ka': 'gruzínčina', 'ru': 'ruština', 'el': 'gréčtina', 'da': 'dánčina',
+    },
+}
+
+# Deck texts. Phrasing avoids Czech/Slovak plural forms after numbers.
+TEXT = {
+    'en': {
+        'players': 'Players', 'games': 'Games played', 'langs': 'Languages',
+        'perfect': 'Perfect transcriptions', 'battle': 'The language battle',
+        'easiest': 'Easiest for Whisper', 'toughest': 'Toughest for players',
+        'avg': 'Average transcription accuracy', 'most': 'Most played: {lang} ({n}×)',
+        'fail': 'Whisper fail of the day', 'said': 'The player said ({lang})',
+        'heard': 'Whisper heard', 'acc': '{v} % accuracy', 'credit': 'Player: {name}',
+        'drum': 'And the winners are…', 'winners': 'Winners', 'score': '{v} points',
+        'mentions': 'Honourable mentions',
+        'diff': {'easy': 'Easy', 'medium': 'Medium', 'hard': 'Hard'},
+    },
+    'cs': {
+        'players': 'Hráči', 'games': 'Odehrané hry', 'langs': 'Jazyky',
+        'perfect': 'Bezchybné přepisy', 'battle': 'Souboj jazyků',
+        'easiest': 'Whisperu šly nejlépe', 'toughest': 'Pro hráče nejtěžší',
+        'avg': 'Průměrná přesnost přepisu', 'most': 'Nejoblíbenější jazyk: {lang} ({n}×)',
+        'fail': 'Whisperův přešlap dne', 'said': 'Hráč řekl ({lang})',
+        'heard': 'Whisper slyšel', 'acc': 'přesnost {v} %', 'credit': 'Hráč: {name}',
+        'drum': 'A vítězi jsou…', 'winners': 'Vítězové', 'score': 'skóre {v}',
+        'mentions': 'Čestné uznání',
+        'diff': {'easy': 'Lehká', 'medium': 'Střední', 'hard': 'Těžká'},
+    },
+    'sk': {
+        'players': 'Hráči', 'games': 'Odohrané hry', 'langs': 'Jazyky',
+        'perfect': 'Bezchybné prepisy', 'battle': 'Súboj jazykov',
+        'easiest': 'Whisperu išli najlepšie', 'toughest': 'Pre hráčov najťažšie',
+        'avg': 'Priemerná presnosť prepisu', 'most': 'Najobľúbenejší jazyk: {lang} ({n}×)',
+        'fail': 'Whisperov prešľap dňa', 'said': 'Hráč povedal ({lang})',
+        'heard': 'Whisper počul', 'acc': 'presnosť {v} %', 'credit': 'Hráč: {name}',
+        'drum': 'A víťazmi sú…', 'winners': 'Víťazi', 'score': 'skóre {v}',
+        'mentions': 'Čestné uznanie',
+        'diff': {'easy': 'Ľahká', 'medium': 'Stredná', 'hard': 'Ťažká'},
+    },
 }
 
 
@@ -36,18 +93,10 @@ def esc(s):
     return html.escape(str(s))
 
 
-def lang_name(code):
-    return LANG_NAMES.get(code, str(code).upper())
-
-
 def font_face(family, weight, filename):
     data = base64.b64encode((ASSETS / filename).read_bytes()).decode()
     return (f"@font-face {{ font-family: '{family}'; font-weight: {weight}; font-style: normal; "
             f"src: url(data:font/ttf;base64,{data}) format('truetype'); }}")
-
-
-def fmt_score(v):
-    return f'{v:.1f}'.rstrip('0').rstrip('.') if isinstance(v, (int, float)) else esc(v)
 
 
 def main():
@@ -59,6 +108,21 @@ def main():
     num_runners = int(os.environ.get('NUM_RUNNERS', '4'))
     blooper_credit = os.environ.get('BLOOPER_CREDIT') == 'true'
     blooper_note = os.environ.get('BLOOPER_NOTE', '').strip()
+    lang = (os.environ.get('DECK_LANG') or data.get('required_language') or 'en').strip().lower()
+    if lang not in TEXT:
+        lang = 'en'
+    t = TEXT[lang]
+
+    def num(v):
+        s = f'{v:.1f}'.rstrip('0').rstrip('.') if isinstance(v, float) else str(v)
+        return s.replace('.', ',') if lang in ('cs', 'sk') else s
+
+    def lname(code, cap=False):
+        n = LANG_NAMES[lang].get(code) or LANG_NAMES['en'].get(code) or str(code).upper()
+        return n[:1].upper() + n[1:] if cap else n
+
+    def diff(d):
+        return t['diff'].get(str(d).lower(), str(d).capitalize())
 
     fonts = '\n'.join([
         font_face('Red Hat Display', 400, 'RedHatDisplay-Regular.ttf'),
@@ -71,23 +135,19 @@ def main():
     slides = []
 
     # 1. Title and key numbers
-    tiles = [
-        (data['total_players'], 'Players'),
-        (data['total_games'], 'Games played'),
-        (data['unique_langs'], 'Languages'),
-        (data['perfect_scores'], 'Perfect transcriptions'),
-    ]
+    tiles = [(data['total_players'], t['players']), (data['total_games'], t['games']),
+             (data['unique_langs'], t['langs']), (data['perfect_scores'], t['perfect'])]
     tile_html = ''.join(
-        f'<div class="tile" data-delay="{200 + i * 150}"><div class="tile-num">{esc(n)}</div>'
+        f'<div class="tile" data-delay="{200 + i * 150}"><div class="tile-num">{esc(num(n))}</div>'
         f'<div class="tile-label">{esc(label)}</div></div>'
         for i, (n, label) in enumerate(tiles))
-    slides.append(f'''
+    slides.append(f"""
 <section class="slide" id="s-title">
   <div class="accent"></div>
   <h1>Whisper Voice Challenge</h1>
   <p class="sub">{esc(event_name)} · {esc(event_dates)}</p>
   <div class="tiles">{tile_html}</div>
-</section>''')
+</section>""")
 
     # 2. Language battle (only with enough data)
     langs = [l for l in data.get('lang_stats', []) if l.get('avg_acc') is not None]
@@ -98,108 +158,102 @@ def main():
         def rows(items, cls, base):
             return ''.join(
                 f'<div class="lrow" data-delay="{base + i * 150}">'
-                f'<div class="lname">{esc(lang_name(l["lang"]))}</div>'
+                f'<div class="lname">{esc(lname(l["lang"], cap=True))}</div>'
                 f'<div class="ltrack"><div class="lbar {cls}" style="width:{max(4, min(100, l["avg_acc"]))}%"></div></div>'
-                f'<div class="lval">{esc(l["avg_acc"])} %</div></div>'
+                f'<div class="lval">{esc(num(l["avg_acc"]))} %</div></div>'
                 for i, l in enumerate(items))
         most = data.get('most_attempted')
-        most_html = (f'<p class="foot" data-delay="1300">Most played: <b>{esc(lang_name(most["lang"]))}</b>, '
-                     f'{esc(most["count"])} attempts</p>') if most else ''
-        slides.append(f'''
+        most_html = (f'<p class="foot" data-delay="1300">'
+                     f'{esc(t["most"].format(lang=lname(most["lang"]), n=most["count"]))}</p>') if most else ''
+        slides.append(f"""
 <section class="slide" id="s-langs">
   <div class="accent"></div>
-  <h2>The language battle</h2>
+  <h2>{esc(t['battle'])}</h2>
   <div class="lcols">
-    <div><h3>Easiest for Whisper</h3>{rows(easiest, 'good', 200)}</div>
-    <div><h3>Toughest for players</h3>{rows(hardest, 'hard', 700)}</div>
+    <div><h3>{esc(t['easiest'])}</h3>{rows(easiest, 'good', 200)}</div>
+    <div><h3>{esc(t['toughest'])}</h3>{rows(hardest, 'hard', 700)}</div>
   </div>
-  <p class="caption">Average transcription accuracy</p>
+  <p class="caption">{esc(t['avg'])}</p>
   {most_html}
-</section>''')
+</section>""")
 
-    # 3. Whisper Fail of the Day (optional)
+    # 3. Whisper fail of the day (optional)
     b = data.get('blooper')
     if b:
         note = f'<p class="bnote" data-delay="1500">{esc(blooper_note)}</p>' if blooper_note else ''
-        credit = f'<p class="caption" data-delay="1700">Spoken by {esc(b["nickname"])}</p>' if blooper_credit else ''
-        slides.append(f'''
+        credit = (f'<p class="caption" data-delay="1700">{esc(t["credit"].format(name=b["nickname"]))}</p>'
+                  if blooper_credit else '')
+        slides.append(f"""
 <section class="slide" id="s-blooper">
   <div class="accent"></div>
-  <h2>Whisper fail of the day</h2>
+  <h2>{esc(t['fail'])}</h2>
   <div class="bcard" data-delay="200">
-    <div class="blabel">The player said ({esc(lang_name(b["lang"]))})</div>
-    <div class="btext">{esc(b["phrase"])}</div>
+    <div class="blabel">{esc(t['said'].format(lang=lname(b['lang'])))}</div>
+    <div class="btext">{esc(b['phrase'])}</div>
   </div>
   <div class="bcard heard" data-delay="1000">
-    <div class="blabel">Whisper heard</div>
-    <div class="btext">{esc(b["heard"])}</div>
-    <div class="bacc">{esc(b["accuracy"])} % accuracy</div>
+    <div class="blabel">{esc(t['heard'])}</div>
+    <div class="btext">{esc(b['heard'])}</div>
+    <div class="bacc">{esc(t['acc'].format(v=num(b['accuracy'])))}</div>
   </div>
   {note}{credit}
-</section>''')
+</section>""")
 
     # 4. Drum roll
-    slides.append('''
+    slides.append(f"""
 <section class="slide center" id="s-drum">
-  <h2 class="drum">And the winners are&hellip;</h2>
+  <h2 class="drum">{esc(t['drum'])}</h2>
   <div class="dots"><span></span><span></span><span></span></div>
-</section>''')
+</section>""")
 
-    # 5. Podium, revealed 3rd -> 2nd -> 1st
+    # 5. Winners: podium revealed 3rd -> 2nd -> 1st, honourable mentions below
     top = data.get('top_players', [])
-    winners = top[:num_winners]
-    places = [(1, 'second'), (0, 'first'), (2, 'third')]
-    podium = ''
-    reveal = []
-    for idx, cls in places:
-        if idx >= len(winners) or idx > 2:
+    winners = top[:min(num_winners, 3)]
+    podium, reveal = '', []
+    for idx, cls in [(1, 'second'), (0, 'first'), (2, 'third')]:
+        if idx >= len(winners):
             continue
         w = winners[idx]
         wid = f'place{idx + 1}'
         reveal.append((idx, wid))
-        podium += f'''
+        podium += f"""
     <div class="place {cls}" id="{wid}">
-      <div class="pname">{esc(w["nickname"])}</div>
-      <div class="pscore">{fmt_score(w["score"])} points</div>
-      <div class="pdiff">{esc(str(w["difficulty"]).capitalize())}</div>
+      <div class="pname">{esc(w['nickname'])}</div>
+      <div class="pscore">{esc(t['score'].format(v=num(w['score'])))}</div>
+      <div class="pdiff">{esc(diff(w['difficulty']))}</div>
       <div class="pbar"><span>{idx + 1}</span></div>
-    </div>'''
+    </div>"""
     reveal_order = json.dumps([wid for _, wid in sorted(reveal, reverse=True)])
-    slides.append(f'''
+    runners = top[len(winners):len(winners) + num_runners]
+    mentions = ''
+    if runners:
+        items = ''.join(
+            f'<span class="mention"><b>{len(winners) + i + 1}.</b> {esc(r["nickname"])} '
+            f'<span class="mscore">{esc(num(r["score"]))}</span></span>'
+            for i, r in enumerate(runners))
+        mentions = (f'<div class="mentions" data-delay="400">'
+                    f'<span class="mlabel">{esc(t["mentions"])}</span>{items}</div>')
+    slides.append(f"""
 <section class="slide" id="s-podium">
   <div class="accent"></div>
-  <h2>Winners</h2>
+  <h2>{esc(t['winners'])}</h2>
   <div class="podium">{podium}
   </div>
-</section>''')
-
-    # 6. Runners-up (optional)
-    runners = top[num_winners:num_winners + num_runners]
-    if runners:
-        rrows = ''.join(
-            f'<div class="rrow" data-delay="{200 + i * 150}"><span class="rrank">{num_winners + i + 1}</span>'
-            f'<span class="rname">{esc(r["nickname"])}</span>'
-            f'<span class="rdiff">{esc(str(r["difficulty"]).capitalize())}</span>'
-            f'<span class="rscore">{fmt_score(r["score"])} points</span></div>'
-            for i, r in enumerate(runners))
-        slides.append(f'''
-<section class="slide" id="s-runners">
-  <div class="accent"></div>
-  <h2>Close behind</h2>
-  <div class="rlist">{rrows}</div>
-</section>''')
+  {mentions}
+</section>""")
 
     page = TEMPLATE.replace('/*FONTS*/', fonts) \
+        .replace('{{LANG}}', lang) \
         .replace('{{LOGO}}', logo) \
         .replace('{{SLIDES}}', '\n'.join(slides)) \
         .replace('{{REVEAL}}', reveal_order) \
         .replace('{{TITLE}}', esc(f'Whisper Voice Challenge · {event_name}'))
     Path(output_file).write_text(page, encoding='utf-8')
-    print(f'Ceremony presentation saved: {output_file}')
+    print(f'Ceremony presentation saved: {output_file} (language: {lang})')
 
 
 TEMPLATE = r'''<!DOCTYPE html>
-<html lang="en">
+<html lang="{{LANG}}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -270,19 +324,17 @@ h3 { font-family: 'Red Hat Display', sans-serif; font-weight: 700; font-size: 1.
 .pscore { font-size: 1.5rem; margin-top: 6px; }
 .pdiff { font-size: 1.2rem; color: #4d4d4d; margin-top: 2px; }
 .pbar { margin-top: 20px; border-radius: 16px 16px 0 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 18px; }
-.pbar span { font-family: 'Red Hat Display', sans-serif; font-weight: 700; font-size: 4rem; line-height: 1.2; }
-.first .pbar { height: 280px; background: #ee0000; color: #ffffff; }
-.second .pbar { height: 210px; background: #4d4d4d; color: #ffffff; }
-.third .pbar { height: 150px; background: #c7c7c7; color: #151515; }
+.pbar span { font-family: 'Red Hat Display', sans-serif; font-weight: 700; font-size: 3.4rem; line-height: 1.2; }
+.first .pbar { height: 220px; background: #ee0000; color: #ffffff; }
+.second .pbar { height: 165px; background: #4d4d4d; color: #ffffff; }
+.third .pbar { height: 115px; background: #c7c7c7; color: #151515; }
 
-/* Runners-up */
-.rlist { max-width: 1100px; }
-.rrow { display: grid; grid-template-columns: 70px 1fr 160px 200px; align-items: center; gap: 16px;
-        padding: 20px 28px; border-bottom: 2px solid #e0e0e0; font-size: 1.6rem; }
-.rrank { font-family: 'Red Hat Display', sans-serif; font-weight: 700; color: #707070; }
-.rname { font-weight: 700; overflow-wrap: anywhere; }
-.rdiff { color: #4d4d4d; font-size: 1.3rem; }
-.rscore { text-align: right; }
+/* Honourable mentions */
+.mentions { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 12px 36px;
+            margin-top: 36px; padding-top: 24px; border-top: 2px solid #e0e0e0; max-width: 1200px; width: 100%; align-self: center; font-size: 1.5rem; }
+.mlabel { color: #4d4d4d; }
+.mention b { font-family: 'Red Hat Display', sans-serif; color: #707070; }
+.mscore { color: #4d4d4d; margin-left: 6px; }
 
 .nav { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 10; }
 .nav i { width: 12px; height: 12px; border-radius: 50%; background: #c7c7c7; cursor: pointer; }
