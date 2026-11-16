@@ -6,16 +6,20 @@ and designed for fullscreen display on stage.
 
 ## Slides
 
-1. **Title + Key Numbers** — event name, player count, games, languages, perfect scores
-2. **Language Battle** — top 3 easiest vs hardest languages, most attempted language
-3. **By the Numbers** — fun facts with animated card reveals
-4. **Whisper Fail of the Day** — optional; what the player said vs. what Whisper heard
-5. **Drum Roll** — suspense transition
-6. **Winners Podium** — gold/silver/bronze revealed one at a time (3rd → 2nd → 1st)
-7. **Runner-Up** — additional ranked players (optional)
+1. **Title and key numbers** — event, players, games, languages, perfect transcriptions
+2. **Language battle** — easiest vs toughest languages (accuracy bars), most played
+3. **Whisper fail of the day** — optional; what the player said vs. what Whisper heard
+4. **Drum roll**
+5. **Winners podium** — revealed one at a time (3rd → 2nd → 1st)
+6. **Close behind** — next ranked players (optional)
 
-Navigate with arrow keys, spacebar, or click. On the podium slide, each press
-reveals the next winner instead of advancing.
+Controls: → / space / click to advance, ← to go back, F fullscreen, B blackout.
+On the podium slide each press reveals the next winner.
+
+The deck follows Red Hat brand standards: light theme, palette colours only,
+embedded Red Hat Display/Text fonts (SIL OFL) and the unmodified standard logo
+from `scripts/ceremony/assets/`. It is one offline HTML file with no network
+dependencies. The renderer is `scripts/ceremony/render.py` (standard library).
 
 ## Generate from live data
 
@@ -71,7 +75,7 @@ The script queries the live SQLite database via `oc exec` and extracts:
 
 ### PPTX generation
 
-The HTML deck is the primary ceremony format (animations, dark theme, podium
+The HTML deck is the primary ceremony format (animations, Red Hat light theme, podium
 reveals). For offline sharing or archiving, generate a PPTX alongside it.
 The repository includes reference scripts (`generate_stats_pptx.py`) that use
 `python-pptx`. Install it with `pip install python-pptx` if needed. The agent
@@ -81,8 +85,7 @@ reference scripts. This is not automated in `generate-ceremony.sh` because
 
 ## Presentation tips
 
-- Run fullscreen (F11 in Chrome) on the stage display
-- Dark theme (#151515 background) works well in dimly lit conference halls
+- Press F for fullscreen on the stage display
 - Test the podium reveal sequence before the ceremony — each click/keypress
   reveals one winner
 - Generate the presentation just before the ceremony to include final scores

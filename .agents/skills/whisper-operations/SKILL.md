@@ -274,9 +274,13 @@ produces a self-contained HTML file with Red Hat branding.
 - Run `scripts/generate-ceremony.sh` with `--event` and `--dates` (both
   required). The script queries the live database via `oc exec` and generates
   the HTML deck. No pip packages or image rebuild required.
-- The deck has up to 7 slides: title/numbers, language battle, fun facts,
-  optional Whisper Fail of the Day, drum roll, podium (winners revealed one by
-  one), and runner-up. Navigate with arrow keys or click.
+- The deck has up to 6 slides: title/numbers, language battle, optional
+  Whisper fail of the day, drum roll, podium (top 3 revealed 3rd → 2nd → 1st)
+  and close behind. Arrows/space/click navigate, F fullscreen, B blackout.
+- Styling lives in `scripts/ceremony/render.py`: Red Hat brand standards,
+  light theme, palette colours only, embedded Red Hat fonts and the unmodified
+  logo, offline. Keep changes within those rules (no emoji icons, no CDN
+  fonts, sentence case).
 - Generate the presentation just before the ceremony to include final scores.
   Keep the output private until the ceremony.
 - Include a "Whisper Fail of the Day" slide by default (expected phrase vs.
