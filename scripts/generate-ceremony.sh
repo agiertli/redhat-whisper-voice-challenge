@@ -2,6 +2,8 @@
 # Generate an animated HTML ceremony presentation from live tournament data.
 # Usage: ./scripts/generate-ceremony.sh --event "Conference Name" --dates "Oct 13–14, 2026"
 #        [--namespace whisper] [--output ceremony.html] [--winners 3] [--runners 4]
+#        [--blooper ATTEMPT_ID] [--blooper-credit]
+#        ./scripts/generate-ceremony.sh --list-bloopers [N]   # "Whisper Fail of the Day" candidates
 # Requires: oc logged into the cluster, Python 3 (standard library only).
 set -Eeuo pipefail
 
@@ -11,6 +13,9 @@ EVENT_NAME=""
 EVENT_DATES=""
 NUM_WINNERS=3
 NUM_RUNNERS=4
+BLOOPER_ID=""
+BLOOPER_CREDIT=false
+LIST_BLOOPERS=""
 
 usage() {
     cat <<'USAGE'
@@ -21,6 +26,12 @@ Usage: ./scripts/generate-ceremony.sh [options]
   --output FILE      Output HTML file (default: ceremony.html)
   --winners N        Number of podium winners (default: 3)
   --runners N        Number of runner-up rows (default: 4)
+  --list-bloopers [N] Print up to N (default 25) "Whisper fail" candidates
+                     (expected phrase vs. what Whisper heard) and exit
+  --blooper ID       Add a "Whisper Fail of the Day" slide for attempt ID
+                     (pick the ID from --list-bloopers)
+  --blooper-credit   Show the player's nickname on the fail slide
+                     (default: anonymous)
   -h, --help         Show this help
 USAGE
     exit 0
@@ -34,10 +45,52 @@ while [[ $# -gt 0 ]]; do
         --output)    OUTPUT="$2"; shift 2 ;;
         --winners)   NUM_WINNERS="$2"; shift 2 ;;
         --runners)   NUM_RUNNERS="$2"; shift 2 ;;
+        --blooper)   BLOOPER_ID="$2"; shift 2 ;;
+        --blooper-credit) BLOOPER_CREDIT=true; shift ;;
+        --list-bloopers)
+            if [[ "${2:-}" =~ ^[0-9]+$ ]]; then LIST_BLOOPERS="$2"; shift 2
+            else LIST_BLOOPERS=25; shift; fi ;;
         -h|--help)   usage ;;
         *)           echo "Unknown option: $1" >&2; exit 1 ;;
     esac
 done
+
+if [[ -n "$BLOOPER_ID" && ! "$BLOOPER_ID" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: --blooper must be a numeric attempt ID (see --list-bloopers)." >&2
+    exit 1
+fi
+
+if [[ -n "$LIST_BLOOPERS" ]]; then
+    echo "Fetching Whisper fail candidates from namespace $NS..." >&2
+    # Partly-right misheard sentences are the funny ones: skip empty output,
+    # exact matches and pure garbage; one row per distinct transcription.
+    oc exec deployment/whisper-ui -n "$NS" -- python3 -c "
+import sqlite3
+db = sqlite3.connect('/app/data/tournament.db')
+rows = db.execute('''
+    SELECT MIN(a.id), a.language, a.phrase, a.transcription, MIN(a.accuracy), p.nickname
+    FROM attempts a
+    JOIN games g ON g.id = a.game_id
+    JOIN players p ON p.id = g.player_id
+    WHERE a.status != 'skip'
+      AND a.transcription IS NOT NULL
+      AND length(trim(a.transcription)) >= 8
+      AND a.accuracy BETWEEN 0.15 AND 0.90
+      AND lower(trim(a.transcription)) != lower(trim(a.phrase))
+    GROUP BY lower(trim(a.transcription))
+    ORDER BY MIN(a.accuracy) ASC
+    LIMIT $LIST_BLOOPERS
+''').fetchall()
+if not rows:
+    print('No candidates yet.')
+for r in rows:
+    print(f'#{r[0]}  [{r[1]}]  {round((r[4] or 0) * 100)}%  player={r[5]}')
+    print(f'    expected: {r[2]}')
+    print(f'    heard:    {r[3]}')
+db.close()
+"
+    exit 0
+fi
 
 if [[ -z "$EVENT_NAME" || -z "$EVENT_DATES" ]]; then
     echo "ERROR: --event and --dates are required." >&2
@@ -84,7 +137,22 @@ top_players = db.execute('''
     GROUP BY g.player_id ORDER BY best DESC LIMIT 10
 ''').fetchall()
 
+blooper = None
+if '$BLOOPER_ID':
+    r = db.execute('''
+        SELECT a.language, a.phrase, a.transcription, a.accuracy, p.nickname
+        FROM attempts a
+        JOIN games g ON g.id = a.game_id
+        JOIN players p ON p.id = g.player_id
+        WHERE a.id = ?
+    ''', (int('$BLOOPER_ID'),)).fetchone()
+    if r is None:
+        raise SystemExit('Attempt $BLOOPER_ID not found')
+    blooper = {'lang': r[0], 'phrase': r[1], 'heard': r[2] or '',
+               'accuracy': round((r[3] or 0) * 100), 'nickname': r[4]}
+
 result = {
+    'blooper': blooper,
     'total_players': total_players,
     'total_games': total_games,
     'total_attempts': total_attempts,
@@ -101,15 +169,18 @@ print(json.dumps(result))
 
 echo "Generating ceremony presentation..."
 
-python3 -c "
-import json, sys, html as html_mod
+# Pass data via environment: transcriptions and names may contain quotes.
+STATS_JSON="$STATS_JSON" EVENT_NAME="$EVENT_NAME" EVENT_DATES="$EVENT_DATES" \
+OUTPUT_FILE="$OUTPUT" BLOOPER_CREDIT="$BLOOPER_CREDIT" python3 -c "
+import json, os, sys, html as html_mod
 
-data = json.loads('''$STATS_JSON''')
-event_name = '''$EVENT_NAME'''
-event_dates = '''$EVENT_DATES'''
+data = json.loads(os.environ['STATS_JSON'])
+event_name = os.environ['EVENT_NAME']
+event_dates = os.environ['EVENT_DATES']
 num_winners = $NUM_WINNERS
 num_runners = $NUM_RUNNERS
-output_file = '''$OUTPUT'''
+output_file = os.environ['OUTPUT_FILE']
+blooper_credit = os.environ.get('BLOOPER_CREDIT') == 'true'
 
 LANG_NAMES = {
     'sk':'Slovak','cs':'Czech','en':'English','pl':'Polish','hu':'Hungarian',
@@ -225,7 +296,31 @@ for i, r in enumerate(runners):
             <span class=\"runner-diff\">{esc(r['difficulty'])}</span>
         </div>'''
 
-num_slides = 6 if runners else 5
+# Optional Whisper Fail of the Day slide, shown before the drum roll
+blooper = data.get('blooper')
+blooper_slide = ''
+if blooper:
+    credit = f'<div class=\"bl-credit\" data-delay=\"1600\">Spoken by {esc(blooper[\"nickname\"])}</div>' if blooper_credit else ''
+    blooper_slide = f'''
+<!-- Whisper Fail of the Day -->
+<div class=\"slide\" id=\"slideBlooper\">
+    <div class=\"red-bar\"></div>
+    <div class=\"s3-heading\">&#128514; Whisper Fail of the Day</div>
+    <div class=\"bl-box\">
+        <div class=\"bl-row\" data-delay=\"200\">
+            <div class=\"bl-label\">{flag(blooper['lang'])} The player said</div>
+            <div class=\"bl-text\">{esc(blooper['phrase'])}</div>
+        </div>
+        <div class=\"bl-row heard\" data-delay=\"1000\">
+            <div class=\"bl-label\">&#127911; Whisper heard</div>
+            <div class=\"bl-text\">{esc(blooper['heard'])}</div>
+            <div class=\"bl-acc\">{blooper['accuracy']}% accuracy</div>
+        </div>
+        {credit}
+    </div>
+</div>'''
+
+num_slides = 5 + (1 if runners else 0) + (1 if blooper else 0)
 dots = '\\n'.join(f'<div class=\"dot{\" active\" if i == 0 else \"\"}\" onclick=\"goTo({i})\"></div>' for i in range(num_slides))
 
 # Slide 6: runner-up (only if runners exist)
@@ -363,6 +458,18 @@ HTML = f'''<!DOCTYPE html>
         .runner-score {{ font-family: 'Red Hat Mono', monospace; font-weight: 700; color: #63993d; font-size: 1.1rem; text-align: right; }}
         .runner-diff {{ font-size: 0.75rem; text-transform: uppercase; color: #6a6e73; text-align: right; }}
 
+        /* Whisper Fail of the Day */
+        .bl-box {{ width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }}
+        .bl-row {{ background: #1f1f1f; border: 1px solid #292929; border-radius: 16px; padding: 28px 32px; opacity: 0; transform: translateY(20px); }}
+        .bl-row.animate {{ animation: cardIn 0.5s ease forwards; }}
+        .bl-row.heard {{ border-color: #ee0000; }}
+        .bl-label {{ font-size: 0.85rem; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; margin-bottom: 10px; }}
+        .bl-text {{ font-family: 'Red Hat Display', sans-serif; font-weight: 700; font-size: 2rem; line-height: 1.25; }}
+        .bl-row.heard .bl-text {{ color: #f0ab00; }}
+        .bl-acc {{ font-family: 'Red Hat Mono', monospace; font-size: 1rem; color: #ee0000; margin-top: 10px; }}
+        .bl-credit {{ text-align: center; color: #6a6e73; font-size: 1rem; opacity: 0; }}
+        .bl-credit.animate {{ animation: fadeIn 0.6s ease forwards; }}
+
         @keyframes cardIn {{ to {{ opacity: 1; transform: translateY(0); }} }}
         @keyframes popIn {{ to {{ opacity: 1; transform: scale(1); }} }}
         @keyframes fadeIn {{ to {{ opacity: 1; }} }}
@@ -445,6 +552,8 @@ HTML = f'''<!DOCTYPE html>
     </div>
 </div>
 
+{blooper_slide}
+
 <!-- SLIDE 4: Drum Roll -->
 <div class=\"slide\" id=\"slide4\">
     <div class=\"s4-drum\">
@@ -476,7 +585,7 @@ HTML = f'''<!DOCTYPE html>
     let current = 0;
     let transitioning = false;
 
-    const PODIUM_SLIDE = 4;
+    const PODIUM_SLIDE = Array.from(slides).findIndex(s => s.id === 'slide5');
     const revealOrder = {reveal_order_js};
     let revealStep = 0;
 

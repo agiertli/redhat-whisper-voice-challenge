@@ -9,9 +9,10 @@ and designed for fullscreen display on stage.
 1. **Title + Key Numbers** — event name, player count, games, languages, perfect scores
 2. **Language Battle** — top 3 easiest vs hardest languages, most attempted language
 3. **By the Numbers** — fun facts with animated card reveals
-4. **Drum Roll** — suspense transition
-5. **Winners Podium** — gold/silver/bronze revealed one at a time (3rd → 2nd → 1st)
-6. **Runner-Up** — additional ranked players (optional)
+4. **Whisper Fail of the Day** — optional; what the player said vs. what Whisper heard
+5. **Drum Roll** — suspense transition
+6. **Winners Podium** — gold/silver/bronze revealed one at a time (3rd → 2nd → 1st)
+7. **Runner-Up** — additional ranked players (optional)
 
 Navigate with arrow keys, spacebar, or click. On the podium slide, each press
 reveals the next winner instead of advancing.
@@ -38,6 +39,24 @@ Requires `oc` logged into the cluster and Python 3 (standard library only).
 | `--output FILE` | `ceremony.html` | Output HTML file path |
 | `--winners N` | `3` | Number of podium winners |
 | `--runners N` | `4` | Number of runner-up entries |
+| `--list-bloopers [N]` | `25` | Print Whisper fail candidates (attempt ID, expected vs. heard) and exit |
+| `--blooper ID` | (none) | Add the Whisper Fail of the Day slide for that attempt |
+| `--blooper-credit` | off | Show the player's nickname on the fail slide (anonymous by default) |
+
+### Whisper Fail of the Day
+
+Humor needs judgment, so the script only pre-filters: it lists partly-correct
+transcriptions (accuracy 15–90 %, non-empty, deduplicated). When asked for a
+ceremony deck, the agent reads the candidates, picks the funniest (never
+anything offensive or personal), includes it by default and reports its pick
+so the owner can swap or drop it:
+
+```bash
+./scripts/generate-ceremony.sh --list-bloopers
+./scripts/generate-ceremony.sh --event "ITAPA 2026" --dates "24. 11. 2026" --blooper 1234
+```
+
+Credit the player with `--blooper-credit` only with their consent.
 
 ### Data sourced
 
