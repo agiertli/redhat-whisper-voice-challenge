@@ -2,7 +2,7 @@
 # Generate an animated HTML ceremony presentation from live tournament data.
 # Usage: ./scripts/generate-ceremony.sh --event "Conference Name" --dates "Oct 13–14, 2026"
 #        [--namespace whisper] [--output ceremony.html] [--winners 3] [--runners 4]
-#        [--blooper ATTEMPT_ID] [--blooper-credit]
+#        [--blooper ATTEMPT_ID] [--blooper-credit]   # blooper flags are set by the agent
 #        ./scripts/generate-ceremony.sh --list-bloopers [N]   # "Whisper Fail of the Day" candidates
 # Requires: oc logged into the cluster, Python 3 (standard library only).
 set -Eeuo pipefail

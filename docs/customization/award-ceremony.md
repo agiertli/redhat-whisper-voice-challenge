@@ -16,7 +16,6 @@ and designed for fullscreen display on stage.
 The deck language follows the deployment's required challenge language
 (`REQUIRED_CHALLENGE_LANGUAGE`, read from the running pod): Czech, Slovak or
 English; other languages fall back to English. Override with `--lang cs|sk|en`.
-Write `--blooper-note` in the same language.
 
 Controls: → / space / click to advance, ← to go back, F fullscreen, B blackout.
 On the podium slide each press reveals the next winner.
@@ -49,10 +48,6 @@ Requires `oc` logged into the cluster and Python 3 (standard library only).
 | `--winners N` | `3` | Number of podium winners |
 | `--runners N` | `4` | Honourable mentions under the podium |
 | `--lang CODE` | required language | Deck language: `cs`, `sk` or `en` |
-| `--list-bloopers [N]` | `25` | Print Whisper fail candidates (attempt ID, expected vs. heard) and exit |
-| `--blooper ID` | (none) | Add the Whisper Fail of the Day slide for that attempt |
-| `--blooper-credit` | off | Show the player's nickname on the fail slide (anonymous by default) |
-| `--blooper-note TEXT` | (none) | One short line under the fail, e.g. a translation or the punchline |
 
 ### Whisper Fail of the Day
 
@@ -60,19 +55,18 @@ This slide is the reason to generate the deck through the agent
 (`/whisper-operations`). Humor needs judgment, and nobody reads hundreds of
 transcripts by hand, so a plain script run produces a deck without it.
 
-The script only pre-filters: it lists partly-correct
-transcriptions (similarity 15–95 % after ignoring case and punctuation,
-non-empty, deduplicated), labelled Latin or non-Latin script. When asked for a
-ceremony deck, the agent reads the candidates, picks the funniest (never
-anything offensive or personal), includes it by default and reports its pick
-so the owner can swap or drop it. Under the hood it runs:
+To get it, ask the agent for the deck. It goes through the misheard
+transcripts, picks the funniest one (never anything offensive or personal),
+writes a one-line note in the deck language, and tells you what it picked,
+so you can ask for a different one or none. You don't type any of the
+options below; they're how the agent passes its pick to the script.
 
-```bash
-./scripts/generate-ceremony.sh --list-bloopers
-./scripts/generate-ceremony.sh --event "ITAPA 2026" --dates "24. 11. 2026" --blooper 1234
-```
-
-Credit the player with `--blooper-credit` only with their consent.
+| Flag (set by the agent) | Purpose |
+|------|---------|
+| `--list-bloopers [N]` | Pre-filter candidates: partly-correct transcriptions (15–95 % similarity after ignoring case and punctuation), deduplicated, labelled Latin or non-Latin script |
+| `--blooper ID` | Add the fail slide for that attempt |
+| `--blooper-note TEXT` | One short line under the fail, e.g. a translation or the punchline |
+| `--blooper-credit` | Show the player's nickname (anonymous by default); only when you ask for it and the player agreed |
 
 ### Data sourced
 
