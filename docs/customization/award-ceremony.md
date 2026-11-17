@@ -83,15 +83,10 @@ The script queries the live SQLite database via `oc exec` and extracts:
 - Top players by best single score
 - Returning player count
 
-### PPTX generation
+### Output format
 
-The HTML deck is the primary ceremony format (animations, Red Hat light theme, podium
-reveals). For offline sharing or archiving, generate a PPTX alongside it.
-The repository includes reference scripts (`generate_stats_pptx.py`) that use
-`python-pptx`. Install it with `pip install python-pptx` if needed. The agent
-can generate a PPTX using the same data and the Red Hat brand colors from the
-reference scripts. This is not automated in `generate-ceremony.sh` because
-`python-pptx` is not a standard library package.
+The HTML deck is the only supported format; there is no PPTX export. To share
+or archive the results, keep the generated HTML file. It works offline.
 
 ## Presentation tips
 

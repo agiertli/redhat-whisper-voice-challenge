@@ -301,21 +301,15 @@ produces a self-contained HTML file with Red Hat branding.
      candidates that differ only in script or punctuation. Never pick anything
      offensive, sexual, political, or containing personal data.
   3. Generate the deck with `--blooper <ID>` and, when it helps, a short
-     English `--blooper-note` (translation or the punchline). If there are no
+     `--blooper-note` in the deck language (translation or the punchline). If there are no
      suitable candidates, generate it without the slide and say so.
   4. In the report, name the chosen fail (expected vs. heard, translated if
      not English) with a one-line reason and two alternative IDs. If the owner
      dislikes it, regenerate with another ID or without `--blooper`.
   The slide is anonymous; add `--blooper-credit` only when the owner asks
   for it and confirms the player agreed.
-- For PPTX output (offline sharing/archiving), generate a companion PPTX using
-  `python-pptx` and the same data. Use the existing reference scripts
-  (`generate_stats_pptx.py`) as the template for Red Hat brand colors, layout,
-  and typography. The agent should fetch the tournament JSON from the cluster
-  (same `oc exec` query as the shell script) and produce a PPTX with: title
-  slide with key numbers, language battle (easiest vs hardest), fun facts, and
-  a winners slide with podium + honourable mentions. Install `python-pptx` first
-  if needed (`pip install python-pptx`).
+- The HTML deck is the only supported format. Do not generate PPTX; if the
+  owner asks for one, say it is not supported and offer the HTML file.
 
 ### Upgrade from an older installation
 
