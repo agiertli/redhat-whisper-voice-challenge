@@ -110,9 +110,10 @@ export default function TechOwner({ section }) {
         </Chapter>
 
         <Chapter id="ceremony" title="Award ceremony" lede="The finale. One command turns the live leaderboard into a stage-ready slide deck.">
-          <p>Generate it <strong>right before the ceremony</strong>, so the final scores are in. Ask the skill, or run the script yourself while logged in with <code>oc</code>:</p>
-          <pre className="cmd"><span className="c"># through the agent</span>{'\n'}/whisper-operations Generate the award ceremony{'\n'}{'\n'}<span className="c"># or directly</span>{'\n'}./scripts/generate-ceremony.sh \{'\n'}  --event "Innovate Together" --dates "October 13–14, 2026" \{'\n'}  --namespace whisper --output ceremony.html</pre>
-          <p>You get one self-contained HTML file: event numbers, the language battle, fun facts, a drum roll, then the podium revealed third, second, first. Copy it to the stage laptop.</p>
+          <p>Generate it <strong>right before the ceremony</strong>, so the final scores are in. Ask the skill (recommended) or run the script yourself while logged in with <code>oc</code>:</p>
+          <pre className="cmd"><span className="c"># through the agent (recommended)</span>{'\n'}/whisper-operations Generate the award ceremony for ITAPA 2026, 24.–26. 11. 2026{'\n'}{'\n'}<span className="c"># or directly (no fail slide)</span>{'\n'}./scripts/generate-ceremony.sh \{'\n'}  --event "ITAPA 2026" --dates "24.–26. 11. 2026" \{'\n'}  --namespace whisper --output ceremony.html</pre>
+          <p>You get one self-contained HTML file in Red Hat branding: event numbers, the language battle, the Whisper fail of the day, a drum roll, then the podium revealed third, second, first, with honourable mentions underneath. It works offline. Copy it to the stage laptop.</p>
+          <p><strong>Why ask the agent:</strong> the Whisper fail of the day is the slide people laugh at, and only the agent can make it. It reads hundreds of misheard transcripts, picks the funniest one that's safe to show (nothing offensive or personal), adds a one-line punchline and tells you what it picked, so you can swap it or drop it. Nobody is going to do that by hand, so the direct script gives you a deck without that slide.</p>
           <div className="browser" style={{ margin: '18px 0 8px' }}>
             <div className="browser-bar"><i /><i /><i /><span>ceremony.html</span></div>
             <DeckPreview src="./ceremony-demo.html" />
@@ -121,6 +122,7 @@ export default function TechOwner({ section }) {
           <ul>
             <li><strong>Keep the file to yourself</strong> until the ceremony. It contains the winners.</li>
             <li><strong>Click through the podium once beforehand</strong> on the actual stage screen.</li>
+            <li>The slides use the deployment's required challenge language: Czech, Slovak or English (anything else falls back to English). Ask for another one if you need it (<code>--lang</code>).</li>
             <li>Want more names on stage? <code>--winners</code> and <code>--runners</code> set how many.</li>
           </ul>
           <div className="docs-links">

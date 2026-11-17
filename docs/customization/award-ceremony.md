@@ -56,12 +56,16 @@ Requires `oc` logged into the cluster and Python 3 (standard library only).
 
 ### Whisper Fail of the Day
 
-Humor needs judgment, so the script only pre-filters: it lists partly-correct
+This slide is the reason to generate the deck through the agent
+(`/whisper-operations`). Humor needs judgment, and nobody reads hundreds of
+transcripts by hand, so a plain script run produces a deck without it.
+
+The script only pre-filters: it lists partly-correct
 transcriptions (similarity 15–95 % after ignoring case and punctuation,
 non-empty, deduplicated), labelled Latin or non-Latin script. When asked for a
 ceremony deck, the agent reads the candidates, picks the funniest (never
 anything offensive or personal), includes it by default and reports its pick
-so the owner can swap or drop it:
+so the owner can swap or drop it. Under the hood it runs:
 
 ```bash
 ./scripts/generate-ceremony.sh --list-bloopers
