@@ -12,7 +12,7 @@ export default function DeckPreview({ src }) {
     return () => ro.disconnect()
   }, [])
   return (
-    <div ref={box} style={{ position: 'relative', height: H * k, overflow: 'hidden', background: '#151515' }}>
+    <div ref={box} style={{ position: 'relative', height: H * k, overflow: 'hidden', background: '#ffffff' }}>
       <iframe src={src} title="Example award ceremony deck" loading="lazy"
         style={{ width: W, height: H, border: 0, transform: `scale(${k})`, transformOrigin: '0 0', position: 'absolute', left: 0, top: 0 }} />
     </div>
