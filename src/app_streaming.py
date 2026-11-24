@@ -308,12 +308,22 @@ _JA_BRAND_TO_KATAKANA = {
 }
 
 
+# Whisper sometimes writes Red Hat in Chinese characters (simplified or
+# traditional); map it back so pinyin comparison matches the Latin brand.
+_ZH_BRAND_TO_LATIN = {
+    '红帽': 'Red Hat',
+    '紅帽': 'Red Hat',
+}
+
+
 def phonetic_normalize(text, language):
     if language == 'ja':
         for latin, katakana in _JA_BRAND_TO_KATAKANA.items():
             text = text.replace(latin, katakana)
         return ''.join(item['hira'] for item in _kakasi.convert(text))
     if language == 'zh':
+        for hanzi, latin in _ZH_BRAND_TO_LATIN.items():
+            text = text.replace(hanzi, latin)
         return ' '.join(pypinyin.lazy_pinyin(text))
     return text
 

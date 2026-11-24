@@ -145,6 +145,14 @@ class RegistrationTests(unittest.TestCase):
         hanzi = '你好世界'
         self.assertEqual(pn(hanzi, 'zh'), 'ni hao shi jie')
 
+    def test_chinese_red_hat_in_hanzi_matches_latin_brand(self):
+        pn = self.module.phonetic_normalize
+        sim = self.module.levenshtein_similarity
+        phrase = 'Red Hat在开源创新中处于领先地位'
+        for heard in ('红帽在开源创新中处于领先地位', '紅帽在開源創新中處於領先地位'):
+            with self.subTest(heard=heard):
+                self.assertEqual(sim(pn(heard, 'zh'), pn(phrase, 'zh')), 1.0)
+
     def test_phonetic_normalization_passthrough(self):
         pn = self.module.phonetic_normalize
         self.assertEqual(pn('hello world', 'en'), 'hello world')
