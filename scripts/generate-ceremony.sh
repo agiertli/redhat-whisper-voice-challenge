@@ -121,7 +121,7 @@ import sqlite3, json
 db = sqlite3.connect('/app/data/tournament.db')
 db.row_factory = sqlite3.Row
 
-total_players = db.execute('SELECT COUNT(*) FROM players').fetchone()[0]
+total_players = db.execute('SELECT COUNT(DISTINCT player_id) FROM games WHERE completed_at IS NOT NULL').fetchone()[0]
 total_games = db.execute('SELECT COUNT(*) FROM games WHERE completed_at IS NOT NULL').fetchone()[0]
 total_attempts = db.execute('SELECT COUNT(*) FROM attempts WHERE status != \"skip\"').fetchone()[0]
 perfect_scores = db.execute('SELECT COUNT(*) FROM attempts WHERE accuracy >= 0.99').fetchone()[0]
