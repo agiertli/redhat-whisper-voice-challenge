@@ -101,17 +101,35 @@
   "it": [
     "OpenShift è un ottimo prodotto",
     "Red Hat è leader nell'innovazione open source",
-    "L'intelligenza artificiale trasforma il business"
+    "L'intelligenza artificiale trasforma il business",
+    "Kubernetes semplifica il rilascio delle applicazioni",
+    "La containerizzazione è il futuro del cloud",
+    "L'automazione libera tempo per l'innovazione",
+    "Le soluzioni cloud aumentano l'efficienza",
+    "DevOps unisce sviluppo e operazioni",
+    "La sicurezza è una priorità nel cloud"
   ],
   "pt": [
     "OpenShift é um ótimo produto",
     "Red Hat lidera em inovação open source",
-    "A inteligência artificial transforma negócios"
+    "A inteligência artificial transforma negócios",
+    "O Kubernetes simplifica a implementação de aplicações",
+    "A conteinerização é o futuro da nuvem",
+    "A automação liberta tempo para a inovação",
+    "As soluções na nuvem aumentam a eficiência",
+    "DevOps une programadores e operações",
+    "A segurança é prioridade na nuvem"
   ],
   "nl": [
     "OpenShift is een geweldig product",
     "Red Hat leidt in open source innovatie",
-    "Kunstmatige intelligentie transformeert bedrijven"
+    "Kunstmatige intelligentie transformeert bedrijven",
+    "Kubernetes vereenvoudigt het uitrollen van applicaties",
+    "Containerisatie is de toekomst van de cloud",
+    "Automatisering maakt tijd vrij voor innovatie",
+    "Cloudoplossingen verhogen de efficiëntie",
+    "DevOps verbindt ontwikkelaars en beheerders",
+    "Beveiliging heeft prioriteit in de cloud"
   ],
   "sv": [
     "OpenShift är en fantastisk produkt",
@@ -127,12 +145,24 @@
   "ro": [
     "OpenShift este un produs excelent",
     "Red Hat conduce în inovația open source",
-    "Inteligența artificială transformă afacerile"
+    "Inteligența artificială transformă afacerile",
+    "Kubernetes simplifică implementarea aplicațiilor",
+    "Containerizarea este viitorul cloudului",
+    "Automatizarea eliberează timp pentru inovație",
+    "Soluțiile cloud cresc eficiența",
+    "DevOps unește dezvoltatorii și operațiunile",
+    "Securitatea este o prioritate în cloud"
   ],
   "uk": [
     "OpenShift це чудовий продукт",
     "Red Hat лідирує в інноваціях відкритого коду",
-    "Штучний інтелект трансформує бізнес"
+    "Штучний інтелект трансформує бізнес",
+    "Kubernetes спрощує розгортання застосунків",
+    "Контейнеризація це майбутнє хмари",
+    "Автоматизація звільняє час для інновацій",
+    "Хмарні рішення підвищують ефективність",
+    "DevOps об'єднує розробників і операції",
+    "Безпека є пріоритетом у хмарі"
   ],
   "ja": [
     "OpenShiftは素晴らしい製品です",
@@ -148,12 +178,24 @@
   "ko": [
     "OpenShift는 훌륭한 제품입니다",
     "Red Hat은 오픈소스 혁신을 선도합니다",
-    "인공지능은 비즈니스를 변화시킵니다"
+    "인공지능은 비즈니스를 변화시킵니다",
+    "Kubernetes는 애플리케이션 배포를 단순화합니다",
+    "컨테이너화는 클라우드의 미래입니다",
+    "자동화는 혁신을 위한 시간을 만들어 줍니다",
+    "클라우드 솔루션은 효율성을 높입니다",
+    "DevOps는 개발과 운영을 연결합니다",
+    "보안은 클라우드 환경의 최우선 과제입니다"
   ],
   "ar": [
     "OpenShift منتج رائع",
     "Red Hat رائدة في ابتكار المصادر المفتوحة",
-    "الذكاء الاصطناعي يحول الأعمال"
+    "الذكاء الاصطناعي يحول الأعمال",
+    "Kubernetes يبسط نشر التطبيقات",
+    "الحاويات هي مستقبل السحابة",
+    "الأتمتة توفر الوقت للابتكار",
+    "الحلول السحابية تزيد الكفاءة",
+    "DevOps يربط المطورين بالعمليات",
+    "الأمن أولوية في البيئة السحابية"
   ],
   "zh": [
     "OpenShift是出色的产品",
@@ -169,12 +211,24 @@
   "th": [
     "OpenShift เป็นผลิตภัณฑ์ที่ยอดเยี่ยม",
     "Red Hat นำในนวัตกรรมโอเพนซอร์ส",
-    "ปัญญาประดิษฐ์เปลี่ยนแปลงธุรกิจ"
+    "ปัญญาประดิษฐ์เปลี่ยนแปลงธุรกิจ",
+    "Kubernetes ช่วยให้การติดตั้งแอปพลิเคชันง่ายขึ้น",
+    "คอนเทนเนอร์คืออนาคตของคลาวด์",
+    "ระบบอัตโนมัติช่วยให้มีเวลาสร้างนวัตกรรม",
+    "โซลูชันคลาวด์เพิ่มประสิทธิภาพ",
+    "DevOps เชื่อมนักพัฒนากับฝ่ายปฏิบัติการ",
+    "ความปลอดภัยสำคัญที่สุดบนคลาวด์"
   ],
   "hi": [
     "OpenShift एक शानदार उत्पाद है",
     "Red Hat ओपन सोर्स नवाचार में अग्रणी है",
-    "कृत्रिम बुद्धिमत्ता व्यवसाय को बदल देती है"
+    "कृत्रिम बुद्धिमत्ता व्यवसाय को बदल देती है",
+    "Kubernetes एप्लिकेशन तैनाती को आसान बनाता है",
+    "कंटेनरीकरण क्लाउड का भविष्य है",
+    "स्वचालन नवाचार के लिए समय बचाता है",
+    "क्लाउड समाधान दक्षता बढ़ाते हैं",
+    "DevOps डेवलपर्स और ऑपरेशंस को जोड़ता है",
+    "क्लाउड में सुरक्षा सर्वोच्च प्राथमिकता है"
   ],
   "fi": [
     "OpenShift on erinomainen tuote",
@@ -264,12 +318,17 @@
     "DevOps აკავშირებს დეველოპერებსა და ოპერაციებს",
     "უსაფრთხოება პრიორიტეტია ღრუბლოვან გარემოში"
   ],
-
   "_romanized": {
     "uk": [
       "OpenShift tse chudovyy produkt",
       "Red Hat lidiruye v innovatsiyakh vidkrytoho kodu",
-      "Shtuchnyy intelekt transformuye biznes"
+      "Shtuchnyy intelekt transformuye biznes",
+      "Kubernetes sproshchuye rozhortannya zastosunkiv",
+      "Konteineryzatsiya tse maybutnye khmary",
+      "Avtomatyzatsiya zvilnyaye chas dlya innovatsiy",
+      "Khmarni rishennya pidvyshchuyut efektyvnist",
+      "DevOps obyednuye rozrobnykiv i operatsiyi",
+      "Bezpeka ye priorytetom u khmari"
     ],
     "ja": [
       "OpenShift wa subarashii seihin desu",
@@ -285,12 +344,24 @@
     "ko": [
       "OpenShift neun hullyunghan jepum imnida",
       "Red Hat eun opeunsoseu hyeoksin eul seondo hamnida",
-      "In-gong-ji-neung eun bijiniseu reul byeonhwa sikimnida"
+      "In-gong-ji-neung eun bijiniseu reul byeonhwa sikimnida",
+      "Kubernetes neun aepeullikeisyeon baepo reul dansunhwa hamnida",
+      "Keonteineohwa neun keullaudeu ui mirae imnida",
+      "Jadonghwa neun hyeoksin eul wihan sigan eul mandeureo jumnida",
+      "Keullaudeu sollusyeon eun hyoyulseong eul nopimnida",
+      "DevOps neun gaebal gwa unyeong eul yeongyeol hamnida",
+      "Boan eun keullaudeu hwangyeong ui choeuseon gwaje imnida"
     ],
     "ar": [
       "OpenShift muntaj rai'e",
       "Red Hat ra'ida fi ibtikar al-masadir al-maftuha",
-      "Adh-dhaka' al-istina'i yuhawwil al-a'mal"
+      "Adh-dhaka' al-istina'i yuhawwil al-a'mal",
+      "Kubernetes yubassit nashr at-tatbiqat",
+      "Al-hawiyat hiya mustaqbal as-sahaba",
+      "Al-atmata tuwaffir al-waqt lil-ibtikar",
+      "Al-hulul as-sahabiya tazid al-kafa'a",
+      "DevOps yarbut al-mutawwirin bil-'amaliyat",
+      "Al-amn awlawiya fi al-bi'a as-sahabiya"
     ],
     "zh": [
       "OpenShift shi chusei de chanpin",
@@ -306,12 +377,24 @@
     "th": [
       "OpenShift pen phalitaphan thi yotyiam",
       "Red Hat nam nai nawattakam openseot",
-      "Panya pradit plianplaeng thurakit"
+      "Panya pradit plianplaeng thurakit",
+      "Kubernetes chuai hai kan tittang aepphlikhechan ngai khuen",
+      "Khonthenoe khue anakhot khong khlaot",
+      "Rabop attanomat chuai hai mi wela sang nawattakam",
+      "Solutchan khlaot phoem prasitthiphap",
+      "DevOps chueam nak phatthana kap fai patibatkan",
+      "Khwam plotphai samkhan thi sut bon khlaot"
     ],
     "hi": [
       "OpenShift ek shaandaar utpaad hai",
       "Red Hat open source navaachaar mein agrani hai",
-      "Kritrim buddhimatta vyavasaay ko badal deti hai"
+      "Kritrim buddhimatta vyavasaay ko badal deti hai",
+      "Kubernetes eplikeshan tainaati ko aasaan banaata hai",
+      "Kantenareekaran klaud ka bhavishya hai",
+      "Svachaalan navaachaar ke liye samay bachaata hai",
+      "Klaud samaadhaan dakshata badhaate hain",
+      "DevOps devalapars aur opareshans ko jodta hai",
+      "Klaud mein suraksha sarvochch praathamikta hai"
     ],
     "bg": [
       "OpenShift e otlichen produkt",
@@ -337,3 +420,4 @@
     ]
   }
 }
+
