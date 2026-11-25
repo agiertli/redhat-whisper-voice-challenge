@@ -1929,17 +1929,19 @@
             if (won) {
                 document.getElementById('congratsTrophy').textContent = '🏆';
                 document.getElementById('congratsMessage').innerHTML = `Score: <strong>${tournamentScore}</strong>`;
-                document.getElementById('congratsBest').textContent = penaltyText || bestText;
-                document.getElementById('congratsBest').style.color = penaltyText ? 'var(--danger-orange)' : (isNewBest ? 'var(--success-green)' : 'var(--gray-40)');
-                document.getElementById('congratsRank').textContent = penaltyText ? bestText : rankText;
+                document.getElementById('congratsPenalty').textContent = penaltyText;
+                document.getElementById('congratsBest').textContent = bestText;
+                document.getElementById('congratsBest').style.color = isNewBest ? 'var(--success-green)' : 'var(--gray-40)';
+                document.getElementById('congratsRank').textContent = rankText;
                 document.getElementById('congratsOverlay').style.display = 'flex';
             } else {
                 const lossTitle = avgScore >= 60 ? 'So close!' : avgScore >= 30 ? 'Not quite!' : 'Tough one!';
                 document.getElementById('lossTitle').textContent = lossTitle;
                 document.getElementById('lossScore').innerHTML = `Score: <strong>${tournamentScore}</strong>`;
-                document.getElementById('lossBest').textContent = penaltyText || bestText;
-                document.getElementById('lossBest').style.color = penaltyText ? '#c9190b' : (isNewBest ? '#63993d' : '#a3a3a3');
-                document.getElementById('lossRank').textContent = penaltyText ? bestText : rankText;
+                document.getElementById('lossPenalty').textContent = penaltyText;
+                document.getElementById('lossBest').textContent = bestText;
+                document.getElementById('lossBest').style.color = isNewBest ? '#63993d' : '#a3a3a3';
+                document.getElementById('lossRank').textContent = rankText;
                 document.getElementById('lossOverlay').style.display = 'flex';
             }
 
@@ -2596,6 +2598,7 @@
             <h2>🎉 Congratulations! 🎉</h2>
             <div class="trophy" id="congratsTrophy">🏆</div>
             <p id="congratsMessage">You won the <strong>Gold</strong> prize!</p>
+            <p id="congratsPenalty" style="font-size: 1rem; margin-top: 10px; font-weight: 700; color: var(--danger-orange);"></p>
             <p id="congratsBest" style="font-size: 1.1rem; margin-top: 10px; font-weight: 700;"></p>
             <p id="congratsRank" style="font-size: 1.2rem; margin-top: 10px; color: var(--interaction-blue);"></p>
             <p style="font-size: 1rem; margin-top: 20px; opacity: 0.9;">{% if tournament_enabled %}Keep playing to climb the leaderboard!{% else %}Play again and try another difficulty!{% endif %}</p>
@@ -2609,6 +2612,7 @@
             <h2 id="lossTitle">😅 So close! 😅</h2>
             <div class="trophy" style="font-size: 6rem; margin: 20px 0;">💪</div>
             <p id="lossScore" style="font-size: 1.5rem; margin: 15px 0; color: var(--white);"></p>
+            <p id="lossPenalty" style="font-size: 1rem; font-weight: 700; color: #c9190b;"></p>
             <p id="lossBest" style="font-size: 1.1rem; font-weight: 700;"></p>
             <p id="lossRank" style="font-size: 1.1rem; margin: 8px 0; color: var(--interaction-blue);"></p>
             <p style="font-size: 1rem; margin-top: 20px; opacity: 0.9; color: var(--white);">Give it another shot! You've got this! 💪</p>
